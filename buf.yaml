@@ -1,0 +1,10 @@
+version: v2
+# The v2 buf.yaml file specifies a local workspace, which consists of at least one module.
+# The buf.yaml file should be placed at the root directory of the workspace, which
+# should generally be the root of your source control repository.
+modules:
+  - path: proto
+    name: buf.build/khoakomlem/wagecloud
+lint:
+  use:
+    - STANDARD

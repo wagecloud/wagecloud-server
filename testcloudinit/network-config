@@ -1,0 +1,7 @@
+version: 2
+ethernets:
+  enp4s0:
+    dhcp4: true
+    nameservers:
+      search: [omer.com, bar.local]
+      addresses: [8.8.8.8, 4.4.4.4]
