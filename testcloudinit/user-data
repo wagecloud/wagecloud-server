@@ -1,9 +1,10 @@
 #cloud-config
 users:
   - name: sumit
-    passwd: $6$COyU/y7vFO6zIxEI$vyt/36y.ura/J7z1719QodziyTneqdXFaAqv7OoVJcLFcJVv7/EO2aUBSj9juyD7fXjRQrt32gFSqCJZaCNew/
+    passwd: "$6$4uC1Rjcp3QkK5hjk$p4XrTPWvHlO/gTrG0sIhfpomzu025kRXODtOIAo.DzETo/iT8GjppKe6b1j.wSq33M.A9qtDLK0RR/tIfzezV1"
+    lock_passwd: false
     ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCisXMl0mvnYlCfwjsDa6WEqfXQ30MYkN4f5OUPKojc7OsAIP50soK9nn0r0fzAnJ/ze5szdD3XtqEvZ0VF/DFChMi8EDgSFwL6IfsSh1+56Nl1XHCXeJWZLyHkzpsDIwS7e38l25j95sWKL55yup8geB2d03YVTEdWMhhlq89Q8GN8xDVpXy9SKgFrQTP8BCmi7UZZX03LTE3kXepQ3TZgPPZZUtUFFKNA8eq4qlofOF//9u6xxrh7eOi6a8WVuxLNIOMjCoyfD7xbdLY+Vw7d2hCzjKeU1dKAD3ZGIxPllYn+eDS7hJm1pZP1WMwdEJUywQJ25Fu557s2nlc6DnXl khoakomlem
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCisXMl0mvnYlCfwjsDa6WEqfXQ30MYkN4f5OUPKojc7OsAIP50soK9nn0r0fzAnJ/ze5szdD3XtqEvZ0VF/DFChMi8EDgSFwL6IfsSh1+56Nl1XHCXeJWZLyHkzpsDIwS7e38l25j95sWKL55yup8geB2d03YVTEdWMhhlq89Q8GN8xDVpXy9SKgFrQTP8BCmi7UZZX03LTE3kXepQ3TZgPPZZUtUFFKNA8eq4qlofOF//9u6xxrh7eOi6a8WVuxLNIOMjCoyfD7xbdLY+Vw7d2hCzjKeU1dKAD3ZGIxPllYn+eDS7hJm1pZP1WMwdEJUywQJ25Fu557s2nlc6DnXl"
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     groups: sudo
     shell: /bin/bash
