@@ -1,10 +1,9 @@
 package core
 
 import (
+	"github.com/kdomanski/iso9660"
 	"io"
 	"log"
-
-	"github.com/kdomanski/iso9660"
 )
 
 type GenISOParams struct {
@@ -26,9 +25,11 @@ func GenISO(params GenISOParams) {
 		log.Fatalf("failed to add user-data: %s", err)
 	}
 
-	err = writer.AddFile(params.Metadata, "meta-data")
-	if err != nil {
-		log.Fatalf("failed to add meta-data: %s", err)
+	if params.Metadata != nil {
+		err = writer.AddFile(params.Metadata, "meta-data")
+		if err != nil {
+			log.Fatalf("failed to add meta-data: %s", err)
+		}
 	}
 
 	err = writer.WriteTo(params.ResultIso, "cidata")
