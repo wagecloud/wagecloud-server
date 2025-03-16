@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GoVirService/internal/cloud-init"
 	"GoVirService/internal/core"
 	"GoVirService/internal/model"
 	"flag"
@@ -9,7 +10,7 @@ import (
 	"os"
 )
 
-var ubuntu = model.OS{
+var ubuntu = model.OS {
 	Name: "UbuntuFocal",
 }
 
@@ -19,21 +20,30 @@ func main() {
 	//  --disk path=/var/lib/libvirt/images/ubuntu-with-init.iso,device=cdrom
 	// --os-variant=ubuntu20.04 --network bridge=virbr0,model=virtio
 	// --graphics vnc,listen=0.0.0.0 --noautoconsole
-	sourceIso := flag.String("source", "", "path to the source ISO file")
-	cloudinit := flag.String("cloudinit", "", "path to the cloud-init ISO file")
-	ram := flag.Int("ram", 2048, "amount of RAM in MiB")
-	vcpus := flag.Uint("vcpus", 1, "number of VCPUs")
+	// sourceIso := flag.String("source", "", "path to the source ISO file")
+	// cloudinit := flag.String("cloudinit", "", "path to the cloud-init ISO file")
+	// ram := flag.Int("ram", 2048, "amount of RAM in MiB")
+	// vcpus := flag.Uint("vcpus", 1, "number of VCPUs")
+	// flag.Parse()
+	//
+	// core.InstallDomain(core.InstallDomainParams{
+	// 	OS:            ubuntu,
+	// 	Memory:        *ram,
+	// 	VCPUs:         *vcpus,
+	// 	SourcePath:    *sourceIso,
+	// 	CloudInitPath: *cloudinit,
+	// })
 
-	flag.Parse()
+	// userdataParams := &cloudinit.UserDataParams{
+	// 	Name:    "ubuntu",
+	// 	SSHKeys: []string{"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZ", "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZ"},
+	// }
 
-	core.InstallDomain(core.InstallDomainParams{
-		OS:            ubuntu,
-		Memory:        *ram,
-		VCPUs:         *vcpus,
-		SourcePath:    *sourceIso,
-		CloudInitPath: *cloudinit,
-	})
+	// userdata := cloudinit.GenerateUserData(userdataParams)
+	// fmt.Println(userdata)
 
+	passwd, _ := cloudinit.HashPassword("password", cloudinit.SHA512)
+	fmt.Println(passwd)
 }
 
 func test2() {

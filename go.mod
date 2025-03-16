@@ -9,5 +9,7 @@ require (
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/kdomanski/iso9660 v0.4.0 // indirect
+	github.com/kdomanski/iso9660 v0.4.0
 )
+
+require gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -51,6 +51,7 @@ func InstallDomain(params InstallDomainParams) {
 			Placement: "static",
 			Value:     params.VCPUs,
 		},
+
 		OS: &libvirtxml.DomainOS{
 			Type: &libvirtxml.DomainOSType{
 				Arch:    "x86_64",
