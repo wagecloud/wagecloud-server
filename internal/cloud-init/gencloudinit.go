@@ -2,10 +2,12 @@ package cloudinit
 
 import (
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/yaml.v3"
 )
 
 type HashType string
@@ -21,8 +23,13 @@ type Customer struct {
 	LockPasswd bool
 }
 
-type CloudConfig struct {
+type UserCloudConfig struct {
 	Users []UserDataParams `yaml:"users"` // represents list of users in user-data file
+}
+
+type MetadataCloudConfig struct {
+	InstanceID    string `yaml:"instance-id"`
+	LocalHostname string `yaml:"local-hostname"`
 }
 
 type UserDataParams struct {
@@ -31,25 +38,35 @@ type UserDataParams struct {
 	Passwd     string   `yaml:"passwd,omitempty"`
 	LockPasswd bool     `yaml:"lock_passwd"`
 	Groups     string   `yaml:"groups,omitempty"`
+	Sudo       string   `yaml:"sudo,omitempty"`
 	Shell      string   `yaml:"shell,omitempty"`
 }
 
-func WriteUserData(customer *Customer) error {
-	fmt.Println("Name: ", customer.Name)
-	fmt.Println("SSHKeys: ", customer.SSHKeys)
-	fmt.Println("Passwd: ", customer.Passwd)
-	fmt.Println("------")
+func WriteCloudInitFiles(customer *Customer, path string) error {
+	err := WriteUserData(customer, path)
+	if err != nil {
+		return fmt.Errorf("failed to write user data: %s", err)
+	}
 
+	err = WriteMetaData(customer, path)
+	if err != nil {
+		return fmt.Errorf("failed to write metadata: %s", err)
+	}
+
+	return nil
+}
+
+func WriteUserData(customer *Customer, folderPath string) error {
 	userData1 := &UserDataParams{
 		Name:       customer.Name,
 		SSHKeys:    customer.SSHKeys,
 		Passwd:     customer.Passwd,
 		LockPasswd: customer.LockPasswd,
+		Sudo:       "ALL=(ALL) NOPASSWD:ALL",
 		Groups:     "sudo",
 		Shell:      "/bin/bash",
 	}
 
-	folderPath := fmt.Sprintf("./cloud-init-files/%s/%s", customer.Name, "vm1")
 	filepath := filepath.Join(folderPath, "user-data")
 
 	err := os.MkdirAll(folderPath, os.ModePerm)
@@ -64,8 +81,31 @@ func WriteUserData(customer *Customer) error {
 	return nil
 }
 
+func WriteMetaData(customer *Customer, folderPath string) error {
+	metaData := &MetadataCloudConfig{
+		InstanceID:    customer.Name + "-" + genUUID(),
+		LocalHostname: customer.Name,
+	}
+
+	filepath := filepath.Join(folderPath, "meta-data")
+
+	err := os.MkdirAll(folderPath, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create folder: %s", err)
+	}
+
+	content, err := yaml.Marshal(metaData)
+
+	if err != nil {
+		return fmt.Errorf("failed to marshal metadata: %s", err)
+	}
+
+	os.WriteFile(filepath, content, 0644)
+	return nil
+}
+
 func GenerateUserData(params []UserDataParams) string {
-	cloudConfig := &CloudConfig{
+	cloudConfig := &UserCloudConfig{
 		Users: params,
 	}
 
@@ -98,4 +138,8 @@ func HashPassword(plainPassword string, hashType HashType) (string, error) {
 	}
 
 	return string(hashedPassword), nil
+}
+
+func genUUID() string {
+	return uuid.New().String()
 }
