@@ -3,7 +3,6 @@ package libvirt
 import (
 	"fmt"
 	"log"
-	// "time"
 
 	"github.com/google/uuid"
 	"github.com/libvirt/libvirt-go"
@@ -48,7 +47,7 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 
 	domainXML := &libvirtxml.Domain{
 		Type: "kvm",
-		Name: "debian12",
+		Name: "ubuntu",
 		UUID: uuid.New().String(),
 		Memory: &libvirtxml.DomainMemory{
 			Value: spec.Memory.Value,
@@ -105,34 +104,31 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: "/var/lib/libvirt/images/debian-12-genericcloud-amd64.qcow2",
+							File: "/var/lib/libvirt/images/ubuntu-clone.img",
 						},
-						Index: 1,
 					},
 					Target: &libvirtxml.DomainDiskTarget{
 						Dev: "vda",
 						Bus: "virtio",
 					},
 				},
-				// {
-				// 	Device: "cdrom",
-				// 	Driver: &libvirtxml.DomainDiskDriver{
-				// 		Name: "qemu",
-				// 		Type: "raw",
-				// 	},
-				// 	Source: &libvirtxml.DomainDiskSource{
-				// 		File: &libvirtxml.DomainDiskSourceFile{
-				// 			File: "/var/lib/libvirt/images/debian-12.9.0-amd64-netinst.iso",
-				// 		},
-				// 		Index: 1,
-				// 	},
-				// 	Target: &libvirtxml.DomainDiskTarget{
-				// 		Dev: "sda",
-				// 		Bus: "sata",
-				// 	},
-				// 	ReadOnly: &libvirtxml.DomainDiskReadOnly{},
-				// },
-			},
+				{
+					Device: "cdrom",
+					Driver: &libvirtxml.DomainDiskDriver{
+						Name: "qemu",
+						Type: "raw",
+					},
+					Source: &libvirtxml.DomainDiskSource{
+						File: &libvirtxml.DomainDiskSourceFile{
+							File: "/var/lib/libvirt/images/cida.iso",
+						},
+					},
+					Target: &libvirtxml.DomainDiskTarget{
+						Dev: "sdb", // CD-ROM device
+						Bus: "sata",
+					},
+					ReadOnly: &libvirtxml.DomainDiskReadOnly{},
+				}},
 			Interfaces: []libvirtxml.DomainInterface{
 				{
 					MAC: &libvirtxml.DomainInterfaceMAC{

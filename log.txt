@@ -1,1 +1,40 @@
-$6$BYXFVK1EK9jnNrAp$ve7VSgDj94Sn598Houj53f3lZgNIBon1uqloZ6a/Qfbdn2A.uOeKTb1odIAOovhoktlVFLMQKHJfFz6n4MRuJ.
+Connected to libvirt
+<domain type="kvm">
+  <name>ubuntu</name>
+  <uuid>26c306ef-cfb1-41b5-9136-03418e2099a7</uuid>
+  <memory unit="MiB">2048</memory>
+  <currentMemory unit="MiB">2048</currentMemory>
+  <vcpu placement="static">1</vcpu>
+  <os>
+    <type arch="x86_64" machine="pc-q35-6.2">hvm</type>
+    <boot dev="cdrom"></boot>
+    <boot dev="hd"></boot>
+  </os>
+  <features>
+    <acpi></acpi>
+  </features>
+  <cpu mode="host-passthrough" check="none" migratable="on"></cpu>
+  <clock offset="utc"></clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>destroy</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <disk type="file" device="disk">
+      <driver name="qemu" type="qcow2" discard="unmap"></driver>
+      <source file="/var/lib/libvirt/images/ubuntu-clone.img"></source>
+      <target dev="vda" bus="virtio"></target>
+    </disk>
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"></driver>
+      <source file="/var/lib/libvirt/images/cida.iso"></source>
+      <target dev="sdb" bus="sata"></target>
+      <readonly></readonly>
+    </disk>
+    <interface type="network">
+      <mac address="52:54:00:b7:a5:c2"></mac>
+      <source network="default" bridge="virbr0"></source>
+      <model type="virtio"></model>
+    </interface>
+    <graphics type="vnc" port="-1" listen="0.0.0.0"></graphics>
+  </devices>
+</domain>
