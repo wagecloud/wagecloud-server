@@ -166,15 +166,21 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 	if err != nil {
 		log.Fatalf("Failed to generate XML: %v", err)
 	}
-
-	fmt.Println(string(xmlData))
-
 	domain, err := conn.DomainDefineXML(xmlData)
+
 	if err != nil {
 		log.Fatalf("Failed to define domain: %v", err)
 	}
 
-	defer domain.Free()
-
 	return domain, nil
+}
+
+func StartDomain(domain *libvirt.Domain) error {
+	err := domain.Create()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

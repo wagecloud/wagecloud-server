@@ -2,10 +2,12 @@ package cloudinit
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
+	"github.com/kdomanski/iso9660"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/yaml.v3"
 )
@@ -138,6 +140,49 @@ func HashPassword(plainPassword string, hashType HashType) (string, error) {
 	}
 
 	return string(hashedPassword), nil
+}
+
+func GenISO(folderPath string, output string) error {
+	userdataFile, err := os.Open(filepath.Join(folderPath, "user-data"))
+	if err != nil {
+		return fmt.Errorf("failed to open user-data: %s", err)
+	}
+	defer userdataFile.Close()
+
+	metaDataFile, err := os.Open(filepath.Join(folderPath, "meta-data"))
+	if err != nil {
+		return fmt.Errorf("failed to open meta-data: %s", err)
+	}
+	defer metaDataFile.Close()
+
+	iso, err := os.Create(output)
+	if err != nil {
+		return fmt.Errorf("failed to create ISO image: %s", err)
+	}
+
+	writer, err := iso9660.NewWriter()
+	if err != nil {
+		return fmt.Errorf("failed to create writer: %s", err)
+	}
+	defer writer.Cleanup()
+
+	err = writer.AddFile(userdataFile, "user-data")
+	if err != nil {
+		return fmt.Errorf("failed to add user-data: %s", err)
+	}
+
+	err = writer.AddFile(metaDataFile, "meta-data")
+	if err != nil {
+		return fmt.Errorf("failed to add meta-data: %s", err)
+	}
+
+	err = writer.WriteTo(iso, "cidata")
+	if err != nil {
+		return fmt.Errorf("failed to write ISO image: %s", err)
+	}
+
+	log.Printf("ISO image created successfully")
+	return nil
 }
 
 func genUUID() string {

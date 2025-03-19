@@ -1,7 +1,7 @@
 Connected to libvirt
 <domain type="kvm">
   <name>ubuntu</name>
-  <uuid>26c306ef-cfb1-41b5-9136-03418e2099a7</uuid>
+  <uuid>9a9f4130-7603-4ca2-9e35-b32345ca9d22</uuid>
   <memory unit="MiB">2048</memory>
   <currentMemory unit="MiB">2048</currentMemory>
   <vcpu placement="static">1</vcpu>
@@ -38,3 +38,4 @@ Connected to libvirt
     <graphics type="vnc" port="-1" listen="0.0.0.0"></graphics>
   </devices>
 </domain>
+Created domain
