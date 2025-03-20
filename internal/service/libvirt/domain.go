@@ -1,4 +1,4 @@
-package domain
+package libvirt
 
 import (
 	"fmt"

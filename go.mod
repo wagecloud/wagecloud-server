@@ -1,4 +1,4 @@
-module GoVirService
+module github.com/wagecloud/wagecloud-server
 
 go 1.23.4
 
