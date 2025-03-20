@@ -1,4 +1,4 @@
-package libvirt
+package domain
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/libvirt/libvirt-go"
-	"github.com/libvirt/libvirt-go-xml"
+	libvirtxml "github.com/libvirt/libvirt-go-xml"
 )
 
 type MemoryUnit string
@@ -50,32 +50,24 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 		Name: "ubuntu",
 		UUID: uuid.New().String(),
 		Memory: &libvirtxml.DomainMemory{
-			Value: spec.Memory.Value,
-			Unit:  string(spec.Memory.Unit),
+			Value: 2048,
+			Unit:  "MiB",
 		},
 		CurrentMemory: &libvirtxml.DomainCurrentMemory{
-			Value: spec.Memory.Value,
-			Unit:  string(spec.Memory.Unit),
+			Value: 2048,
+			Unit:  "MiB",
 		},
 		VCPU: &libvirtxml.DomainVCPU{
 			Placement: "static",
-			Value:     spec.CPU,
+			Value:     1,
 		},
 		OS: &libvirtxml.DomainOS{
 			Type: &libvirtxml.DomainOSType{
 				Arch:    "x86_64",
 				Machine: "pc-q35-6.2",
 				Type:    "hvm",
+				// ID:      "ubuntu20.04",
 			},
-			BootDevices: []libvirtxml.DomainBootDevice{
-				{Dev: "cdrom"}, // Boot from ISO first
-				{Dev: "hd"},    // Then hard disk
-			},
-		},
-		Features: &libvirtxml.DomainFeatureList{
-			ACPI: &libvirtxml.DomainFeature{},
-			// APIC:   &libvirtxml.DomainFeature{},
-			// VMPort: &libvirtxml.DomainFeatureVM{State: "off"},
 		},
 		CPU: &libvirtxml.DomainCPU{
 			Mode:       "host-passthrough",
@@ -84,11 +76,6 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 		},
 		Clock: &libvirtxml.DomainClock{
 			Offset: "utc",
-			// Timers: []*libvirtxml.DomainTimer{
-			// 	{Name: "rtc", TickPolicy: "catchup"},
-			// 	{Name: "pit", TickPolicy: "delay"},
-			// 	{Name: "hpet", Present: "no"},
-			// },
 		},
 		OnPoweroff: "destroy",
 		OnReboot:   "destroy",
@@ -104,7 +91,7 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: "/var/lib/libvirt/images/ubuntu-clone.img",
+							File: "/home/khoakomlem/wage-cloud/wagecloud-server/testcloudinit/focal-server-cloudimg-amd64.img",
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -120,25 +107,24 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: "/var/lib/libvirt/images/cida.iso",
+							File: "/var/lib/libvirt/images/vm1.iso",
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
-						Dev: "sdb", // CD-ROM device
+						Dev: "sdb",
 						Bus: "sata",
 					},
 					ReadOnly: &libvirtxml.DomainDiskReadOnly{},
-				}},
+				},
+			},
 			Interfaces: []libvirtxml.DomainInterface{
 				{
 					MAC: &libvirtxml.DomainInterfaceMAC{
 						Address: "52:54:00:b7:a5:c2",
 					},
-
 					Source: &libvirtxml.DomainInterfaceSource{
-						Network: &libvirtxml.DomainInterfaceSourceNetwork{
-							Network: "default",
-							Bridge:  "virbr0",
+						Bridge: &libvirtxml.DomainInterfaceSourceBridge{
+							Bridge: "virbr0",
 						},
 					},
 					Model: &libvirtxml.DomainInterfaceModel{
@@ -152,10 +138,13 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 						Port:   -1,
 						Listen: "0.0.0.0",
 					},
-
-					Spice: &libvirtxml.DomainGraphicSpice{
-						Port:   -1,
-						Listen: "0.0.0.0",
+				},
+			},
+			Consoles: []libvirtxml.DomainConsole{
+				{
+					TTY: "pty",
+					Target: &libvirtxml.DomainConsoleTarget{
+						Type: "serial",
 					},
 				},
 			},
