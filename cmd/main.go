@@ -3,6 +3,7 @@ package main
 import (
 	cloudinit "GoVirService/internal/cloud-init"
 	"GoVirService/internal/core"
+	"GoVirService/internal/libvirt"
 	"GoVirService/internal/model"
 	"flag"
 	"fmt"
@@ -56,32 +57,32 @@ func main() {
 		log.Fatalf("failed to write cloud-init files: %s", err)
 	}
 
-	err = cloudinit.GenISO("./cloud-init-files/ubuntu/vm1", "./cloud-init-files/ubuntu/vm1.iso")
+	// err = cloudinit.GenISO("./cloud-init-files/ubuntu/vm1", "/var/lib/libvirt/vm1.iso")
+	// if err != nil {
+	// 	log.Fatalf("failed to generate cloud-init ISO: %s", err)
+	// }
+
+	domain, err := libvirt.CreateDomain(&libvirt.Spec{
+		CPU: 1,
+		Memory: &libvirt.Memory{
+			Value: 2048,
+			Unit:  libvirt.MiB,
+		},
+		OS: libvirt.OSTypeUbuntu,
+	})
+
 	if err != nil {
-		log.Fatalf("failed to generate cloud-init ISO: %s", err)
+		log.Fatalf("Failed to create domain: %v", err)
 	}
 
-	// domain, err := libvirt.CreateDomain(&libvirt.Spec{
-	// 	CPU: 1,
-	// 	Memory: &libvirt.Memory{
-	// 		Value: 2048,
-	// 		Unit:  libvirt.MiB,
-	// 	},
-	// 	OS: libvirt.OSTypeUbuntu,
-	// })
-	//
-	// if err != nil {
-	// 	log.Fatalf("Failed to create domain: %v", err)
-	// }
-	//
-	// defer domain.Free()
-	//
-	// err = libvirt.StartDomain(domain)
-	// if err != nil {
-	// 	log.Fatalf("Failed to start domain: %v", err)
-	// }
-	//
-	// fmt.Println("Started domain")
+	defer domain.Free()
+
+	err = libvirt.StartDomain(domain)
+	if err != nil {
+		log.Fatalf("Failed to start domain: %v", err)
+	}
+
+	fmt.Println("Started domain")
 }
 
 func test2() {
