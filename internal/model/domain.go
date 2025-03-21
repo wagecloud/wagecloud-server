@@ -1,6 +1,11 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+	"github.com/wagecloud/wagecloud-server/config"
+)
 
 type Memory struct {
 	Value uint
@@ -12,14 +17,23 @@ type Cpu struct {
 }
 
 type Domain struct {
-	Name          string
-	UUID          string
-	Arch          Arch
-	Memory        Memory
-	Cpu           Cpu
-	OS            OS
-	SourcePath    string
-	CloudinitPath string
+	UUID   string
+	Name   string
+	Memory Memory
+	Cpu    Cpu
+	OS     OS
+}
+
+func (d Domain) BaseImagePath() string {
+	return fmt.Sprintf("%s/%s", config.GetConfig().App.BaseImageDir, d.OS.ImageName())
+}
+
+func (d Domain) ImagePath() string {
+	return fmt.Sprintf("%s/%s.img", config.GetConfig().App.ImageDir, d.UUID)
+}
+
+func (d Domain) CloudinitPath() string {
+	return fmt.Sprintf("%s/cloudinit_%s.iso", config.GetConfig().App.CloudinitDir, d.UUID)
 }
 
 type DomainOption func(*Domain)
@@ -42,7 +56,13 @@ func WithDomainCpu(value uint) DomainOption {
 	}
 }
 
-func NewDomain(options ...DomainOption) *Domain {
+func WithDomainOS(os OS) DomainOption {
+	return func(domain *Domain) {
+		domain.OS = os
+	}
+}
+
+func NewDomain(options ...DomainOption) Domain {
 	// Initialize the domain struct
 	domain := &Domain{
 		UUID: uuid.New().String(),
@@ -52,5 +72,5 @@ func NewDomain(options ...DomainOption) *Domain {
 		option(domain)
 	}
 
-	return domain
+	return *domain
 }
