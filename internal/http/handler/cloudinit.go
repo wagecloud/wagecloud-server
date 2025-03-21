@@ -2,12 +2,14 @@ package handler
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
+	"os"
+	"path"
 
+	"github.com/wagecloud/wagecloud-server/config"
 	"github.com/wagecloud/wagecloud-server/internal/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/model"
-	"github.com/wagecloud/wagecloud-server/internal/service/cloudinit"
+	"github.com/wagecloud/wagecloud-server/internal/util/file"
 )
 
 // CreateCloudinitRequest represents the request body for creating a cloudinit ISO
@@ -24,27 +26,22 @@ func (h *Handler) CreateCloudinit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := cloudinit.CreateCloudinitParams{
-		Userdata: req.Userdata,
-		Metadata: req.Metadata,
+	cloudinitFile, err := os.Create(req.Userdata.Name + ".iso")
+	if err != nil {
+		response.FromError(w, http.StatusInternalServerError, "Failed to create temporary file: "+err.Error())
 	}
+	defer os.Remove(cloudinitFile.Name())
 
-	isoReader, err := h.service.Cloudinit.CreateCloudinit(params)
+	err = h.service.Cloudinit.CreateCloudinit(cloudinitFile, req.Userdata, req.Metadata)
 	if err != nil {
 		response.FromError(w, http.StatusInternalServerError, "Failed to create cloudinit ISO: "+err.Error())
 		return
 	}
 
-	// Set appropriate headers for file download
-	w.Header().Set("Content-Disposition", "attachment; filename=cloudinit.iso")
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.WriteHeader(http.StatusOK)
-
-	// Stream the ISO file to the client
-	_, err = io.Copy(w, isoReader)
-	if err != nil {
-		// Note: We can't send an error response here as we've already started writing the response
-		http.Error(w, "Failed to stream ISO file", http.StatusInternalServerError)
+	if err = file.Move(cloudinitFile.Name(), path.Join(config.GetConfig().App.CloudinitDir, cloudinitFile.Name())); err != nil {
+		response.FromError(w, http.StatusInternalServerError, "Failed to move cloudinit ISO: "+err.Error())
 		return
 	}
+
+	response.FromMessage(w, http.StatusCreated, "Cloudinit ISO created successfully")
 }

@@ -21,7 +21,7 @@ func (h *Handler) CreateImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Qemu.ImageCreate(req.BaseImagePath, req.CloneImagePath)
+	err := h.service.Qemu.CreateImage(req.BaseImagePath, req.CloneImagePath)
 	if err != nil {
 		response.FromError(w, http.StatusInternalServerError, "Failed to create image: "+err.Error())
 		return

@@ -11,13 +11,10 @@ import (
 
 // CreateDomainRequest represents the request body for creating a domain
 type CreateDomainRequest struct {
-	Name          string       `json:"name"`
-	UUID          string       `json:"uuid"`
-	Memory        model.Memory `json:"memory"`
-	Cpu           model.Cpu    `json:"cpu"`
-	Arch          string       `json:"arch"`
-	SourcePath    string       `json:"sourcePath"`
-	CloudinitPath string       `json:"cloudinitPath"`
+	Name   string       `json:"name"`
+	Memory model.Memory `json:"memory"`
+	Cpu    model.Cpu    `json:"cpu"`
+	OS     model.OS     `json:"os"`
 }
 
 // CreateDomain handles the creation of a new domain
@@ -28,15 +25,15 @@ func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domain := model.Domain{
-		Name:          req.Name,
-		UUID:          req.UUID,
-		Memory:        req.Memory,
-		Cpu:           req.Cpu,
-		Arch:          model.Arch(req.Arch),
-		SourcePath:    req.SourcePath,
-		CloudinitPath: req.CloudinitPath,
-	}
+	domain := model.NewDomain(
+		model.WithDomainName(req.Name),
+		model.WithDomainMemory(req.Memory.Value, req.Memory.Unit),
+		model.WithDomainCpu(req.Cpu.Value),
+		model.WithDomainOS(model.OS{
+			Arch: req.OS.Arch,
+			Name: req.OS.Name,
+		}),
+	)
 
 	_, err := h.service.Libvirt.CreateDomain(domain)
 	if err != nil {
