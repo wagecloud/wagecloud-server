@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/wagecloud/wagecloud-server/internal/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 )
 
@@ -19,17 +20,11 @@ type CreateDomainRequest struct {
 	CloudinitPath string       `json:"cloudinitPath"`
 }
 
-// CreateDomainResponse represents the response for creating a domain
-type CreateDomainResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}
-
 // CreateDomain handles the creation of a new domain
 func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 	var req CreateDomainRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		response.FromError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
@@ -45,28 +40,22 @@ func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.service.Libvirt.CreateDomain(domain)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to create domain: "+err.Error())
+		response.FromError(w, http.StatusInternalServerError, "Failed to create domain: "+err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, CreateDomainResponse{
-		Success: true,
-		Message: "Domain created successfully",
-	})
+	response.FromMessage(w, http.StatusCreated, "Domain created successfully")
 }
 
 // StartDomain handles starting a domain
 func (h *Handler) StartDomain(w http.ResponseWriter, r *http.Request) {
 	domainID := chi.URLParam(r, "domainID")
 	if domainID == "" {
-		respondWithError(w, http.StatusBadRequest, "Domain ID is required")
+		response.FromError(w, http.StatusBadRequest, "Domain ID is required")
 		return
 	}
 
 	// Here you would typically retrieve the domain from libvirt using the ID
 	// For now, we'll just return a mock response
-	respondWithJSON(w, http.StatusOK, map[string]string{
-		"status":  "success",
-		"message": "Domain started successfully",
-	})
+	response.FromMessage(w, http.StatusOK, "Domain started successfully")
 }

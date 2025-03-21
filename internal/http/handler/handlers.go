@@ -1,9 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wagecloud/wagecloud-server/internal/service"
@@ -50,23 +47,4 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	})
 
 	return r
-}
-
-// respondWithJSON is a helper function to respond with JSON
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, err := json.Marshal(payload)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Error marshalling JSON"))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
-}
-
-// respondWithError is a helper function to respond with an error
-func respondWithError(w http.ResponseWriter, code int, message string) {
-	respondWithJSON(w, code, map[string]string{"error": message})
 }

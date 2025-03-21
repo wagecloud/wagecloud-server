@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/wagecloud/wagecloud-server/internal/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/service/cloudinit"
 )
@@ -19,7 +20,7 @@ type CreateCloudinitRequest struct {
 func (h *Handler) CreateCloudinit(w http.ResponseWriter, r *http.Request) {
 	var req CreateCloudinitRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		response.FromError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
@@ -30,7 +31,7 @@ func (h *Handler) CreateCloudinit(w http.ResponseWriter, r *http.Request) {
 
 	isoReader, err := h.service.Cloudinit.CreateCloudinit(params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to create cloudinit ISO: "+err.Error())
+		response.FromError(w, http.StatusInternalServerError, "Failed to create cloudinit ISO: "+err.Error())
 		return
 	}
 
