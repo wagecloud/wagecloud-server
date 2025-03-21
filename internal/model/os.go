@@ -1,13 +1,12 @@
 package model
 
-type OSType string
-
-const (
-	OSTypeUbuntu OSType = "ubuntu"
-	OSTypeDebian OSType = "debian"
-)
+import "fmt"
 
 type OS struct {
+	Name string // e.g. Ubuntu, CentOS, Debian
 	Arch Arch
-	Type OSType
+}
+
+func (o OS) ImageName() string {
+	return fmt.Sprintf("%s_%s.img", o.Name, o.Arch)
 }
