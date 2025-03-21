@@ -1,72 +1,50 @@
 package libvirt
 
 import (
-	"fmt"
 	"log"
 
-	"github.com/google/uuid"
 	"github.com/libvirt/libvirt-go"
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
+	"github.com/wagecloud/wagecloud-server/internal/model"
+	"github.com/wagecloud/wagecloud-server/internal/repository"
 )
 
-type MemoryUnit string
-
-const (
-	MiB MemoryUnit = "MiB"
-	GiB MemoryUnit = "GiB"
-)
-
-type OSType string
-
-const (
-	OSTypeUbuntu OSType = "ubuntu"
-	OSTypeDebian OSType = "debian"
-)
-
-type Memory struct {
-	Value uint
-	Unit  MemoryUnit
+type Service struct {
+	repo *repository.Repository
 }
 
-type Spec struct {
-	CPU    uint
-	Memory *Memory
-	OS     OSType
+func NewService(repo *repository.Repository) *Service {
+	return &Service{repo: repo}
 }
 
-func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
+func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 	conn, err := libvirt.NewConnect("qemu:///system")
-
 	if err != nil {
 		log.Fatalf("Failed to connect to libvirt: %v", err)
 	}
-
 	defer conn.Close()
-
-	fmt.Println("Connected to libvirt")
 
 	domainXML := &libvirtxml.Domain{
 		Type: "kvm",
-		Name: "ubuntu",
-		UUID: uuid.New().String(),
+		Name: domain.Name,
+		UUID: domain.UUID,
 		Memory: &libvirtxml.DomainMemory{
-			Value: 2048,
-			Unit:  "MiB",
+			Value: domain.Memory.Value,
+			Unit:  string(domain.Memory.Unit),
 		},
 		CurrentMemory: &libvirtxml.DomainCurrentMemory{
-			Value: 2048,
-			Unit:  "MiB",
+			Value: domain.Memory.Value,
+			Unit:  string(domain.Memory.Unit),
 		},
 		VCPU: &libvirtxml.DomainVCPU{
 			Placement: "static",
-			Value:     1,
+			Value:     domain.Cpu.Value,
 		},
 		OS: &libvirtxml.DomainOS{
 			Type: &libvirtxml.DomainOSType{
-				Arch:    "x86_64",
+				Arch:    string(domain.Arch),
 				Machine: "pc-q35-6.2",
 				Type:    "hvm",
-				// ID:      "ubuntu20.04",
 			},
 		},
 		CPU: &libvirtxml.DomainCPU{
@@ -91,7 +69,7 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: "/home/khoakomlem/wage-cloud/wagecloud-server/testcloudinit/focal-server-cloudimg-amd64.img",
+							File: domain.SourcePath,
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -107,7 +85,7 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: "/var/lib/libvirt/images/vm1.iso",
+							File: domain.CloudinitPath,
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -155,16 +133,11 @@ func CreateDomain(spec *Spec) (*libvirt.Domain, error) {
 	if err != nil {
 		log.Fatalf("Failed to generate XML: %v", err)
 	}
-	domain, err := conn.DomainDefineXML(xmlData)
 
-	if err != nil {
-		log.Fatalf("Failed to define domain: %v", err)
-	}
-
-	return domain, nil
+	return conn.DomainDefineXML(xmlData)
 }
 
-func StartDomain(domain *libvirt.Domain) error {
+func (s *Service) StartDomain(domain *libvirt.Domain) error {
 	err := domain.Create()
 
 	if err != nil {
