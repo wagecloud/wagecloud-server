@@ -8,7 +8,10 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/wagecloud/wagecloud-server/config"
+	"github.com/wagecloud/wagecloud-server/internal/http"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
+	"github.com/wagecloud/wagecloud-server/internal/repository"
+	"github.com/wagecloud/wagecloud-server/internal/service"
 )
 
 const defaultConfigFile = "config/config.dev.yml"
@@ -20,6 +23,7 @@ func main() {
 	setUpConfig()
 	setupLogger()
 	setupSentry()
+	setupHttp()
 }
 
 func setUpConfig() {
@@ -56,4 +60,13 @@ func setupSentry() {
 	defer sentry.Flush(2 * time.Second)
 
 	sentry.CaptureMessage("It works!")
+}
+
+func setupHttp() {
+	log.Default().Printf("Setting up HTTP server...")
+
+	repo := repository.NewRepository(nil)
+	service := service.New(repo)
+	server := http.NewServer(service, ":8080")
+	server.Start()
 }
