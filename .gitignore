@@ -28,3 +28,5 @@ go.work.sum
 
 config/config.*.yml
 !config/config.example.yml
+
+tmp/
