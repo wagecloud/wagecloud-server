@@ -1,29 +1,60 @@
 package libvirt
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/libvirt/libvirt-go"
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
+	"github.com/wagecloud/wagecloud-server/internal/service/qemu"
 )
 
 type Service struct {
 	repo *repository.Repository
+	qemu *qemu.Service
 }
 
 func NewService(repo *repository.Repository) *Service {
 	return &Service{repo: repo}
 }
 
+func (s *Service) StartDomain(domain *libvirt.Domain) error {
+	err := domain.Create()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 	conn, err := libvirt.NewConnect("qemu:///system")
 	if err != nil {
-		log.Fatalf("Failed to connect to libvirt: %v", err)
+		return nil, fmt.Errorf("failed to connect to libvirt: %v", err)
 	}
 	defer conn.Close()
 
+	// Create new qcow2 image from base image
+	if err = s.qemu.CreateImage(domain.BaseImagePath(), domain.ImagePath()); err != nil {
+		return nil, fmt.Errorf("failed to clone image: %v", err)
+	}
+
+	domainXML, err := s.GetXMLConfig(domain)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate domain XML: %v", err)
+	}
+
+	xmlData, err := domainXML.Marshal()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal domain XML: %v", err)
+	}
+
+	return conn.DomainDefineXML(xmlData)
+}
+
+func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) {
 	domainXML := &libvirtxml.Domain{
 		Type: "kvm",
 		Name: domain.Name,
@@ -42,7 +73,7 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 		},
 		OS: &libvirtxml.DomainOS{
 			Type: &libvirtxml.DomainOSType{
-				Arch:    string(domain.Arch),
+				Arch:    string(domain.OS.Arch),
 				Machine: "pc-q35-6.2",
 				Type:    "hvm",
 			},
@@ -69,7 +100,7 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.SourcePath,
+							File: domain.ImagePath(),
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -85,7 +116,7 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.CloudinitPath,
+							File: domain.CloudinitPath(),
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -129,20 +160,5 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 		},
 	}
 
-	xmlData, err := domainXML.Marshal()
-	if err != nil {
-		log.Fatalf("Failed to generate XML: %v", err)
-	}
-
-	return conn.DomainDefineXML(xmlData)
-}
-
-func (s *Service) StartDomain(domain *libvirt.Domain) error {
-	err := domain.Create()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return domainXML, nil
 }
