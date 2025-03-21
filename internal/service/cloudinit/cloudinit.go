@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
-	"os"
 
 	"github.com/kdomanski/iso9660"
 	"github.com/wagecloud/wagecloud-server/internal/model"
@@ -21,47 +19,40 @@ func NewService(repo *repository.Repository) *Service {
 	return &Service{repo: repo}
 }
 
-type CreateCloudinitParams struct {
-	Userdata model.Userdata
-	Metadata model.Metadata
-}
-
-func (s *Service) CreateCloudinit(params CreateCloudinitParams) (io.Reader, error) {
-	userdata, err := yaml.Marshal(params.Userdata)
+func (s *Service) CreateCloudinit(
+	cloudinitFile io.Writer,
+	userdata model.Userdata,
+	metadata model.Metadata,
+) error {
+	userdataYaml, err := yaml.Marshal(userdata)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal userdata: %s", err)
+		return fmt.Errorf("failed to marshal userdata: %s", err)
 	}
-	userdataReader := bytes.NewReader(userdata)
+	userdataReader := bytes.NewReader(userdataYaml)
 
-	metadata, err := yaml.Marshal(params.Metadata)
+	metadataYaml, err := yaml.Marshal(metadata)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal metadata: %s", err)
+		return fmt.Errorf("failed to marshal metadata: %s", err)
 	}
-	metadataReader := bytes.NewReader(metadata)
-
-	iso, err := os.CreateTemp("tmp", "cloudinit_*"+".iso")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create ISO image: %s", err)
-	}
+	metadataReader := bytes.NewReader(metadataYaml)
 
 	writer, err := iso9660.NewWriter()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create writer: %s", err)
+		return fmt.Errorf("failed to create writer: %s", err)
 	}
 	defer writer.Cleanup()
 
 	if err = writer.AddFile(userdataReader, "user-data"); err != nil {
-		return nil, fmt.Errorf("failed to add user-data: %s", err)
+		return fmt.Errorf("failed to add user-data: %s", err)
 	}
 
 	if err = writer.AddFile(metadataReader, "meta-data"); err != nil {
-		return nil, fmt.Errorf("failed to add meta-data: %s", err)
+		return fmt.Errorf("failed to add meta-data: %s", err)
 	}
 
-	if err = writer.WriteTo(iso, "cidata"); err != nil {
-		return nil, fmt.Errorf("failed to write ISO image: %s", err)
+	if err = writer.WriteTo(cloudinitFile, "cidata"); err != nil {
+		return fmt.Errorf("failed to write ISO image: %s", err)
 	}
 
-	log.Printf("ISO image created successfully")
-	return iso, nil
+	return nil
 }
