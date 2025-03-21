@@ -25,7 +25,10 @@ type Config struct {
 }
 
 type App struct {
-	AccessTokenDuration int64 `yaml:"accessTokenDuration"`
+	AccessTokenDuration int64  `yaml:"accessTokenDuration"`
+	BaseImageDir        string `yaml:"baseImageDir"`
+	ImageDir            string `yaml:"imageDir"`
+	CloudinitDir        string `yaml:"cloudinitDir"`
 }
 
 type HttpServer struct {
