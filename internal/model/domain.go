@@ -2,18 +2,19 @@ package model
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/config"
 )
 
 type Memory struct {
-	Value uint
-	Unit  Unit
+	Value uint `json:"value"`
+	Unit  Unit `json:"unit"`
 }
 
 type Cpu struct {
-	Value uint
+	Value uint `json:"value"`
 }
 
 type Domain struct {
@@ -25,15 +26,24 @@ type Domain struct {
 }
 
 func (d Domain) BaseImagePath() string {
-	return fmt.Sprintf("%s/%s", config.GetConfig().App.BaseImageDir, d.OS.ImageName())
+	return path.Join(
+		config.GetConfig().App.BaseImageDir,
+		d.OS.ImageName(),
+	)
 }
 
 func (d Domain) ImagePath() string {
-	return fmt.Sprintf("%s/%s.img", config.GetConfig().App.ImageDir, d.UUID)
+	return path.Join(
+		config.GetConfig().App.ImageDir,
+		fmt.Sprintf("%s.img", d.UUID),
+	)
 }
 
 func (d Domain) CloudinitPath() string {
-	return fmt.Sprintf("%s/cloudinit_%s.iso", config.GetConfig().App.CloudinitDir, d.UUID)
+	return path.Join(
+		config.GetConfig().App.CloudinitDir,
+		fmt.Sprintf("cloudinit_%s.iso", d.UUID),
+	)
 }
 
 type DomainOption func(*Domain)

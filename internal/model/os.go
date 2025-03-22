@@ -3,8 +3,8 @@ package model
 import "fmt"
 
 type OS struct {
-	Name string // e.g. Ubuntu, CentOS, Debian
-	Arch Arch
+	Name string `json:"name"`
+	Arch Arch   `json:"arch"`
 }
 
 func (o OS) ImageName() string {

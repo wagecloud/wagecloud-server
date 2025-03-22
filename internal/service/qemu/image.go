@@ -34,6 +34,8 @@ func (s *Service) CreateImage(baseImgPath string, cloneImgPath string) error {
 		"10G", // TODO: add volumn params
 	)
 
+	fmt.Println(cmd.String())
+
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to create image: %s", err)
 	}
