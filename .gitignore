@@ -30,3 +30,6 @@ config/config.*.yml
 !config/config.example.yml
 
 tmp/
+
+#contains image files
+images/

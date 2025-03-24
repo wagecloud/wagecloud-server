@@ -37,7 +37,8 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 	defer conn.Close()
 
 	// Create new qcow2 image from base image
-	if err = s.qemu.CreateImage(domain.BaseImagePath(), domain.ImagePath()); err != nil {
+
+	if err = s.qemu.CreateImage(domain.BaseImagePath(), domain.ImagePath(), domain.Storage); err != nil {
 		return nil, fmt.Errorf("failed to clone image: %v", err)
 	}
 

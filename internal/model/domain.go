@@ -23,6 +23,7 @@ type Domain struct {
 	Memory Memory
 	Cpu    Cpu
 	OS     OS
+	Storage uint 
 }
 
 func (d Domain) BaseImagePath() string {

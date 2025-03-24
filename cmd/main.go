@@ -24,6 +24,8 @@ func main() {
 	setupLogger()
 	setupSentry()
 	setupHttp()
+
+	// focal-server-cloudimg-amd64.img
 }
 
 func setUpConfig() {

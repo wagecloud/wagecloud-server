@@ -11,6 +11,7 @@ import (
 type CreateImageRequest struct {
 	BaseImagePath  string `json:"baseImagePath"`
 	CloneImagePath string `json:"cloneImagePath"`
+	Size           uint   `json:"size"`
 }
 
 // CreateImage handles the creation of a new image
@@ -21,7 +22,7 @@ func (h *Handler) CreateImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Qemu.CreateImage(req.BaseImagePath, req.CloneImagePath)
+	err := h.service.Qemu.CreateImage(req.BaseImagePath, req.CloneImagePath, req.Size)
 	if err != nil {
 		response.FromError(w, http.StatusInternalServerError, "Failed to create image: "+err.Error())
 		return
