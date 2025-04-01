@@ -1,0 +1,70 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+generator dbml {
+  provider              = "prisma-dbml-generator"
+  mapToDbSchema         = false
+  includeRelationFields = false
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // schemas  = ["account", "vm"]
+}
+
+model Account {
+  id        BigInt   @id
+  email     String   @unique
+  name      String?
+  password  String
+  created_at DateTime @default(now())
+  VM        VM[]
+
+  @@map("account")
+}
+
+model VM {
+  id         BigInt   @id
+  account_id BigInt
+  name       String
+  vcpu       Int
+  ram        Int
+  os         OS
+  arch       Arch
+  storage    Int
+  created_at  DateTime @default(now())
+
+  Account Account @relation(fields: [account_id], references: [id])
+
+  Networking Networking?
+
+  @@map("vm")
+}
+
+model Networking {
+  id              BigInt   @id
+  vm_id           BigInt   @unique
+  public_ip       String?
+  virtual_network String?
+  created_at       DateTime @default(now())
+
+  VM VM @relation(fields: [vm_id], references: [id])
+
+  @@map("networking")
+}
+
+enum OS {
+  Ubuntu
+  Debian
+}
+
+enum Arch {
+  x86_64
+}
+
+enum PaymentType {
+  VNPay
+}

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wagecloud/wagecloud-server/internal/service"
@@ -43,7 +45,13 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 			r.Route("/cloudinit", func(r chi.Router) {
 				r.Post("/", h.CreateCloudinit)
 			})
+
+			r.Route("/accounts", func(r chi.Router) {
+				r.Get("/{accountID}", func(w http.ResponseWriter, r *http.Request) {})
+			})
+
 		})
+
 	})
 
 	return r

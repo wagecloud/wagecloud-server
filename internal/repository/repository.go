@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/wagecloud/wagecloud-server/gen/sqlc"
 	pgxutil "github.com/wagecloud/wagecloud-server/internal/db/pgx"
 )
 
 type Repository struct {
-	db pgxutil.DBTX
-	// sqlc *sqlc.Queries
+	db   pgxutil.DBTX
+	sqlc *sqlc.Queries
 }
 
 type RepositoryTx struct {
@@ -19,8 +20,8 @@ type RepositoryTx struct {
 
 func NewRepository(db pgxutil.DBTX) *Repository {
 	return &Repository{
-		db: db,
-		// sqlc: sqlc.New(db),
+		db:   db,
+		sqlc: sqlc.New(db),
 	}
 }
 
