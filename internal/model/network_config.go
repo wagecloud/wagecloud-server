@@ -1,6 +1,10 @@
 package model
 
 type NetworkConfig struct {
+	Network `yaml:"network"`
+}
+
+type Network struct {
 	Version   int                 `yaml:"version"`
 	Ethernets map[string]Ethernet `yaml:"ethernets"`
 }
@@ -25,8 +29,10 @@ func WithEthernet(name string, ethernet Ethernet) NetworkConfigOption {
 func NewNetworkConfig(options ...NetworkConfigOption) *NetworkConfig {
 	// Initialize the networkConfig struct
 	networkConfig := &NetworkConfig{
-		Version:   2,
-		Ethernets: make(map[string]Ethernet),
+		Network: Network{
+			Version:   2,
+			Ethernets: make(map[string]Ethernet),
+		},
 	}
 
 	for _, option := range options {

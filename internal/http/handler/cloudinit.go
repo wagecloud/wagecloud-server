@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path"
 
-	"github.com/wagecloud/wagecloud-server/config"
+	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/internal/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 )
 
 // CreateCloudinitRequest represents the request body for creating a cloudinit ISO
 type CreateCloudinitRequest struct {
-	Userdata model.Userdata `json:"userdata"`
-	Metadata model.Metadata `json:"metadata"`
+	Userdata      model.Userdata      `json:"userdata"`
+	Metadata      model.Metadata      `json:"metadata"`
+	NetworkConfig model.NetworkConfig `json:"network_config"`
 }
 
 // CreateCloudinit handles the creation of a new cloudinit ISO
@@ -26,25 +26,21 @@ func (h *Handler) CreateCloudinit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cloudinitFile, err := os.Create(path.Join(
-		config.GetConfig().App.CloudinitDir,
-		fmt.Sprintf("%s_%s.iso", req.Userdata.Name, req.Metadata.InstanceID)),
-	)
-	if err != nil {
-		response.FromError(w, http.StatusInternalServerError, "Failed to create temporary file: "+err.Error())
-		return
-	}
-	// defer os.Remove(cloudinitFile.Name())
+	userdata, _ := os.Open("cloud-init-files/ubuntu/user-data")
+	metadata, _ := os.Open("cloud-init-files/ubuntu/meta-data")
+	networkConfig, _ := os.Open("cloud-init-files/ubuntu/network-config")
 
-	if err = h.service.Cloudinit.CreateCloudinit(cloudinitFile, req.Userdata, req.Metadata); err != nil {
+	// if err := h.service.Cloudinit.CreateCloudinitByReader(req.Userdata, req.Metadata, req.NetworkConfig); err != nil {
+	// 	response.FromError(w, http.StatusInternalServerError, "Failed to create cloudinit ISO: "+err.Error())
+	// 	return
+	// }
+
+	filename := fmt.Sprintf("cloudinit_%s.iso", uuid.New().String())
+
+	if err := h.service.Cloudinit.CreateCloudinitByReader(filename, userdata, metadata, networkConfig); err != nil {
 		response.FromError(w, http.StatusInternalServerError, "Failed to create cloudinit ISO: "+err.Error())
 		return
 	}
-
-	// if err = file.Move(cloudinitFile.Name(), path.Join(config.GetConfig().App.CloudinitDir, cloudinitFile.Name())); err != nil {
-	// 	response.FromError(w, http.StatusInternalServerError, "Failed to move cloudinit ISO: "+err.Error())
-	// 	return
-	// }
 
 	response.FromMessage(w, http.StatusCreated, "Cloudinit ISO created successfully")
 }
