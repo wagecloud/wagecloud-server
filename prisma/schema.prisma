@@ -16,55 +16,68 @@ datasource db {
 }
 
 model Account {
-  id        BigInt   @id
-  email     String   @unique
-  name      String?
-  password  String
+  id         BigInt   @id
+  email      String   @unique
+  name       String?
+  password   String
   created_at DateTime @default(now())
-  VM        VM[]
+  VM         VM[]
 
   @@map("account")
 }
 
 model VM {
-  id         BigInt   @id
+  id         BigInt @id @default(autoincrement())
   account_id BigInt
+  network_id String @unique
+  os_id      String
+  arch_id    String
+
   name       String
-  vcpu       Int
-  ram        Int
-  os         OS
-  arch       Arch
-  storage    Int
-  created_at  DateTime @default(now())
+  cpu        Int
+  ram        Int // In MB
+  storage    Int // In GB
+  created_at DateTime @default(now()) 
+  updated_at DateTime @updatedAt @default(now())
 
   Account Account @relation(fields: [account_id], references: [id])
-
-  Networking Networking?
+  Network Network @relation(fields: [network_id], references: [id])
+  OS      OS      @relation(fields: [os_id], references: [id])
+  Arch    Arch    @relation(fields: [arch_id], references: [id])
 
   @@map("vm")
 }
 
-model Networking {
-  id              BigInt   @id
-  vm_id           BigInt   @unique
-  public_ip       String?
-  virtual_network String?
-  created_at       DateTime @default(now())
+model Network {
+  id String @id
+  private_ip String   @unique
+  created_at DateTime @default(now())
 
-  VM VM @relation(fields: [vm_id], references: [id])
+  VMs VM[]
 
-  @@map("networking")
+  @@map("network")
 }
 
-enum OS {
-  Ubuntu
-  Debian
+// Only os name: ubuntu, centos, debian, ...
+model OS {
+  id         String  @id
+  name       String  
+  created_at DateTime @default(now())
+
+  VMs VM[]
+
+  @@map("os")
 }
 
-enum Arch {
-  x86_64
+model Arch {
+  id String @id
+  name String
+  created_at DateTime @default(now())
+  VMs VM[]
+  @@map("arch")
 }
 
 enum PaymentType {
   VNPay
 }
+

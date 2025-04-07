@@ -7,36 +7,39 @@ Table Account {
   email String [unique, not null]
   name String
   password String [not null]
-  createdAt DateTime [default: `now()`, not null]
+  created_at DateTime [default: `now()`, not null]
 }
 
 Table VM {
-  id BigInt [pk]
+  id BigInt [pk, increment]
   account_id BigInt [not null]
+  network_id String [unique, not null]
+  os_id String [not null]
+  arch_id String [not null]
   name String [not null]
-  vcpu Int [not null]
+  cpu Int [not null]
   ram Int [not null]
-  os OS [not null]
-  arch Arch [not null]
   storage Int [not null]
-  createdAt DateTime [default: `now()`, not null]
+  created_at DateTime [default: `now()`, not null]
+  updated_at DateTime [default: `now()`, not null]
 }
 
-Table Networking {
-  id BigInt [pk]
-  vm_id BigInt [unique, not null]
-  public_ip String
-  virtual_network String
-  createdAt DateTime [default: `now()`, not null]
+Table Network {
+  id String [pk]
+  private_ip String [unique, not null]
+  created_at DateTime [default: `now()`, not null]
 }
 
-Enum OS {
-  Ubuntu
-  Debian
+Table OS {
+  id String [pk]
+  name String [not null]
+  created_at DateTime [default: `now()`, not null]
 }
 
-Enum Arch {
-  x86_64
+Table Arch {
+  id String [pk]
+  name String [not null]
+  created_at DateTime [default: `now()`, not null]
 }
 
 Enum PaymentType {
@@ -45,4 +48,8 @@ Enum PaymentType {
 
 Ref: VM.account_id > Account.id
 
-Ref: Networking.vm_id - VM.id
+Ref: VM.network_id > Network.id
+
+Ref: VM.os_id > OS.id
+
+Ref: VM.arch_id > Arch.id
