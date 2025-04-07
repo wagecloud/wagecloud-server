@@ -55,6 +55,48 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 	return conn.DomainDefineXML(xmlData)
 }
 
+func (s *Service) UpdateDomain(domainID string, domain model.Domain) (*libvirt.Domain, error) {
+
+	if domainID == "" {
+		return nil, fmt.Errorf("domain ID is required")
+	}
+
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to libvirt: %v", err)
+	}
+	defer conn.Close()
+
+	domainObj, err := conn.LookupDomainByUUIDString(domainID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find domain: %v", err)
+	}
+
+	domainXML, err := s.GetXMLConfig(domain)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate domain XML: %v", err)
+	}
+
+	xmlData, err := domainXML.Marshal()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal domain XML: %v", err)
+	}
+
+	newDom, err := conn.DomainDefineXML(xmlData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to define domain: %v", err)
+	}
+
+	// If the domain is running, we need to start it again
+	if val, err := domainObj.IsActive(); err != nil && val == true {
+		if err := domainObj.Destroy(); err != nil {
+			return nil, fmt.Errorf("failed to destroy domain: %v", err)
+		}
+	}
+
+	return newDom, nil
+}
+
 func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) {
 	domainXML := &libvirtxml.Domain{
 		Type: "kvm",
@@ -162,4 +204,71 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 	}
 
 	return domainXML, nil
+}
+
+func (s *Service) GetDomain(domainID string) (*model.Domain, error) {
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to libvirt: %v", err)
+	}
+	defer conn.Close()
+
+	domain, err := conn.LookupDomainByUUIDString(domainID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find domain: %v", err)
+	}
+
+	return toEntity(domain)
+}
+
+func (s *Service) GetListDomains() ([]model.Domain, error) {
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to libvirt: %v", err)
+	}
+	defer conn.Close()
+
+	domains, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to list domains: %v", err)
+	}
+
+	domainsModel := make([]model.Domain, len(domains))
+
+	for i, domain := range domains {
+		model, err := toEntity(&domain)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
+		}
+		domainsModel[i] = *model
+
+	}
+
+	return domainsModel, nil
+}
+
+func toEntity(domain *libvirt.Domain) (*model.Domain, error) {
+	domainID, _ := domain.GetUUIDString()
+	name, _ := domain.GetName()
+	memory, _ := domain.GetMaxMemory()
+	cpu, _ := domain.GetVcpus()
+	osType, _ := domain.GetOSType()
+
+	return &model.Domain{
+		UUID: domainID,
+		Name: name,
+		Memory: model.Memory{
+			Value: uint(memory),
+			Unit:  model.UnitMB,
+		},
+		Cpu: model.Cpu{
+			Value: uint(cpu[0].Cpu),
+		},
+
+		OS: model.OS{
+			Name: osType,
+			Arch: model.ArchX8664,
+		}}, nil
+
 }

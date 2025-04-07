@@ -9,8 +9,13 @@ install:
 cloudinit:
 	cd cloud-init-files/ubuntu &&\
 	genisoimage -output ubuntu-with-init.iso -V cidata -r -J user-data meta-data network-config && \
-	sudo mv -f ubuntu-with-init.iso /var/lib/libvirt/images && \
+	sudo mv -f ubuntu-with-init.iso /var/lib/libvirt/images/alexng && \
 	cd ../..
+
+# Create clone-img
+clone:
+	qemu-img create -b ubuntu_amd64.img -f qcow2 -F qcow2 ubuntu_amd64_mod.img 10G
+
 
 ip:
 	sudo virsh net-dhcp-leases default
