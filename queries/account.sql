@@ -1,5 +1,3 @@
-
-
 -- name: CreateAccount :one
 INSERT INTO account (id, name, email, created_at)
 VALUES (DEFAULT, $1, $2, NOW())
