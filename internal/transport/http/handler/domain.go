@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/wagecloud/wagecloud-server/internal/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/model"
+	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
 )
 
 // CreateDomainRequest represents the request body for creating a domain

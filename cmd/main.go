@@ -9,10 +9,10 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/wagecloud/wagecloud-server/config"
 	pgxutil "github.com/wagecloud/wagecloud-server/internal/db/pgx"
-	"github.com/wagecloud/wagecloud-server/internal/http"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 	"github.com/wagecloud/wagecloud-server/internal/service"
+	"github.com/wagecloud/wagecloud-server/internal/transport/http"
 )
 
 const defaultConfigFile = "config/config.dev.yml"

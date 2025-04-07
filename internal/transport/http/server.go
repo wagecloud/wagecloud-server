@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/wagecloud/wagecloud-server/internal/http/handler"
 	"github.com/wagecloud/wagecloud-server/internal/service"
+	"github.com/wagecloud/wagecloud-server/internal/transport/http/handler"
 )
 
 // Server represents the HTTP server

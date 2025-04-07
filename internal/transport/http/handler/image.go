@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/wagecloud/wagecloud-server/internal/http/response"
+	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
 )
 
 // CreateImageRequest represents the request body for creating an image
