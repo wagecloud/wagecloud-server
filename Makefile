@@ -18,6 +18,5 @@ ip:
 remove:
 	sudo virsh destroy ubuntu && sudo virsh undefine ubuntu
 
-sqlc: 
-	@echo "generating sqlc files"
+sqlc:
 	sqlc generate
