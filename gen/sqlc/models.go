@@ -11,89 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Arch string
-
-const (
-	ArchX8664 Arch = "x86_64"
-)
-
-func (e *Arch) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = Arch(s)
-	case string:
-		*e = Arch(s)
-	default:
-		return fmt.Errorf("unsupported scan type for Arch: %T", src)
-	}
-	return nil
-}
-
-type NullArch struct {
-	Arch  Arch
-	Valid bool // Valid is true if Arch is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullArch) Scan(value interface{}) error {
-	if value == nil {
-		ns.Arch, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.Arch.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullArch) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.Arch), nil
-}
-
-type OS string
-
-const (
-	OSUbuntu OS = "Ubuntu"
-	OSDebian OS = "Debian"
-)
-
-func (e *OS) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = OS(s)
-	case string:
-		*e = OS(s)
-	default:
-		return fmt.Errorf("unsupported scan type for OS: %T", src)
-	}
-	return nil
-}
-
-type NullOS struct {
-	OS    OS
-	Valid bool // Valid is true if OS is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullOS) Scan(value interface{}) error {
-	if value == nil {
-		ns.OS, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.OS.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullOS) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.OS), nil
-}
-
 type PaymentType string
 
 const (
@@ -143,22 +60,34 @@ type Account struct {
 	CreatedAt pgtype.Timestamp
 }
 
-type Networking struct {
-	ID             int64
-	VmID           int64
-	PublicIp       pgtype.Text
-	VirtualNetwork pgtype.Text
-	CreatedAt      pgtype.Timestamp
+type Arch struct {
+	ID        string
+	Name      string
+	CreatedAt pgtype.Timestamp
+}
+
+type Network struct {
+	ID        string
+	PrivateIp string
+	CreatedAt pgtype.Timestamp
+}
+
+type O struct {
+	ID        string
+	Name      string
+	CreatedAt pgtype.Timestamp
 }
 
 type Vm struct {
 	ID        int64
 	AccountID int64
+	NetworkID string
+	OsID      string
+	ArchID    string
 	Name      string
-	Vcpu      int32
+	Cpu       int32
 	Ram       int32
-	Os        OS
-	Arch      Arch
 	Storage   int32
 	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 }
