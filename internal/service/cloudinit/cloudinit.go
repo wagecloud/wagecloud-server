@@ -15,10 +15,33 @@ import (
 )
 
 type Service struct {
-	repo *repository.Repository
+	repo *repository.RepositoryImpl
 }
 
-func NewService(repo *repository.Repository) *Service {
+type ServiceInterface interface {
+	CreateCloudinit(
+		filename string,
+		userdata model.Userdata,
+		metadata model.Metadata,
+		networkConfig model.NetworkConfig,
+	) error
+	CreateCloudinitByReader(
+		filename string,
+		userdata io.Reader,
+		metadata io.Reader,
+		networkConfig io.Reader,
+	) error
+	WriteCloudinit(
+		cloudinitFile io.Writer,
+		userdata io.Reader,
+		metadata io.Reader,
+		networkConfig io.Reader,
+	) error
+}
+
+var _ ServiceInterface = (*Service)(nil)
+
+func NewService(repo *repository.RepositoryImpl) *Service {
 	return &Service{repo: repo}
 }
 
