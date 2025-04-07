@@ -8,14 +8,13 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/model"
 )
 
-func (r *Repository) GetAccountByID(ctx context.Context, accountID int64) (*model.AccountBase, error) {
+func (r *RepositoryImpl) GetAccountByID(ctx context.Context, accountID int64) (model.AccountBase, error) {
 	baseRow, err := r.sqlc.GetAccountByID(ctx, accountID)
-
 	if err != nil {
-		return nil, err
+		return model.AccountBase{}, err
 	}
 
-	return &model.AccountBase{
+	return model.AccountBase{
 		ID:        baseRow.ID,
 		Name:      baseRow.Name.String,
 		Email:     baseRow.Email,
@@ -23,7 +22,7 @@ func (r *Repository) GetAccountByID(ctx context.Context, accountID int64) (*mode
 	}, nil
 }
 
-func (r *Repository) CreateAccount(ctx context.Context, account *model.AccountBase) (*model.AccountBase, error) {
+func (r *RepositoryImpl) CreateAccount(ctx context.Context, account model.AccountBase) (model.AccountBase, error) {
 	createAccountParams := sqlc.CreateAccountParams{
 		Name:  pgtype.Text{String: account.Name, Valid: true},
 		Email: account.Email,
@@ -32,10 +31,10 @@ func (r *Repository) CreateAccount(ctx context.Context, account *model.AccountBa
 	row, err := r.sqlc.CreateAccount(ctx, createAccountParams)
 
 	if err != nil {
-		return nil, err
+		return model.AccountBase{}, err
 	}
 
-	return &model.AccountBase{
+	return model.AccountBase{
 		ID:        row.ID,
 		Name:      row.Name.String,
 		Email:     row.Email,
@@ -43,6 +42,6 @@ func (r *Repository) CreateAccount(ctx context.Context, account *model.AccountBa
 	}, nil
 }
 
-func (r *Repository) DeleteAccount(ctx context.Context, accountID int64) error {
+func (r *RepositoryImpl) DeleteAccount(ctx context.Context, accountID int64) error {
 	return r.sqlc.DeleteAccount(ctx, accountID)
 }

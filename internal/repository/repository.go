@@ -8,32 +8,36 @@ import (
 	pgxutil "github.com/wagecloud/wagecloud-server/internal/db/pgx"
 )
 
-type Repository struct {
+type Repository interface {
+	Begin(ctx context.Context) (*RepositoryTx, error)
+}
+
+type RepositoryImpl struct {
 	db   pgxutil.DBTX
 	sqlc *sqlc.Queries
 }
 
 type RepositoryTx struct {
-	*Repository
+	*RepositoryImpl
 	tx pgx.Tx
 }
 
-func NewRepository(db pgxutil.DBTX) *Repository {
-	return &Repository{
+func NewRepository(db pgxutil.DBTX) *RepositoryImpl {
+	return &RepositoryImpl{
 		db:   db,
 		sqlc: sqlc.New(db),
 	}
 }
 
-func (r *Repository) Begin(ctx context.Context) (*RepositoryTx, error) {
+func (r *RepositoryImpl) Begin(ctx context.Context) (*RepositoryTx, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	return &RepositoryTx{
-		Repository: NewRepository(tx),
-		tx:         tx,
+		RepositoryImpl: NewRepository(tx),
+		tx:             tx,
 	}, nil
 }
 

@@ -11,11 +11,11 @@ import (
 )
 
 type Service struct {
-	repo *repository.Repository
+	repo *repository.RepositoryImpl
 	qemu *qemu.Service
 }
 
-func NewService(repo *repository.Repository) *Service {
+func NewService(repo *repository.RepositoryImpl) *Service {
 	return &Service{repo: repo}
 }
 

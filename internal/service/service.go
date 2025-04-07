@@ -13,7 +13,7 @@ type Service struct {
 	Qemu      *qemu.Service
 }
 
-func New(repo *repository.Repository) *Service {
+func New(repo *repository.RepositoryImpl) *Service {
 	cloudinitService := cloudinit.NewService(repo)
 	libvirtService := libvirt.NewService(repo)
 	qemuService := qemu.NewService(repo)
