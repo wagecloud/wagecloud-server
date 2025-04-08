@@ -35,6 +35,7 @@ type LoginUserParams struct {
 }
 
 func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+
 	var req LoginUserParams
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.FromHTTPError(w, http.StatusBadRequest)

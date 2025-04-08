@@ -16,13 +16,15 @@ type Service struct {
 }
 
 func New(repo *repository.RepositoryImpl) *Service {
-	cloudinitService := cloudinit.NewService(repo)
-	libvirtService := libvirt.NewService(repo)
-	qemuService := qemu.NewService(repo)
+	accountSvc := account.NewService(repo)
+	cloudinitSvc := cloudinit.NewService(repo)
+	libvirtSvc := libvirt.NewService(repo)
+	qemuSvc := qemu.NewService(repo)
 
 	return &Service{
-		Cloudinit: cloudinitService,
-		Libvirt:   libvirtService,
-		Qemu:      qemuService,
+		Account:   accountSvc,
+		Cloudinit: cloudinitSvc,
+		Libvirt:   libvirtSvc,
+		Qemu:      qemuSvc,
 	}
 }

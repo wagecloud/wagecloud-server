@@ -27,7 +27,7 @@ func NewServer(service *service.Service, addr string) *Server {
 
 	return &Server{
 		server: &http.Server{
-			Addr:    "localhost:8080",
+			Addr:    ":8080",
 			Handler: handler.SetupRoutes(),
 		},
 		handler: handler,

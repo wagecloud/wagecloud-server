@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/wagecloud/wagecloud-server/config"
-	"github.com/wagecloud/wagecloud-server/internal/logger"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/wagecloud/wagecloud-server/config"
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -60,14 +59,11 @@ func InitPgConnectionPool(postgresConfig config.Postgres) error {
 }
 
 func GetPgxPool() (*pgxpool.Pool, error) {
-	if pgxPool != nil {
-		return pgxPool, nil
-	}
-
-	err := InitPgConnectionPool(config.GetConfig().Postgres)
-
-	if err != nil {
-		return nil, err
+	if pgxPool == nil {
+		err := InitPgConnectionPool(config.GetConfig().Postgres)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return pgxPool, nil

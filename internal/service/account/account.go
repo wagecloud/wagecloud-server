@@ -22,6 +22,12 @@ type ServiceInterface interface {
 	RegisterUser(ctx context.Context, account model.AccountUser) (RegisterUserResult, error)
 }
 
+func NewService(repo repository.Repository) *Service {
+	return &Service{
+		repo: repo,
+	}
+}
+
 type GetAccountParams struct {
 	ID       *int64
 	Username *string
