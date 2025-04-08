@@ -13,6 +13,12 @@ type Repository interface {
 	Begin(ctx context.Context) (*RepositoryTx, error)
 
 	// Account
+	GetAccount(ctx context.Context, params GetAccountParams) (model.AccountBase, error)
+	CountAccounts(ctx context.Context, params ListAccountsParams) (int64, error)
+	ListAccounts(ctx context.Context, params ListAccountsParams) ([]model.AccountBase, error)
+	CreateAccount(ctx context.Context, account model.AccountBase) (model.AccountBase, error)
+	UpdateAccount(ctx context.Context, params UpdateAccountParams) (model.AccountBase, error)
+	DeleteAccount(ctx context.Context, id string) error
 
 	// Arch
 	GetArch(ctx context.Context, id string) (model.Arch, error)
