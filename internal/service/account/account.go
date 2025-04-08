@@ -10,8 +10,37 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var _ ServiceInterface = (*Service)(nil)
+
 type Service struct {
 	repo repository.Repository
+}
+
+type ServiceInterface interface {
+	GetAccount(ctx context.Context, params GetAccountParams) (model.AccountUser, error)
+	LoginUser(ctx context.Context, params LoginUserParams) (LoginUserResult, error)
+	RegisterUser(ctx context.Context, account model.AccountUser) (RegisterUserParams, error)
+}
+
+type GetAccountParams struct {
+	ID       *int64
+	Username *string
+	Email    *string
+}
+
+func (s *Service) GetAccount(ctx context.Context, params GetAccountParams) (model.AccountUser, error) {
+	account, err := s.repo.GetAccount(ctx, repository.GetAccountParams{
+		ID:       params.ID,
+		Username: params.Username,
+		Email:    params.Email,
+	})
+	if err != nil {
+		return model.AccountUser{}, err
+	}
+
+	return model.AccountUser{
+		AccountBase: account,
+	}, nil
 }
 
 type LoginUserParams struct {

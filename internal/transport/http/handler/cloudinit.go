@@ -22,7 +22,7 @@ type CreateCloudinitRequest struct {
 func (h *Handler) CreateCloudinit(w http.ResponseWriter, r *http.Request) {
 	var req CreateCloudinitRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.FromError(w, http.StatusBadRequest, "Invalid request payload")
+		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -38,9 +38,9 @@ func (h *Handler) CreateCloudinit(w http.ResponseWriter, r *http.Request) {
 	filename := fmt.Sprintf("cloudinit_%s.iso", uuid.New().String())
 
 	if err := h.service.Cloudinit.CreateCloudinitByReader(filename, userdata, metadata, networkConfig); err != nil {
-		response.FromError(w, http.StatusInternalServerError, "Failed to create cloudinit ISO: "+err.Error())
+		response.FromError(w, err)
 		return
 	}
 
-	response.FromMessage(w, http.StatusCreated, "Cloudinit ISO created successfully")
+	response.FromDTO(w, nil, http.StatusCreated, "Cloudinit ISO created successfully")
 }

@@ -9,6 +9,8 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/model"
 )
 
+var _ Repository = (*RepositoryImpl)(nil)
+
 type Repository interface {
 	Begin(ctx context.Context) (*RepositoryTx, error)
 
@@ -18,7 +20,7 @@ type Repository interface {
 	ListAccounts(ctx context.Context, params ListAccountsParams) ([]model.AccountBase, error)
 	CreateAccount(ctx context.Context, account model.AccountBase) (model.AccountBase, error)
 	UpdateAccount(ctx context.Context, params UpdateAccountParams) (model.AccountBase, error)
-	DeleteAccount(ctx context.Context, id string) error
+	DeleteAccount(ctx context.Context, id int64) error
 
 	// Arch
 	GetArch(ctx context.Context, id string) (model.Arch, error)

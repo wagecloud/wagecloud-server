@@ -1,60 +1,90 @@
 package response
 
 import (
-	"encoding/json"
+	"errors"
 	"net/http"
 
 	// "github.com/bytedance/sonic"
+	"github.com/bytedance/sonic"
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 )
 
-func FromDTO(w http.ResponseWriter, code int, dto any) {
-	response, err := json.Marshal(dto)
+func writeError(w http.ResponseWriter, errCode string, message string) {
+	response, err := sonic.Marshal(CommonResponse{
+		Message: message,
+		Data:    nil,
+		Error: &Error{
+			Code:    errCode,
+			Message: message,
+		},
+	})
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error marshalling JSON"))
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
 	w.Write(response)
 }
 
-func FromDTOWithMessage(w http.ResponseWriter, dto any, code int, message string) {
-	response, err := json.Marshal(dto)
+func writeResponse(w http.ResponseWriter, httpCode int, dto any) {
+	response, err := sonic.Marshal(dto)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Error marshalling JSON"))
+		writeError(w, http.StatusText(http.StatusInternalServerError), "Error marshalling JSON")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
 	w.Write(response)
 }
 
-func FromMessage(w http.ResponseWriter, code int, message string) {
+func FromDTO(w http.ResponseWriter, dto any, httpCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write([]byte(`{"message": "` + message + `"}`))
+	w.WriteHeader(httpCode)
+
+	writeResponse(w, httpCode, CommonResponse{
+		Message: message,
+		Data:    dto,
+		Error:   nil,
+	})
 }
 
-func FromError(w http.ResponseWriter, code int, message string) {
+func FromError(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write([]byte(`{"message": "` + message + `"}`))
-}
+	w.WriteHeader(http.StatusInternalServerError)
 
-func FromPaginate[T any](w http.ResponseWriter, paginateResult model.PaginateResult[T]) {
-	response, err := json.Marshal(paginateResult)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Error marshalling JSON"))
+	// Service error
+	var errWithCode *model.ErrorWithCode
+	if errors.As(err, &errWithCode) {
+		writeError(w, errWithCode.Code, errWithCode.Msg)
 		return
 	}
 
+	// Internal server error
+	// writeError(w, http.StatusText(http.StatusInternalServerError), err.Error())
+	logger.Log.Error(err.Error())
+	writeError(w, http.StatusText(http.StatusInternalServerError), "Internal Server Error")
+}
+
+func FromHTTPError(w http.ResponseWriter, httpCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(httpCode)
+
+	writeError(w, http.StatusText(httpCode), http.StatusText(httpCode))
+}
+
+func FromPaginate[T any](w http.ResponseWriter, paginateResult model.PaginateResult[T], message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(response)
+
+	writeResponse(w, http.StatusOK, PaginateResponse[T]{
+		Message: message,
+		Data:    paginateResult.Data,
+		Pagination: Pagination{
+			Limit:      paginateResult.Limit,
+			Page:       paginateResult.Page,
+			Total:      paginateResult.Total,
+			NextPage:   paginateResult.NextPage,
+			NextCursor: paginateResult.NextCursor,
+		},
+		Error: nil,
+	})
 }

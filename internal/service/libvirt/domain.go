@@ -10,9 +10,20 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
+var _ ServiceInterface = (*Service)(nil)
+
 type Service struct {
 	repo *repository.RepositoryImpl
 	qemu *qemu.Service
+}
+
+type ServiceInterface interface {
+	StartDomain(domain *libvirt.Domain) error
+	CreateDomain(domain model.Domain) (*libvirt.Domain, error)
+	UpdateDomain(domainID string, domain model.Domain) (*libvirt.Domain, error)
+	GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error)
+	GetDomain(domainID string) (*model.Domain, error)
+	GetListDomains() ([]model.Domain, error)
 }
 
 func NewService(repo *repository.RepositoryImpl) *Service {

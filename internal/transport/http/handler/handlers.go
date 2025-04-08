@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/service"
 )
 
@@ -54,6 +56,13 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 				r.Get("/{accountID}", func(w http.ResponseWriter, r *http.Request) {})
 			})
 		})
+	})
+
+	// Print routes for debugging
+	logger.Log.Info("Registered routes:")
+	chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		logger.Log.Info(fmt.Sprintf("  %s %s", method, route))
+		return nil
 	})
 
 	return r
