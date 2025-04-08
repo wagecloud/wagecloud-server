@@ -3,10 +3,11 @@ package model
 import "fmt"
 
 type OS struct {
-	Name string `json:"name"`
-	Arch Arch   `json:"arch"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt int64  `json:"created_at"`
 }
 
 func (o OS) ImageName() string {
-	return fmt.Sprintf("%s_%s.img", o.Name, o.Arch)
+	return fmt.Sprintf("%s.img", o.Name)
 }

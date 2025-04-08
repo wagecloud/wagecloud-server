@@ -57,25 +57,25 @@ type Account struct {
 	Email     string
 	Name      pgtype.Text
 	Password  string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 type Arch struct {
 	ID        string
 	Name      string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 type Network struct {
 	ID        string
 	PrivateIp string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 type O struct {
 	ID        string
 	Name      string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 type Vm struct {
@@ -88,6 +88,6 @@ type Vm struct {
 	Cpu       int32
 	Ram       int32
 	Storage   int32
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }

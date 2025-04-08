@@ -26,7 +26,7 @@ type CreateAccountRow struct {
 	ID        int64
 	Name      pgtype.Text
 	Email     string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (CreateAccountRow, error) {
@@ -61,7 +61,7 @@ type GetAccountByIDRow struct {
 	ID        int64
 	Name      pgtype.Text
 	Email     string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 func (q *Queries) GetAccountByID(ctx context.Context, id int64) (GetAccountByIDRow, error) {
@@ -92,7 +92,7 @@ type ListAccountsRow struct {
 	ID        int64
 	Name      pgtype.Text
 	Email     string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]ListAccountsRow, error) {
@@ -137,7 +137,7 @@ type UpdateAccountRow struct {
 	ID        int64
 	Name      pgtype.Text
 	Email     string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (UpdateAccountRow, error) {

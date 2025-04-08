@@ -43,8 +43,8 @@ type CountVMsParams struct {
 	RamTo         pgtype.Int4
 	StorageFrom   pgtype.Int4
 	StorageTo     pgtype.Int4
-	CreatedAtFrom pgtype.Timestamp
-	CreatedAtTo   pgtype.Timestamp
+	CreatedAtFrom pgtype.Timestamptz
+	CreatedAtTo   pgtype.Timestamptz
 }
 
 func (q *Queries) CountVMs(ctx context.Context, arg CountVMsParams) (int64, error) {
@@ -199,8 +199,8 @@ type ListVMsParams struct {
 	RamTo         pgtype.Int4
 	StorageFrom   pgtype.Int4
 	StorageTo     pgtype.Int4
-	CreatedAtFrom pgtype.Timestamp
-	CreatedAtTo   pgtype.Timestamp
+	CreatedAtFrom pgtype.Timestamptz
+	CreatedAtTo   pgtype.Timestamptz
 	Offset        int32
 	Limit         int32
 }

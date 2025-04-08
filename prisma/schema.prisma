@@ -15,20 +15,32 @@ datasource db {
   // schemas  = ["account", "vm"]
 }
 
-model Account {
-  id         BigInt   @id
+model AccountBase {
+  id         BigInt   @id @default(autoincrement())
+  username   String   @unique
   email      String   @unique
-  name       String?
-  password   String
-  created_at DateTime @default(now())
+  name       String @db.VarChar(255)
+  password   String  @db.VarChar(255)
+  created_at DateTime @default(now()) @db.Timestamptz(3)
+  updated_at DateTime @updatedAt @default(now()) @db.Timestamptz(3)
+
+  User     AccountUser?
+
+  @@map("account_base")
+}
+
+model AccountUser {
+  id BigInt @id
   VM         VM[]
 
-  @@map("account")
+  Account    AccountBase @relation(fields: [id], references: [id])
+
+  @@map("account_user")
 }
 
 model VM {
   id         BigInt @id @default(autoincrement())
-  account_id BigInt
+  user_id BigInt
   network_id String @unique
   os_id      String
   arch_id    String
@@ -37,10 +49,10 @@ model VM {
   cpu        Int
   ram        Int // In MB
   storage    Int // In GB
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt @default(now())
+  created_at DateTime @default(now()) @db.Timestamptz(3)
+  updated_at DateTime @updatedAt @default(now()) @db.Timestamptz(3)
 
-  Account Account @relation(fields: [account_id], references: [id])
+  User AccountUser @relation(fields: [user_id], references: [id])
   Network Network @relation(fields: [network_id], references: [id])
   OS      OS      @relation(fields: [os_id], references: [id])
   Arch    Arch    @relation(fields: [arch_id], references: [id])
@@ -51,7 +63,7 @@ model VM {
 model Network {
   id String @id
   private_ip String   @unique
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @db.Timestamptz(3)
 
   VMs VM[]
 
@@ -62,7 +74,7 @@ model Network {
 model OS {
   id         String  @id
   name       String  
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @db.Timestamptz(3)
 
   VMs VM[]
 
@@ -72,7 +84,7 @@ model OS {
 model Arch {
   id String @id
   name String
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @db.Timestamptz(3)
   VMs VM[]
   @@map("arch")
 }
