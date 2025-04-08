@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
 )
@@ -15,6 +16,7 @@ type CreateDomainRequest struct {
 	Memory model.Memory `json:"memory"`
 	Cpu    model.Cpu    `json:"cpu"`
 	OS     model.OS     `json:"os"`
+	Storage uint         `json:"storage"`
 }
 
 type UpdateDomainRequest struct {
@@ -30,25 +32,29 @@ type DeleteDomainRequest struct {
 func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 	var req CreateDomainRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.FromError(w, http.StatusBadRequest, "Invalid request payload")
+		response.FromError(w, http.StatusBadRequest, "Invalid request payload" + err.Error())
 		return
 	}
 
+
 	domain := model.NewDomain(
-		model.WithDomainName(req.Name),
+		model.WithDomainName(req.Name + "-" + uuid.New().String()),
 		model.WithDomainMemory(req.Memory.Value, req.Memory.Unit),
 		model.WithDomainCpu(req.Cpu.Value),
+		model.WithDomainStorage(req.Storage),
 		model.WithDomainOS(model.OS{
 			// Arch: req.OS.Arch,
 			Name: req.OS.Name,
 		}),
 	)
 
-	_, err := h.service.Libvirt.CreateDomain(domain)
+	domainVir, err := h.service.Libvirt.CreateDomain(domain)
 	if err != nil {
 		response.FromError(w, http.StatusInternalServerError, "Failed to create domain: "+err.Error())
 		return
 	}
+
+	h.service.Libvirt.StartDomain(domainVir)
 
 	response.FromMessage(w, http.StatusCreated, "Domain created successfully")
 }
@@ -92,6 +98,9 @@ func (h *Handler) StartDomain(w http.ResponseWriter, r *http.Request) {
 
 	// Here you would typically retrieve the domain from libvirt using the ID
 	// For now, we'll just return a mock response
+
+	h.service.Libvirt.StartDomainByID(domainID)
+
 	response.FromMessage(w, http.StatusOK, "Domain started successfully")
 }
 

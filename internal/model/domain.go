@@ -18,18 +18,18 @@ type Cpu struct {
 }
 
 type Domain struct {
-	UUID   string
-	Name   string
-	Memory Memory
-	Cpu    Cpu
-	OS     OS
-	Storage uint 
+	UUID    string
+	Name    string
+	Memory  Memory
+	Cpu     Cpu
+	OS      OS
+	Storage uint
 }
 
-func (d Domain) BaseImagePath() string {
+func (d Domain) BaseImagePath(baseOsFileName string) string {
 	return path.Join(
 		config.GetConfig().App.BaseImageDir,
-		d.OS.ImageName(),
+		baseOsFileName,
 	)
 }
 
@@ -40,10 +40,26 @@ func (d Domain) ImagePath() string {
 	)
 }
 
+func (d Domain) ImageAccountPath(accountID string) string {
+	return path.Join(
+		config.GetConfig().App.ImageDir,
+		accountID,
+		fmt.Sprintf("%s.img", d.UUID),
+	)
+}
+
 func (d Domain) CloudinitPath() string {
 	return path.Join(
 		config.GetConfig().App.CloudinitDir,
 		fmt.Sprintf("cloudinit_%s.iso", d.UUID),
+	)
+}
+
+func (d Domain) CloudinitAccountPath(accountID string) string {
+	return path.Join(
+		config.GetConfig().App.CloudinitDir,
+		accountID,
+		"ubuntu-with-init.iso",
 	)
 }
 
@@ -70,6 +86,12 @@ func WithDomainCpu(value uint) DomainOption {
 func WithDomainOS(os OS) DomainOption {
 	return func(domain *Domain) {
 		domain.OS = os
+	}
+}
+
+func WithDomainStorage(storage uint) DomainOption {
+	return func(domain *Domain) {
+		domain.Storage = storage
 	}
 }
 

@@ -16,5 +16,15 @@ unix_sock_rw_perms = "0770" // uncomment this line
 
 
 // destionation for customer's images
-/var/lib/libvirt/images/uuid   :with uuid as id of customer
+/var/lib/libvirt/images/{$USER}/uuid   :with uuid as id of customer and USER as username, example: /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe
+
+
+// qemu create image
+sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudimg-amd64.img -f qcow2 -F qcow2 /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img 
+
+
+// dir config
+baseImageDir: "/var/lib/libvirt/images/alexng/base"
+cloudinitDir: "/var/lib/libvirt/images/alexng"
+imageDir: "/var/lib/libvirt/images/alexng"
 
