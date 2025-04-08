@@ -72,12 +72,9 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 
 	// Create new qcow2 image from base image
 
-	// fake account uuid
-	accountID := "7a4a5c55-000c-44d5-b41e-903b71bf32fe"
-
 	if err = s.qemu.CreateImageWithPath(
 		domain.BaseImagePath("focal-server-cloudimg-amd64.img"),
-		domain.ImageAccountPath(accountID),
+		domain.ImagePath(),
 		domain.Storage,
 	); err != nil {
 		return nil, fmt.Errorf("failed to clone image: %v", err)
@@ -193,7 +190,7 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.ImageAccountPath("7a4a5c55-000c-44d5-b41e-903b71bf32fe"), // temp accountID := "7a4a5c55-000c-44d5-b41e-903b71bf32fe"
+							File: domain.ImagePath(),
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -209,7 +206,7 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.CloudinitAccountPath("7a4a5c55-000c-44d5-b41e-903b71bf32fe"), // temp accountID := "7a4a5c55-000c-44d5-b41e-903b71bf32fe"
+							File: domain.CloudinitPath(),
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{

@@ -23,8 +23,4 @@ unix_sock_rw_perms = "0770" // uncomment this line
 sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudimg-amd64.img -f qcow2 -F qcow2 /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img 
 
 
-// dir config
-baseImageDir: "/var/lib/libvirt/images/alexng/base"
-cloudinitDir: "/var/lib/libvirt/images/alexng"
-imageDir: "/var/lib/libvirt/images/alexng"
 

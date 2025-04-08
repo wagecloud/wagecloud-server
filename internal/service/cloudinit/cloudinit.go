@@ -14,8 +14,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var _ ServiceInterface = (*Service)(nil)
-
 type Service struct {
 	repo *repository.RepositoryImpl
 }
@@ -61,11 +59,11 @@ func (s *Service) CreateCloudinit(
 		return fmt.Errorf("failed to create temporary file: %s", err)
 	}
 
-	userdataYaml, err := yaml.Marshal(userdata)
+	userdataReader, err := createUserDataReader(userdata)
+
 	if err != nil {
-		return fmt.Errorf("failed to marshal userdata: %s", err)
+		return fmt.Errorf("failed to create userdata reader: %s", err)
 	}
-	userdataReader := bytes.NewReader(userdataYaml)
 
 	metadataYaml, err := yaml.Marshal(metadata)
 	if err != nil {
@@ -127,13 +125,28 @@ func (s *Service) WriteCloudinit(
 		return fmt.Errorf("failed to add meta-data: %s", err)
 	}
 
-	if err = writer.AddFile(networkConfig, "network-config"); err != nil {
-		return fmt.Errorf("failed to add network-config: %s", err)
-	}
+	// if err = writer.AddFile(networkConfig, "network-config"); err != nil {
+	// 	return fmt.Errorf("failed to add network-config: %s", err)
+	// }
 
 	if err = writer.WriteTo(cloudinitFile, "cidata"); err != nil {
 		return fmt.Errorf("failed to write ISO image: %s", err)
 	}
 
 	return nil
+}
+
+func createUserDataReader(userdata model.Userdata) (*bytes.Reader, error) {
+	userdataYaml, err := yaml.Marshal(userdata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal userdata: %s", err)
+	}
+
+	comment := "#cloud-config\n" // this is required for
+	fullYaml := []byte(comment + string(userdataYaml))
+
+
+	fmt.Printf("Full YAML: %s\n", string(fullYaml))
+
+	return bytes.NewReader(fullYaml), nil
 }

@@ -5,18 +5,35 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
 )
 
 // CreateDomainRequest represents the request body for creating a domain
-type CreateDomainRequest struct {
-	Name    string       `json:"name"`
+
+type Spec struct {
 	Memory  model.Memory `json:"memory"`
 	Cpu     model.Cpu    `json:"cpu"`
 	OS      model.OS     `json:"os"`
 	Storage uint         `json:"storage"`
+}
+
+type Userdata struct {
+	Name       string   `json:"name"`
+	SSHKeys    []string `json:"ssh-authorized-keys"`
+	Passwd     string   `json:"passwd,omitempty"`
+	LockPasswd bool     `json:"lock_passwd"`
+}
+
+type CreateDomainRequest struct {
+	// Name    string       `json:"name"`
+	// Memory  model.Memory `json:"memory"`
+	// Cpu     model.Cpu    `json:"cpu"`
+	// OS      model.OS     `json:"os"`
+	// Storage uint         `json:"storage"`
+	Name     string   `json:"name"`
+	Spec     Spec     `json:"spec"`
+	Userdata Userdata `json:"userdata"`
 }
 
 type UpdateDomainRequest struct {
@@ -37,15 +54,35 @@ func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domain := model.NewDomain(
-		model.WithDomainName(req.Name+"-"+uuid.New().String()),
-		model.WithDomainMemory(req.Memory.Value, req.Memory.Unit),
-		model.WithDomainCpu(req.Cpu.Value),
-		model.WithDomainStorage(req.Storage),
+		model.WithDomainName(req.Name),
+		model.WithDomainMemory(req.Spec.Memory.Value, req.Spec.Memory.Unit),
+		model.WithDomainCpu(req.Spec.Cpu.Value),
+		model.WithDomainStorage(req.Spec.Storage),
 		model.WithDomainOS(model.OS{
 			// Arch: req.OS.Arch,
-			Name: req.OS.Name,
+			Name: req.Spec.OS.Name,
 		}),
 	)
+
+	userData := model.NewUserdata(
+		model.WithUserdataName(req.Userdata.Name),
+		model.WithUserdataSSHKeys(req.Userdata.SSHKeys),
+		model.WithUserdataPasswd(req.Userdata.Passwd),
+		model.WithUserdataLockPasswd(req.Userdata.LockPasswd),
+	)
+
+	metatData := model.NewMetadata(
+		model.WithMetadataInstanceID(domain.Name+domain.UUID),
+		model.WithMetadataLocalHostname(domain.Name),
+	)
+
+	networkConfig := model.NewNetworkConfig()
+	cloudinitFileName := "cloudinit_" + domain.UUID + ".iso"
+
+	if err := h.service.Cloudinit.CreateCloudinit(cloudinitFileName, *userData, *metatData, *networkConfig); err != nil {
+		response.FromError(w, err)
+		return
+	}
 
 	domainVir, err := h.service.Libvirt.CreateDomain(domain)
 	if err != nil {
