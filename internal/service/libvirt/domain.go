@@ -228,7 +228,7 @@ func (s *Service) GetListDomains() ([]model.Domain, error) {
 	}
 	defer conn.Close()
 
-	domains, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+	domains, err := conn.ListAllDomains(0)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to list domains: %v", err)
@@ -248,27 +248,62 @@ func (s *Service) GetListDomains() ([]model.Domain, error) {
 	return domainsModel, nil
 }
 
+func (s *Service) getListActiveDomains() ([]model.Domain, error) {
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to libvirt: %v", err)
+	}
+	defer conn.Close()
+
+	domains, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list domains: %v", err)
+	}
+
+	domainsModel := make([]model.Domain, len(domains))
+
+	for i, domain := range domains {
+		model, err := toEntity(&domain)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
+		}
+		domainsModel[i] = *model
+	}
+
+	return domainsModel, nil
+}
+
 func toEntity(domain *libvirt.Domain) (*model.Domain, error) {
 	domainID, _ := domain.GetUUIDString()
 	name, _ := domain.GetName()
-	memory, _ := domain.GetMaxMemory()
-	cpu, _ := domain.GetVcpus()
-	osType, _ := domain.GetOSType()
+	memory, _ := domain.GetMaxMemory() // always in kB
+	cpu, _ := domain.GetVcpus() // temp
+	// osType, _ := domain.GetOSType() // temp, ostype doesn't return specific os like ubuntu, centos, etc. just return hvm or other type of vm
+
+	xmlDesc, err := domain.GetXMLDesc(0)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get XML description: %v", err)
+	}
+
+	var domConf libvirtxml.Domain
+	if err := domConf.Unmarshal(xmlDesc); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal XML description: %v", err)
+	}
 
 	return &model.Domain{
 		UUID: domainID,
 		Name: name,
 		Memory: model.Memory{
-			Value: uint(memory),
+			Value: uint(memory / 1024),
 			Unit:  model.UnitMB,
 		},
 		Cpu: model.Cpu{
-			Value: uint(cpu[0].Cpu),
+			Value: uint(cpu[0].Cpu), // just for temp
 		},
 
 		OS: model.OS{
-			Name: osType,
-			Arch: model.ArchX8664,
+			Name: domConf.OS.Type.Type,
+			Arch: model.Arch(domConf.OS.Type.Arch),
 		}}, nil
 
 }
