@@ -1,17 +1,19 @@
 package response
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	// "github.com/bytedance/sonic"
-	"github.com/bytedance/sonic"
+
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 )
 
 func writeError(w http.ResponseWriter, errCode string, message string) {
-	response, err := sonic.Marshal(CommonResponse{
+	response, err := json.Marshal(CommonResponse{
 		Message: message,
 		Data:    nil,
 		Error: &Error{
@@ -26,8 +28,8 @@ func writeError(w http.ResponseWriter, errCode string, message string) {
 	w.Write(response)
 }
 
-func writeResponse(w http.ResponseWriter, httpCode int, dto any) {
-	response, err := sonic.Marshal(dto)
+func writeResponse(w http.ResponseWriter, dto any) {
+	response, err := json.Marshal(dto)
 	if err != nil {
 		writeError(w, http.StatusText(http.StatusInternalServerError), "Error marshalling JSON")
 		return
@@ -40,7 +42,7 @@ func FromDTO(w http.ResponseWriter, dto any, httpCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 
-	writeResponse(w, httpCode, CommonResponse{
+	writeResponse(w, CommonResponse{
 		Message: message,
 		Data:    dto,
 		Error:   nil,
@@ -68,14 +70,14 @@ func FromHTTPError(w http.ResponseWriter, httpCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 
-	writeError(w, http.StatusText(httpCode), http.StatusText(httpCode))
+	writeError(w, strconv.Itoa(httpCode), http.StatusText(httpCode))
 }
 
 func FromPaginate[T any](w http.ResponseWriter, paginateResult model.PaginateResult[T], message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	writeResponse(w, http.StatusOK, PaginateResponse[T]{
+	writeResponse(w, PaginateResponse[T]{
 		Message: message,
 		Data:    paginateResult.Data,
 		Pagination: Pagination{

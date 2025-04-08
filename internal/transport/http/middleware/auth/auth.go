@@ -10,18 +10,27 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/util/jwt"
 )
 
-// type ctxKey string
-
 const (
 	tokenHeader = "authorization"
 	tokenPrefix = "Bearer "
-	// CtxClaims   ctxKey = "ctx-claims" // Storing model.Claims in context
-	// CtxToken    ctxKey = "ctx-token"  // Storing token in context
 )
 
 var (
 	claimsCache = cache.NewCache[string, model.Claims]()
 )
+
+// func NewAuthMiddleware() func(next http.Handler) http.Handler {
+// 	return func(next http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 			GetClaims(r) // Invoke just for
+
+// 			// TODO: làm config cho cache time
+// 			claimsCache.Set(r.Header.Get(tokenHeader), claims, 5*60*time.Second)
+
+// 			next.ServeHTTP(w, r)
+// 		})
+// 	}
+// }
 
 func GetClaims(r *http.Request) (claims model.Claims, err error) {
 	token := r.Header.Get(tokenHeader)

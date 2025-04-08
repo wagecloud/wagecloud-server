@@ -19,7 +19,7 @@ type Service struct {
 type ServiceInterface interface {
 	GetAccount(ctx context.Context, params GetAccountParams) (model.AccountUser, error)
 	LoginUser(ctx context.Context, params LoginUserParams) (LoginUserResult, error)
-	RegisterUser(ctx context.Context, account model.AccountUser) (RegisterUserParams, error)
+	RegisterUser(ctx context.Context, account model.AccountUser) (RegisterUserResult, error)
 }
 
 type GetAccountParams struct {
@@ -86,12 +86,12 @@ func (s *Service) LoginUser(ctx context.Context, params LoginUserParams) (LoginU
 	}, nil
 }
 
-type RegisterUserParams struct {
+type RegisterUserResult struct {
 	Token   string
 	Account model.AccountUser
 }
 
-func (s *Service) RegisterUser(ctx context.Context, account model.AccountUser) (res RegisterUserParams, err error) {
+func (s *Service) RegisterUser(ctx context.Context, account model.AccountUser) (res RegisterUserResult, err error) {
 	txRepo, err := s.repo.Begin(ctx)
 	if err != nil {
 		return res, fmt.Errorf("failed to begin transaction: %w", err)
@@ -119,7 +119,7 @@ func (s *Service) RegisterUser(ctx context.Context, account model.AccountUser) (
 		return res, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return RegisterUserParams{
+	return RegisterUserResult{
 		Token: token,
 		Account: model.AccountUser{
 			AccountBase: createdAccount,
