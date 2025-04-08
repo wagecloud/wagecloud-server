@@ -116,7 +116,8 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 		},
 		OS: &libvirtxml.DomainOS{
 			Type: &libvirtxml.DomainOSType{
-				Arch:    string(domain.OS.Arch),
+				// Arch:    string(domain.OS.Arch),
+				Arch:    "x86_64",
 				Machine: "pc-q35-6.2",
 				Type:    "hvm",
 			},
@@ -303,7 +304,7 @@ func toEntity(domain *libvirt.Domain) (*model.Domain, error) {
 
 		OS: model.OS{
 			Name: domConf.OS.Type.Type,
-			Arch: model.Arch(domConf.OS.Type.Arch),
+			// Arch: model.Arch(domConf.OS.Type.Arch),
 		}}, nil
 
 }

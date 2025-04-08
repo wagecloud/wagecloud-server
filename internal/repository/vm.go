@@ -66,8 +66,8 @@ func (r *RepositoryImpl) CountVMs(ctx context.Context, params ListVMParams) (int
 		RamTo:         *pgxutil.PtrToPgtype(&pgtype.Int4{}, params.RamTo),
 		StorageFrom:   *pgxutil.PtrToPgtype(&pgtype.Int4{}, params.StorageFrom),
 		StorageTo:     *pgxutil.PtrToPgtype(&pgtype.Int4{}, params.StorageTo),
-		CreatedAtFrom: *pgxutil.PtrToPgtype(&pgtype.Timestamp{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
-		CreatedAtTo:   *pgxutil.PtrToPgtype(&pgtype.Timestamp{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
+		CreatedAtFrom: *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
+		CreatedAtTo:   *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
 	})
 }
 
@@ -86,8 +86,8 @@ func (r *RepositoryImpl) ListVMs(ctx context.Context, params ListVMParams) ([]*m
 		RamTo:         *pgxutil.PtrToPgtype(&pgtype.Int4{}, params.RamTo),
 		StorageFrom:   *pgxutil.PtrToPgtype(&pgtype.Int4{}, params.StorageFrom),
 		StorageTo:     *pgxutil.PtrToPgtype(&pgtype.Int4{}, params.StorageTo),
-		CreatedAtFrom: *pgxutil.PtrToPgtype(&pgtype.Timestamp{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
-		CreatedAtTo:   *pgxutil.PtrToPgtype(&pgtype.Timestamp{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
+		CreatedAtFrom: *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
+		CreatedAtTo:   *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
 	})
 	if err != nil {
 		return nil, err

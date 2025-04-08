@@ -39,7 +39,7 @@ func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 		model.WithDomainMemory(req.Memory.Value, req.Memory.Unit),
 		model.WithDomainCpu(req.Cpu.Value),
 		model.WithDomainOS(model.OS{
-			Arch: req.OS.Arch,
+			// Arch: req.OS.Arch,
 			Name: req.OS.Name,
 		}),
 	)

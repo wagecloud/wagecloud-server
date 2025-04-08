@@ -52,30 +52,36 @@ func (ns NullPaymentType) Value() (driver.Value, error) {
 	return string(ns.PaymentType), nil
 }
 
-type Account struct {
+type AccountBase struct {
 	ID        int64
+	Username  string
 	Email     string
-	Name      pgtype.Text
+	Name      string
 	Password  string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type AccountUser struct {
+	ID int64
 }
 
 type Arch struct {
 	ID        string
 	Name      string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 type Network struct {
 	ID        string
 	PrivateIp string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 type O struct {
 	ID        string
 	Name      string
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
 }
 
 type Vm struct {
@@ -88,6 +94,6 @@ type Vm struct {
 	Cpu       int32
 	Ram       int32
 	Storage   int32
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }

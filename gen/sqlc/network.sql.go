@@ -11,6 +11,36 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countNetworks = `-- name: CountNetworks :one
+SELECT COUNT(id)
+FROM network
+WHERE (
+  (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
+  (private_ip ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
+  (created_at >= $3 OR $3 IS NULL) AND
+  (created_at <= $4 OR $4 IS NULL)
+)
+`
+
+type CountNetworksParams struct {
+	ID            pgtype.Text
+	PrivateIp     pgtype.Text
+	CreatedAtFrom pgtype.Timestamptz
+	CreatedAtTo   pgtype.Timestamptz
+}
+
+func (q *Queries) CountNetworks(ctx context.Context, arg CountNetworksParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countNetworks,
+		arg.ID,
+		arg.PrivateIp,
+		arg.CreatedAtFrom,
+		arg.CreatedAtTo,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createNetwork = `-- name: CreateNetwork :one
 INSERT INTO network (id, private_ip)
 VALUES ($1, $2)
@@ -61,13 +91,18 @@ WHERE (
   (created_at >= $3 OR $3 IS NULL) AND
   (created_at <= $4 OR $4 IS NULL)
 )
+ORDER BY created_at DESC
+LIMIT $6
+OFFSET $5
 `
 
 type ListNetworksParams struct {
 	ID            pgtype.Text
 	PrivateIp     pgtype.Text
-	CreatedAtFrom pgtype.Timestamp
-	CreatedAtTo   pgtype.Timestamp
+	CreatedAtFrom pgtype.Timestamptz
+	CreatedAtTo   pgtype.Timestamptz
+	Offset        int32
+	Limit         int32
 }
 
 func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]Network, error) {
@@ -76,6 +111,8 @@ func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]N
 		arg.PrivateIp,
 		arg.CreatedAtFrom,
 		arg.CreatedAtTo,
+		arg.Offset,
+		arg.Limit,
 	)
 	if err != nil {
 		return nil, err

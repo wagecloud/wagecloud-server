@@ -3,6 +3,16 @@ SELECT network.*
 FROM network
 WHERE id = $1;
 
+-- name: CountNetworks :one
+SELECT COUNT(id)
+FROM network
+WHERE (
+  (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
+  (private_ip ILIKE '%' || sqlc.narg('private_ip') || '%' OR sqlc.narg('private_ip') IS NULL) AND
+  (created_at >= sqlc.narg('created_at_from') OR sqlc.narg('created_at_from') IS NULL) AND
+  (created_at <= sqlc.narg('created_at_to') OR sqlc.narg('created_at_to') IS NULL)
+);
+
 -- name: ListNetworks :many
 SELECT network.*
 FROM network
@@ -11,7 +21,10 @@ WHERE (
   (private_ip ILIKE '%' || sqlc.narg('private_ip') || '%' OR sqlc.narg('private_ip') IS NULL) AND
   (created_at >= sqlc.narg('created_at_from') OR sqlc.narg('created_at_from') IS NULL) AND
   (created_at <= sqlc.narg('created_at_to') OR sqlc.narg('created_at_to') IS NULL)
-);
+)
+ORDER BY created_at DESC
+LIMIT sqlc.arg('limit')
+OFFSET sqlc.arg('offset');
 
 -- name: CreateNetwork :one
 INSERT INTO network (id, private_ip)
