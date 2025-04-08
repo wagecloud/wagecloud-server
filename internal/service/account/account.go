@@ -104,6 +104,9 @@ func (s *Service) RegisterUser(ctx context.Context, account model.AccountUser) (
 	}
 	defer txRepo.Rollback(ctx)
 
+	// Role must set to USER
+	account.Role = model.RoleUser
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return res, fmt.Errorf("failed to hash password: %w", err)

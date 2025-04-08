@@ -256,24 +256,22 @@ func (q *Queries) ListVMs(ctx context.Context, arg ListVMsParams) ([]Vm, error) 
 const updateVM = `-- name: UpdateVM :one
 UPDATE vm
 SET 
-  account_id = COALESCE($2, account_id),
-  network_id = COALESCE($3, network_id),
-  os_id = COALESCE($4, os_id),
-  arch_id = COALESCE($5, arch_id),
-  name = COALESCE($6, name),
-  cpu = COALESCE($7, cpu),
-  ram = COALESCE($8, ram),
-  storage = COALESCE($9, storage)
+  network_id = COALESCE($2, network_id),
+  os_id = COALESCE($3, os_id),
+  arch_id = COALESCE($4, arch_id),
+  name = COALESCE($5, name),
+  cpu = COALESCE($6, cpu),
+  ram = COALESCE($7, ram),
+  storage = COALESCE($8, storage)
 WHERE (
   id = $1 AND
-  (account_id = $2 OR $2 IS NULL)
+  (account_id = $9 OR $9 IS NULL)
 )
 RETURNING id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage, created_at, updated_at
 `
 
 type UpdateVMParams struct {
 	ID        int64
-	AccountID pgtype.Int8
 	NetworkID pgtype.Text
 	OsID      pgtype.Text
 	ArchID    pgtype.Text
@@ -281,12 +279,12 @@ type UpdateVMParams struct {
 	Cpu       pgtype.Int4
 	Ram       pgtype.Int4
 	Storage   pgtype.Int4
+	AccountID pgtype.Int8
 }
 
 func (q *Queries) UpdateVM(ctx context.Context, arg UpdateVMParams) (Vm, error) {
 	row := q.db.QueryRow(ctx, updateVM,
 		arg.ID,
-		arg.AccountID,
 		arg.NetworkID,
 		arg.OsID,
 		arg.ArchID,
@@ -294,6 +292,7 @@ func (q *Queries) UpdateVM(ctx context.Context, arg UpdateVMParams) (Vm, error) 
 		arg.Cpu,
 		arg.Ram,
 		arg.Storage,
+		arg.AccountID,
 	)
 	var i Vm
 	err := row.Scan(

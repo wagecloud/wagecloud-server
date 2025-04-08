@@ -18,8 +18,8 @@ type GetAccountParams struct {
 }
 
 func (r *RepositoryImpl) GetAccount(ctx context.Context, params GetAccountParams) (model.AccountBase, error) {
-	if params.ID == nil && params.Username == nil && params.Email == nil {
-		return model.AccountBase{}, fmt.Errorf("at least one of ID, Username, or Email must be provided")
+	if params.ID == nil && params.Username == nil {
+		return model.AccountBase{}, fmt.Errorf("at least one of ID, Username must be provided")
 	}
 
 	row, err := r.sqlc.GetAccount(ctx, sqlc.GetAccountParams{
@@ -33,19 +33,20 @@ func (r *RepositoryImpl) GetAccount(ctx context.Context, params GetAccountParams
 
 	return model.AccountBase{
 		ID:        row.ID,
-		Username:  row.Username,
-		Email:     row.Email,
+		Role:      model.Role(row.Role),
 		Name:      row.Name,
+		Username:  row.Username,
 		Password:  row.Password,
 		CreatedAt: row.CreatedAt.Time,
+		UpdatedAt: row.UpdatedAt.Time,
 	}, nil
 }
 
 type ListAccountsParams struct {
 	model.PaginationParams
 	ID            *string
+	Role          *model.Role
 	Username      *string
-	Email         *string
 	Name          *string
 	CreatedAtFrom *int64
 	CreatedAtTo   *int64
@@ -54,8 +55,8 @@ type ListAccountsParams struct {
 func (r *RepositoryImpl) CountAccounts(ctx context.Context, params ListAccountsParams) (int64, error) {
 	return r.sqlc.CountAccounts(ctx, sqlc.CountAccountsParams{
 		ID:            *pgxutil.PtrToPgtype(&pgtype.Text{}, params.ID),
+		Role:          *pgxutil.PtrBrandedToPgType(&sqlc.NullRole{}, params.Role),
 		Username:      *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Username),
-		Email:         *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Email),
 		Name:          *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Name),
 		CreatedAtFrom: *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
 		CreatedAtTo:   *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
@@ -67,9 +68,9 @@ func (r *RepositoryImpl) ListAccounts(ctx context.Context, params ListAccountsPa
 		Limit:         params.Limit,
 		Offset:        params.Offset(),
 		ID:            *pgxutil.PtrToPgtype(&pgtype.Text{}, params.ID),
-		Username:      *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Username),
-		Email:         *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Email),
+		Role:          *pgxutil.PtrBrandedToPgType(&sqlc.NullRole{}, params.Role),
 		Name:          *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Name),
+		Username:      *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Username),
 		CreatedAtFrom: *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
 		CreatedAtTo:   *pgxutil.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
 	})
@@ -81,11 +82,12 @@ func (r *RepositoryImpl) ListAccounts(ctx context.Context, params ListAccountsPa
 	for _, row := range rows {
 		accounts = append(accounts, model.AccountBase{
 			ID:        row.ID,
-			Username:  row.Username,
+			Role:      model.Role(row.Role),
 			Name:      row.Name,
-			Email:     row.Email,
+			Username:  row.Username,
 			Password:  row.Password,
 			CreatedAt: row.CreatedAt.Time,
+			UpdatedAt: row.UpdatedAt.Time,
 		})
 	}
 
@@ -94,9 +96,9 @@ func (r *RepositoryImpl) ListAccounts(ctx context.Context, params ListAccountsPa
 
 func (r *RepositoryImpl) CreateAccount(ctx context.Context, account model.AccountBase) (model.AccountBase, error) {
 	row, err := r.sqlc.CreateAccount(ctx, sqlc.CreateAccountParams{
-		Username: account.Username,
-		Email:    account.Email,
+		Role:     sqlc.Role(account.Role),
 		Name:     account.Name,
+		Username: account.Username,
 		Password: account.Password,
 	})
 	if err != nil {
@@ -105,18 +107,18 @@ func (r *RepositoryImpl) CreateAccount(ctx context.Context, account model.Accoun
 
 	return model.AccountBase{
 		ID:        row.ID,
-		Username:  row.Username,
-		Email:     row.Email,
+		Role:      model.Role(row.Role),
 		Name:      row.Name,
+		Username:  row.Username,
 		Password:  row.Password,
 		CreatedAt: row.CreatedAt.Time,
+		UpdatedAt: row.UpdatedAt.Time,
 	}, nil
 }
 
 type UpdateAccountParams struct {
 	ID       int64
 	Username *string
-	Email    *string
 	Name     *string
 	Password *string
 }
@@ -124,9 +126,8 @@ type UpdateAccountParams struct {
 func (r *RepositoryImpl) UpdateAccount(ctx context.Context, params UpdateAccountParams) (model.AccountBase, error) {
 	row, err := r.sqlc.UpdateAccount(ctx, sqlc.UpdateAccountParams{
 		ID:       params.ID,
-		Username: *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Username),
-		Email:    *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Email),
 		Name:     *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Name),
+		Username: *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Username),
 		Password: *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Password),
 	})
 	if err != nil {
@@ -135,14 +136,49 @@ func (r *RepositoryImpl) UpdateAccount(ctx context.Context, params UpdateAccount
 
 	return model.AccountBase{
 		ID:        row.ID,
-		Username:  row.Username,
+		Role:      model.Role(row.Role),
 		Name:      row.Name,
-		Email:     row.Email,
+		Username:  row.Username,
 		Password:  row.Password,
 		CreatedAt: row.CreatedAt.Time,
+		UpdatedAt: row.UpdatedAt.Time,
 	}, nil
 }
 
 func (r *RepositoryImpl) DeleteAccount(ctx context.Context, accountID int64) error {
 	return r.sqlc.DeleteAccount(ctx, accountID)
+}
+
+type GetUserParams struct {
+	ID       *int64
+	Username *string
+	Email    *string
+}
+
+func (r *RepositoryImpl) GetUser(ctx context.Context, params GetUserParams) (model.AccountUser, error) {
+	if params.ID == nil && params.Username == nil && params.Email == nil {
+		return model.AccountUser{}, fmt.Errorf("at least one of ID, Username, Email must be provided")
+	}
+
+	row, err := r.sqlc.GetUser(ctx, sqlc.GetUserParams{
+		ID:       *pgxutil.PtrToPgtype(&pgtype.Int8{}, params.ID),
+		Username: *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Username),
+		Email:    *pgxutil.PtrToPgtype(&pgtype.Text{}, params.Email),
+	})
+	if err != nil {
+		return model.AccountUser{}, err
+	}
+
+	return model.AccountUser{
+		AccountBase: model.AccountBase{
+			ID:        row.ID,
+			Role:      model.Role(row.Role),
+			Name:      row.Name,
+			Username:  row.Username,
+			Password:  row.Password,
+			CreatedAt: row.CreatedAt.Time,
+			UpdatedAt: row.UpdatedAt.Time,
+		},
+		Email: row.Email,
+	}, nil
 }

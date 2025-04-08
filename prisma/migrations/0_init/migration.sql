@@ -1,12 +1,15 @@
 -- CreateEnum
 CREATE TYPE "PaymentType" AS ENUM ('VNPay');
 
+-- CreateEnum
+CREATE TYPE "role" AS ENUM ('ADMIN', 'USER');
+
 -- CreateTable
 CREATE TABLE "account_base" (
     "id" BIGSERIAL NOT NULL,
-    "username" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
+    "role" "role" NOT NULL,
     "name" VARCHAR(255) NOT NULL,
+    "username" TEXT NOT NULL,
     "password" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -17,6 +20,7 @@ CREATE TABLE "account_base" (
 -- CreateTable
 CREATE TABLE "account_user" (
     "id" BIGINT NOT NULL,
+    "email" TEXT NOT NULL,
 
     CONSTRAINT "account_user_pkey" PRIMARY KEY ("id")
 );
@@ -69,7 +73,7 @@ CREATE TABLE "arch" (
 CREATE UNIQUE INDEX "account_base_username_key" ON "account_base"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "account_base_email_key" ON "account_base"("email");
+CREATE UNIQUE INDEX "account_user_email_key" ON "account_user"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "vm_network_id_key" ON "vm"("network_id");

@@ -21,6 +21,7 @@ type Repository interface {
 	CreateAccount(ctx context.Context, account model.AccountBase) (model.AccountBase, error)
 	UpdateAccount(ctx context.Context, params UpdateAccountParams) (model.AccountBase, error)
 	DeleteAccount(ctx context.Context, id int64) error
+	GetUser(ctx context.Context, params GetUserParams) (model.AccountUser, error)
 
 	// Arch
 	GetArch(ctx context.Context, id string) (model.Arch, error)
@@ -47,9 +48,9 @@ type Repository interface {
 	DeleteOS(ctx context.Context, id string) error
 
 	// VM
-	GetVM(ctx context.Context, params GetVMParams) (*model.VM, error)
-	CountVMs(ctx context.Context, params ListVMParams) (int64, error)
-	ListVMs(ctx context.Context, params ListVMParams) ([]*model.VM, error)
+	GetVM(ctx context.Context, params GetVMParams) (model.VM, error)
+	CountVMs(ctx context.Context, params ListVMsParams) (int64, error)
+	ListVMs(ctx context.Context, params ListVMsParams) ([]model.VM, error)
 	CreateVM(ctx context.Context, vm model.VM) (model.VM, error)
 	UpdateVM(ctx context.Context, params UpdateVMParams) (model.VM, error)
 	DeleteVM(ctx context.Context, params DeleteVMParams) error

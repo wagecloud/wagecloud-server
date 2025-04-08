@@ -73,10 +73,10 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	result, err := h.service.Account.RegisterUser(r.Context(), model.AccountUser{
 		AccountBase: model.AccountBase{
 			Username: req.Username,
-			Email:    req.Email,
 			Name:     req.Name,
 			Password: req.Password,
 		},
+		Email: req.Email,
 	})
 	if err != nil {
 		response.FromError(w, err)
