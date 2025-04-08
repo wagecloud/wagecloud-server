@@ -32,8 +32,12 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 		r.Route("/v1", func(r chi.Router) {
 			// Domain routes
 			r.Route("/domains", func(r chi.Router) {
+				r.Get("/", h.GetListDomains)
 				r.Post("/", h.CreateDomain)
 				r.Post("/{domainID}/start", h.StartDomain)
+				r.Post("/{domainID}/stop", nil)
+				r.Put("/{domainID}", h.UpdateDomain)
+				r.Delete("/{domainID}", nil)
 			})
 
 			// Image routes
@@ -49,9 +53,7 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 			r.Route("/accounts", func(r chi.Router) {
 				r.Get("/{accountID}", func(w http.ResponseWriter, r *http.Request) {})
 			})
-
 		})
-
 	})
 
 	return r
