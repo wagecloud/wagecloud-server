@@ -47,7 +47,7 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 			r.Route("/domain", func(r chi.Router) {
 				r.Get("/", h.GetListDomains)
 				r.Post("/", h.CreateDomain)
-				r.Post("/{domainID}/start", h.StartDomain)
+				r.Post("/start/{domainID}", h.StartDomain)
 				r.Post("/{domainID}/stop", nil)
 				r.Put("/{domainID}", h.UpdateDomain)
 				r.Delete("/{domainID}", nil)

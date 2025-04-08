@@ -5,16 +5,18 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
 )
 
 // CreateDomainRequest represents the request body for creating a domain
 type CreateDomainRequest struct {
-	Name   string       `json:"name"`
-	Memory model.Memory `json:"memory"`
-	Cpu    model.Cpu    `json:"cpu"`
-	OS     model.OS     `json:"os"`
+	Name    string       `json:"name"`
+	Memory  model.Memory `json:"memory"`
+	Cpu     model.Cpu    `json:"cpu"`
+	OS      model.OS     `json:"os"`
+	Storage uint         `json:"storage"`
 }
 
 type UpdateDomainRequest struct {
@@ -35,20 +37,23 @@ func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domain := model.NewDomain(
-		model.WithDomainName(req.Name),
+		model.WithDomainName(req.Name+"-"+uuid.New().String()),
 		model.WithDomainMemory(req.Memory.Value, req.Memory.Unit),
 		model.WithDomainCpu(req.Cpu.Value),
+		model.WithDomainStorage(req.Storage),
 		model.WithDomainOS(model.OS{
 			// Arch: req.OS.Arch,
 			Name: req.OS.Name,
 		}),
 	)
 
-	_, err := h.service.Libvirt.CreateDomain(domain)
+	domainVir, err := h.service.Libvirt.CreateDomain(domain)
 	if err != nil {
 		response.FromError(w, err)
 		return
 	}
+
+	h.service.Libvirt.StartDomain(domainVir)
 
 	response.FromDTO(w, nil, http.StatusCreated, "Domain created successfully")
 }
@@ -92,6 +97,9 @@ func (h *Handler) StartDomain(w http.ResponseWriter, r *http.Request) {
 
 	// Here you would typically retrieve the domain from libvirt using the ID
 	// For now, we'll just return a mock response
+
+	h.service.Libvirt.StartDomainByID(domainID)
+
 	response.FromDTO(w, nil, http.StatusOK, "Domain started successfully")
 }
 

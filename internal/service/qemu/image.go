@@ -76,6 +76,44 @@ func (s *Service) CreateImage(baseImgFile string, cloneImgFile string, size uint
 	return nil
 }
 
+// neet account id, base path with clone path
+
+func (s *Service) CreateImageWithPath(basePath string, clonePath string, size uint) error {
+	if !exist(basePath) {
+		return fmt.Errorf("base image not found")
+	}
+
+	if err := os.MkdirAll(path.Dir(clonePath), 0777); err != nil {
+		return fmt.Errorf("failed to create directory: %s", err)
+	}
+
+
+	sizeStr := fmt.Sprintf("%dG", size)
+	fmt.Println("sizeStr", sizeStr)
+	//eg: sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudimg-amd64.img
+	// -f qcow2 -F qcow2 
+	// /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img 
+	// set permissions to 777
+	cmd := exec.Command("qemu-img",
+		"create", "-b",
+		basePath,
+		"-f",
+		"qcow2",
+		"-F",
+		"qcow2",
+		clonePath,
+		// "10G", // TODO: add volumn params
+		sizeStr, // G for GB
+	)
+
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to create image: %s", err)
+	}
+
+	return nil
+}
+
 // func (s *Service) Convert(imgPath string, format string, destPath string) error {
 // 	if !exist(imgPath) {
 // 		return fmt.Errorf("image not found")

@@ -19,6 +19,7 @@ type Service struct {
 
 type ServiceInterface interface {
 	StartDomain(domain *libvirt.Domain) error
+	StartDomainByID(domainID string) error
 	CreateDomain(domain model.Domain) (*libvirt.Domain, error)
 	UpdateDomain(domainID string, domain model.Domain) (*libvirt.Domain, error)
 	GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error)
@@ -29,6 +30,28 @@ type ServiceInterface interface {
 func NewService(repo *repository.RepositoryImpl) *Service {
 	return &Service{repo: repo}
 }
+
+func (s *Service) StartDomainByID(domainID string) error {
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		return fmt.Errorf("failed to connect to libvirt: %v", err)
+	}
+	defer conn.Close()
+
+	domain, err := conn.LookupDomainByUUIDString(domainID)
+	if err != nil {
+		return fmt.Errorf("failed to find domain: %v", err)
+	}
+
+	err = domain.Create()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 
 func (s *Service) StartDomain(domain *libvirt.Domain) error {
 	err := domain.Create()
@@ -49,11 +72,19 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 
 	// Create new qcow2 image from base image
 
-	if err = s.qemu.CreateImage(domain.BaseImagePath(), domain.ImagePath(), domain.Storage); err != nil {
+	// fake account uuid
+	accountID := "7a4a5c55-000c-44d5-b41e-903b71bf32fe"
+
+	if err = s.qemu.CreateImageWithPath(
+		domain.BaseImagePath("focal-server-cloudimg-amd64.img"),
+		domain.ImageAccountPath(accountID),
+		domain.Storage,
+	); err != nil {
 		return nil, fmt.Errorf("failed to clone image: %v", err)
 	}
 
 	domainXML, err := s.GetXMLConfig(domain)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate domain XML: %v", err)
 	}
@@ -62,8 +93,15 @@ func (s *Service) CreateDomain(domain model.Domain) (*libvirt.Domain, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal domain XML: %v", err)
 	}
+	 
+	domainVirt, err := conn.DomainDefineXML(xmlData)
 
-	return conn.DomainDefineXML(xmlData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to define domain: %v", err)
+	}
+
+	return domainVirt, nil
+
 }
 
 func (s *Service) UpdateDomain(domainID string, domain model.Domain) (*libvirt.Domain, error) {
@@ -155,7 +193,7 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.ImagePath(),
+							File: domain.ImageAccountPath("7a4a5c55-000c-44d5-b41e-903b71bf32fe"), // temp accountID := "7a4a5c55-000c-44d5-b41e-903b71bf32fe"
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -171,7 +209,7 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.CloudinitPath(),
+							File: domain.CloudinitAccountPath("7a4a5c55-000c-44d5-b41e-903b71bf32fe"), // temp accountID := "7a4a5c55-000c-44d5-b41e-903b71bf32fe"
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -260,7 +298,7 @@ func (s *Service) GetListDomains() ([]model.Domain, error) {
 	return domainsModel, nil
 }
 
-func (s *Service) getListActiveDomains() ([]model.Domain, error) {
+func (s *Service) GetListActiveDomains() ([]model.Domain, error) {
 	conn, err := libvirt.NewConnect("qemu:///system")
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to libvirt: %v", err)
@@ -289,7 +327,7 @@ func toEntity(domain *libvirt.Domain) (*model.Domain, error) {
 	domainID, _ := domain.GetUUIDString()
 	name, _ := domain.GetName()
 	memory, _ := domain.GetMaxMemory() // always in kB
-	cpu, _ := domain.GetVcpus() // temp
+	cpu, _ := domain.GetVcpus()        // temp
 	// osType, _ := domain.GetOSType() // temp, ostype doesn't return specific os like ubuntu, centos, etc. just return hvm or other type of vm
 
 	xmlDesc, err := domain.GetXMLDesc(0)
