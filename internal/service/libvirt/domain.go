@@ -3,11 +3,11 @@ package libvirt
 import (
 	"fmt"
 
-	"github.com/libvirt/libvirt-go"
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 	"github.com/wagecloud/wagecloud-server/internal/service/qemu"
+	"libvirt.org/go/libvirt"
 )
 
 type Service struct {
