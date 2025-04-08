@@ -18,15 +18,15 @@ type CreateImageRequest struct {
 func (h *Handler) CreateImage(w http.ResponseWriter, r *http.Request) {
 	var req CreateImageRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.FromError(w, http.StatusBadRequest, "Invalid request payload")
+		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
 
 	err := h.service.Qemu.CreateImage(req.BaseImagePath, req.CloneImagePath, req.Size)
 	if err != nil {
-		response.FromError(w, http.StatusInternalServerError, "Failed to create image: "+err.Error())
+		response.FromError(w, err)
 		return
 	}
 
-	response.FromMessage(w, http.StatusCreated, "Image created successfully")
+	response.FromDTO(w, nil, http.StatusCreated, "Image created successfully")
 }

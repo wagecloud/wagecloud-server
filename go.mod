@@ -1,6 +1,6 @@
 module github.com/wagecloud/wagecloud-server
 
-go 1.23.4
+go 1.24
 
 require github.com/libvirt/libvirt-go-xml v7.4.0+incompatible
 
@@ -15,7 +15,19 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-require libvirt.org/go/libvirt v1.11001.0
+require (
+	github.com/bytedance/sonic v1.13.2
+	github.com/golang-jwt/jwt/v5 v5.2.2
+	libvirt.org/go/libvirt v1.11001.0
+)
+
+require (
+	github.com/bytedance/sonic/loader v0.2.4 // indirect
+	github.com/cloudwego/base64x v0.1.5 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
+	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	golang.org/x/arch v0.16.0 // indirect
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

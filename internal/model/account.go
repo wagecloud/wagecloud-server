@@ -18,3 +18,7 @@ type AccountBase struct {
 func (a AccountBase) Base() AccountBase {
 	return a
 }
+
+type AccountUser struct {
+	AccountBase
+}

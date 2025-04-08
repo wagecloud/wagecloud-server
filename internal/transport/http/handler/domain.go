@@ -12,10 +12,10 @@ import (
 
 // CreateDomainRequest represents the request body for creating a domain
 type CreateDomainRequest struct {
-	Name   string       `json:"name"`
-	Memory model.Memory `json:"memory"`
-	Cpu    model.Cpu    `json:"cpu"`
-	OS     model.OS     `json:"os"`
+	Name    string       `json:"name"`
+	Memory  model.Memory `json:"memory"`
+	Cpu     model.Cpu    `json:"cpu"`
+	OS      model.OS     `json:"os"`
 	Storage uint         `json:"storage"`
 }
 
@@ -32,13 +32,12 @@ type DeleteDomainRequest struct {
 func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 	var req CreateDomainRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.FromError(w, http.StatusBadRequest, "Invalid request payload" + err.Error())
+		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
 
-
 	domain := model.NewDomain(
-		model.WithDomainName(req.Name + "-" + uuid.New().String()),
+		model.WithDomainName(req.Name+"-"+uuid.New().String()),
 		model.WithDomainMemory(req.Memory.Value, req.Memory.Unit),
 		model.WithDomainCpu(req.Cpu.Value),
 		model.WithDomainStorage(req.Storage),
@@ -50,27 +49,27 @@ func (h *Handler) CreateDomain(w http.ResponseWriter, r *http.Request) {
 
 	domainVir, err := h.service.Libvirt.CreateDomain(domain)
 	if err != nil {
-		response.FromError(w, http.StatusInternalServerError, "Failed to create domain: "+err.Error())
+		response.FromError(w, err)
 		return
 	}
 
 	h.service.Libvirt.StartDomain(domainVir)
 
-	response.FromMessage(w, http.StatusCreated, "Domain created successfully")
+	response.FromDTO(w, nil, http.StatusCreated, "Domain created successfully")
 }
 
 func (h *Handler) UpdateDomain(w http.ResponseWriter, r *http.Request) {
 
 	var req UpdateDomainRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.FromError(w, http.StatusBadRequest, err.Error())
+		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
 
 	domainID := chi.URLParam(r, "domainID")
 
 	if domainID == "" {
-		response.FromError(w, http.StatusBadRequest, "Domain ID is required")
+		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -81,18 +80,18 @@ func (h *Handler) UpdateDomain(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		response.FromError(w, http.StatusInternalServerError, "Failed to update domain: "+err.Error())
+		response.FromError(w, err)
 		return
 	}
 
-	response.FromMessage(w, http.StatusOK, "Domain updated successfully")
+	response.FromDTO(w, nil, http.StatusOK, "Domain updated successfully")
 }
 
 // StartDomain handles starting a domain
 func (h *Handler) StartDomain(w http.ResponseWriter, r *http.Request) {
 	domainID := chi.URLParam(r, "domainID")
 	if domainID == "" {
-		response.FromError(w, http.StatusBadRequest, "Domain ID is required")
+		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -101,15 +100,15 @@ func (h *Handler) StartDomain(w http.ResponseWriter, r *http.Request) {
 
 	h.service.Libvirt.StartDomainByID(domainID)
 
-	response.FromMessage(w, http.StatusOK, "Domain started successfully")
+	response.FromDTO(w, nil, http.StatusOK, "Domain started successfully")
 }
 
 func (h *Handler) GetListDomains(w http.ResponseWriter, r *http.Request) {
 	domains, err := h.service.Libvirt.GetListDomains()
 	if err != nil {
-		response.FromError(w, http.StatusInternalServerError, "Failed to list domains: "+err.Error())
+		response.FromError(w, err)
 		return
 	}
 
-	response.FromDTO(w, http.StatusOK, domains)
+	response.FromDTO(w, domains, http.StatusOK, "Domains retrieved successfully")
 }

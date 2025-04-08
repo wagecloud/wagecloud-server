@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/service"
 	"github.com/wagecloud/wagecloud-server/internal/transport/http/handler"
 )
@@ -39,7 +41,7 @@ func (s *Server) Start() error {
 
 	// Start the server
 	go func() {
-		log.Printf("Server listening on %s", s.server.Addr)
+		logger.Log.Info(fmt.Sprintf("Server listening on %s", s.server.Addr))
 		serverErrors <- s.server.ListenAndServe()
 	}()
 

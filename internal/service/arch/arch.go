@@ -7,8 +7,18 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 )
 
+var _ ServiceInterface = (*Service)(nil)
+
 type Service struct {
 	repo repository.Repository
+}
+
+type ServiceInterface interface {
+	GetArch(ctx context.Context, id string) (model.Arch, error)
+	ListArchs(ctx context.Context, params ListArchsParams) (model.PaginateResult[model.Arch], error)
+	CreateArch(ctx context.Context, arch model.Arch) (model.Arch, error)
+	UpdateArch(ctx context.Context, params UpdateArchParams) (model.Arch, error)
+	DeleteArch(ctx context.Context, id string) error
 }
 
 func NewService(repo repository.Repository) *Service {

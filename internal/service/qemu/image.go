@@ -10,8 +10,16 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 )
 
+var _ ServiceInterface = (*Service)(nil)
+
 type Service struct {
 	repo *repository.RepositoryImpl
+}
+
+type ServiceInterface interface {
+	CreateImage(baseImgFile string, cloneImgFile string, size uint) error
+	// Convert(imgPath string, format string, destPath string) error
+	// ImageResize(imgPath string, vol *Volumn) error
 }
 
 func NewService(repo *repository.RepositoryImpl) *Service {

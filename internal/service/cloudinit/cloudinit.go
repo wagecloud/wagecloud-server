@@ -14,6 +14,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var _ ServiceInterface = (*Service)(nil)
+
 type Service struct {
 	repo *repository.RepositoryImpl
 }

@@ -2,15 +2,17 @@ package service
 
 import (
 	"github.com/wagecloud/wagecloud-server/internal/repository"
+	"github.com/wagecloud/wagecloud-server/internal/service/account"
 	"github.com/wagecloud/wagecloud-server/internal/service/cloudinit"
 	"github.com/wagecloud/wagecloud-server/internal/service/libvirt"
 	"github.com/wagecloud/wagecloud-server/internal/service/qemu"
 )
 
 type Service struct {
-	Cloudinit *cloudinit.Service
-	Libvirt   *libvirt.Service
-	Qemu      *qemu.Service
+	Account   account.ServiceInterface
+	Cloudinit cloudinit.ServiceInterface
+	Libvirt   libvirt.ServiceInterface
+	Qemu      qemu.ServiceInterface
 }
 
 func New(repo *repository.RepositoryImpl) *Service {

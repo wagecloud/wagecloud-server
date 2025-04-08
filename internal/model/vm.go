@@ -7,7 +7,7 @@ type VM struct {
 	OsID      string `json:"os_id"`
 	ArchID    string `json:"arch_id"`
 	Name      string `json:"name"`
-	Cpu       int32  `json:"cpu"`     // bro, convert it to uint32 instead of int32
+	Cpu       int32  `json:"cpu"`
 	Ram       int32  `json:"ram"`     // In MB
 	Storage   int32  `json:"storage"` // In GB
 }
