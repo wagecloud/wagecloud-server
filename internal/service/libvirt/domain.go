@@ -19,6 +19,7 @@ type Service struct {
 
 type ServiceInterface interface {
 	StartDomain(domain *libvirt.Domain) error
+	StartDomainByID(domainID string) error
 	CreateDomain(domain model.Domain) (*libvirt.Domain, error)
 	UpdateDomain(domainID string, domain model.Domain) (*libvirt.Domain, error)
 	GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error)
