@@ -15,10 +15,6 @@ unix_sock_ro_perms = "0777" // uncomment this line
 unix_sock_rw_perms = "0770" // uncomment this line
 
 
-
-
-
-
-
-
+// destionation for customer's images
+/var/lib/libvirt/images/uuid   :with uuid as id of customer
 
