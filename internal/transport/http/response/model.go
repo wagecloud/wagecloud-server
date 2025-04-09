@@ -6,9 +6,8 @@ type Error struct {
 }
 
 type CommonResponse struct {
-	Message string `json:"message,omitempty"`
-	Data    any    `json:"data,omitempty"`
-	Error   *Error `json:"error,omitempty"`
+	Data  any    `json:"data,omitempty"`
+	Error *Error `json:"error,omitempty"`
 }
 
 type PaginateResponse[T any] struct {

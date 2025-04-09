@@ -8,14 +8,12 @@ import (
 
 	// "github.com/bytedance/sonic"
 
-	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 )
 
 func writeError(w http.ResponseWriter, errCode string, message string) {
 	response, err := json.Marshal(CommonResponse{
-		Message: message,
-		Data:    nil,
+		Data: nil,
 		Error: &Error{
 			Code:    errCode,
 			Message: message,
@@ -38,33 +36,29 @@ func writeResponse(w http.ResponseWriter, dto any) {
 	w.Write(response)
 }
 
-func FromDTO(w http.ResponseWriter, dto any, httpCode int, message string) {
+func FromDTO(w http.ResponseWriter, dto any, httpCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 
 	writeResponse(w, CommonResponse{
-		Message: message,
-		Data:    dto,
-		Error:   nil,
+		Data:  dto,
+		Error: nil,
 	})
 }
 
-func FromError(w http.ResponseWriter, err error) {
+func FromError(w http.ResponseWriter, err error, httpCode int) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusInternalServerError)
+	w.WriteHeader(httpCode)
 
-	// Service error
+	// Internal server error
 	var errWithCode *model.ErrorWithCode
 	if errors.As(err, &errWithCode) {
 		writeError(w, errWithCode.Code, errWithCode.Msg)
 		return
 	}
 
-	// Internal server error
-	// writeError(w, http.StatusText(http.StatusInternalServerError), err.Error())
-	logger.Log.Info(err.Error())
-	// writeError(w, http.StatusText(http.StatusInternalServerError), "Internal Server Error")
-	writeError(w, http.StatusText(http.StatusInternalServerError), err.Error())
+	// Normal http error
+	writeError(w, strconv.Itoa(httpCode), err.Error())
 }
 
 func FromHTTPError(w http.ResponseWriter, httpCode int) {
