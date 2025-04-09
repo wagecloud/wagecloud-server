@@ -45,10 +45,10 @@ type ListVMsParams struct {
 	Name          *string
 	CpuFrom       *int64
 	CpuTo         *int64
-	RamFrom       *int32
-	RamTo         *int32
-	StorageFrom   *int32
-	StorageTo     *int32
+	RamFrom       *int64
+	RamTo         *int64
+	StorageFrom   *int64
+	StorageTo     *int64
 	CreatedAtFrom *int64
 	CreatedAtTo   *int64
 }
