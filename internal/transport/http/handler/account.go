@@ -21,10 +21,10 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 		ID: &claims.AccountID,
 	})
 	if err != nil {
-		response.FromError(w, err)
+		response.FromError(w, err, http.StatusInternalServerError)
 	}
 
-	response.FromDTO(w, account, http.StatusOK, "Account retrieved successfully")
+	response.FromDTO(w, account, http.StatusOK)
 }
 
 type LoginUserParams struct {
@@ -49,11 +49,11 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		Password: req.Password,
 	})
 	if err != nil {
-		response.FromError(w, err)
+		response.FromError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	response.FromDTO(w, account, http.StatusOK, "Login successful")
+	response.FromDTO(w, account, http.StatusOK)
 }
 
 type RegisterUserParams struct {
@@ -79,9 +79,9 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Email: req.Email,
 	})
 	if err != nil {
-		response.FromError(w, err)
+		response.FromError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	response.FromDTO(w, result, http.StatusCreated, "User registered successfully")
+	response.FromDTO(w, result, http.StatusCreated)
 }
