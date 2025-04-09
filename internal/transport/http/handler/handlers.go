@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/schema"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/service"
 	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
@@ -14,6 +16,11 @@ import (
 type Handler struct {
 	service *service.Service
 }
+
+var (
+	validate = validator.New()
+	decoder  = schema.NewDecoder()
+)
 
 func NewHandler(service *service.Service) *Handler {
 	return &Handler{
@@ -44,23 +51,14 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			// Domain routes
-			r.Route("/domain", func(r chi.Router) {
-				r.Get("/", h.GetListDomains)
-				r.Post("/", h.CreateDomain)
-				r.Post("/start/{domainID}", h.StartDomain)
-				r.Post("/{domainID}/stop", nil)
-				r.Put("/{domainID}", h.UpdateDomain)
-				r.Delete("/{domainID}", nil)
-			})
-
-			// Image routes
-			r.Route("/image", func(r chi.Router) {
-				r.Post("/", h.CreateImage)
-			})
-
-			// Cloudinit routes
-			r.Route("/cloudinit", func(r chi.Router) {
-				r.Post("/", h.CreateCloudinit)
+			r.Route("/vm", func(r chi.Router) {
+				r.Get("/", h.ListVMs)
+				r.Get("/{vmID}", h.GetVM)
+				r.Post("/", h.CreateVM)
+				r.Post("/start/{vmID}", h.StartVM)
+				r.Post("/{vmID}/stop", h.StopVM)
+				r.Put("/{vmID}", h.UpdateVM)
+				r.Delete("/{vmID}", h.DeleteVM)
 			})
 
 			r.Route("/account", func(r chi.Router) {
@@ -81,4 +79,16 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	})
 
 	return r
+}
+
+func decodeAndValidate(r *http.Request, v any) error {
+	if err := decoder.Decode(v, r.URL.Query()); err != nil {
+		return err
+	}
+
+	if err := validate.Struct(v); err != nil {
+		return err
+	}
+
+	return nil
 }
