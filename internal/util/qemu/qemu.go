@@ -7,26 +7,9 @@ import (
 	"path"
 
 	"github.com/wagecloud/wagecloud-server/config"
-	"github.com/wagecloud/wagecloud-server/internal/repository"
 )
 
-var _ ServiceInterface = (*Service)(nil)
-
-type Service struct {
-	repo *repository.RepositoryImpl
-}
-
-type ServiceInterface interface {
-	CreateImage(baseImgFile string, cloneImgFile string, size uint) error
-	// Convert(imgPath string, format string, destPath string) error
-	// ImageResize(imgPath string, vol *Volumn) error
-}
-
-func NewService(repo *repository.RepositoryImpl) *Service {
-	return &Service{repo: repo}
-}
-
-func (s *Service) CreateImage(baseImgFile string, cloneImgFile string, size uint) error {
+func CreateImage(baseImgFile string, cloneImgFile string, size uint) error {
 	if config.GetConfig().App.BaseImageDir == "" {
 		return fmt.Errorf("base image dir not set")
 	}
@@ -41,7 +24,7 @@ func (s *Service) CreateImage(baseImgFile string, cloneImgFile string, size uint
 	}
 
 	if config.GetConfig().App.ImageDir == "" {
-		return fmt.Errorf("Image dir not set")
+		return fmt.Errorf("image dir not set")
 	}
 
 	if !exist(config.GetConfig().App.ImageDir) {
@@ -65,7 +48,7 @@ func (s *Service) CreateImage(baseImgFile string, cloneImgFile string, size uint
 		"-F",
 		"qcow2",
 		cloneImgPath,
-		// "10G", // TODO: add volumn params
+		// "10G", // TODO: add volume params
 		sizeStr, // G for GB
 	)
 
@@ -78,7 +61,7 @@ func (s *Service) CreateImage(baseImgFile string, cloneImgFile string, size uint
 
 // neet account id, base path with clone path
 
-func (s *Service) CreateImageWithPath(basePath string, clonePath string, size uint) error {
+func CreateImageWithPath(basePath string, clonePath string, size uint) error {
 	if !exist(basePath) {
 		return fmt.Errorf("base image not found")
 	}
@@ -87,12 +70,11 @@ func (s *Service) CreateImageWithPath(basePath string, clonePath string, size ui
 		return fmt.Errorf("failed to create directory: %s", err)
 	}
 
-
 	sizeStr := fmt.Sprintf("%dG", size)
 	fmt.Println("sizeStr", sizeStr)
 	//eg: sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudimg-amd64.img
-	// -f qcow2 -F qcow2 
-	// /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img 
+	// -f qcow2 -F qcow2
+	// /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img
 	// set permissions to 777
 	cmd := exec.Command("qemu-img",
 		"create", "-b",
@@ -102,10 +84,9 @@ func (s *Service) CreateImageWithPath(basePath string, clonePath string, size ui
 		"-F",
 		"qcow2",
 		clonePath,
-		// "10G", // TODO: add volumn params
+		// "10G", // TODO: add volume params
 		sizeStr, // G for GB
 	)
-
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to create image: %s", err)
