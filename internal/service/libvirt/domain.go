@@ -27,7 +27,6 @@ type ServiceInterface interface {
 	WriteCloudinit(userdata io.Reader, metadata io.Reader, networkConfig io.Reader, cloudinitFile io.Writer) error
 
 	// DOMAIN
-	StartDomain(domain *libvirt.Domain) error
 	StartDomainByID(domainID string) error
 	CreateDomain(domain Domain) (*libvirt.Domain, error)
 	UpdateDomain(domainID string, domain Domain) (*libvirt.Domain, error)
@@ -71,16 +70,6 @@ func (s *Service) StartDomainByID(domainID string) error {
 	}
 
 	err = domain.Create()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Service) StartDomain(domain *libvirt.Domain) error {
-	err := domain.Create()
 
 	if err != nil {
 		return err

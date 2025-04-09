@@ -145,7 +145,6 @@ func (h *Handler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.FromDTO(w, vm, http.StatusCreated)
-	return
 }
 
 type UpdateVMRequest struct {
