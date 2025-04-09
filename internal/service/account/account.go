@@ -22,6 +22,12 @@ type ServiceInterface interface {
 	RegisterUser(ctx context.Context, account model.AccountUser) (RegisterUserResult, error)
 }
 
+func NewService(repo repository.Repository) *Service {
+	return &Service{
+		repo: repo,
+	}
+}
+
 type GetAccountParams struct {
 	ID       *int64
 	Username *string
@@ -97,6 +103,9 @@ func (s *Service) RegisterUser(ctx context.Context, account model.AccountUser) (
 		return res, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer txRepo.Rollback(ctx)
+
+	// Role must set to USER
+	account.Role = model.RoleUser
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
 	if err != nil {

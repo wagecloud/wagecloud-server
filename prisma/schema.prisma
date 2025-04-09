@@ -1,7 +1,7 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
-}
+// generator client {
+// provider        = "prisma-client-js"
+// previewFeatures = ["multiSchema"]
+// }
 
 generator dbml {
   provider              = "prisma-dbml-generator"
@@ -17,23 +17,25 @@ datasource db {
 
 model AccountBase {
   id         BigInt   @id @default(autoincrement())
+  role       Role
+  name       String   @db.VarChar(255)
   username   String   @unique
-  email      String   @unique
-  name       String @db.VarChar(255)
-  password   String  @db.VarChar(255)
+  password   String   @db.VarChar(255)
   created_at DateTime @default(now()) @db.Timestamptz(3)
-  updated_at DateTime @updatedAt @default(now()) @db.Timestamptz(3)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
-  User     AccountUser?
+  User AccountUser?
 
   @@map("account_base")
 }
 
 model AccountUser {
-  id BigInt @id
-  VM         VM[]
+  id    BigInt @id
+  email String @unique
 
-  Account    AccountBase @relation(fields: [id], references: [id])
+  VM VM[]
+
+  Account AccountBase @relation(fields: [id], references: [id])
 
   @@map("account_user")
 }
@@ -50,18 +52,18 @@ model VM {
   ram        Int // In MB
   storage    Int // In GB
   created_at DateTime @default(now()) @db.Timestamptz(3)
-  updated_at DateTime @updatedAt @default(now()) @db.Timestamptz(3)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
-  User AccountUser @relation(fields: [account_id], references: [id])
-  Network Network @relation(fields: [network_id], references: [id])
-  OS      OS      @relation(fields: [os_id], references: [id])
-  Arch    Arch    @relation(fields: [arch_id], references: [id])
+  User    AccountUser @relation(fields: [account_id], references: [id])
+  Network Network     @relation(fields: [network_id], references: [id])
+  OS      OS          @relation(fields: [os_id], references: [id])
+  Arch    Arch        @relation(fields: [arch_id], references: [id])
 
   @@map("vm")
 }
 
 model Network {
-  id String @id
+  id         String   @id
   private_ip String   @unique
   created_at DateTime @default(now()) @db.Timestamptz(3)
 
@@ -72,8 +74,8 @@ model Network {
 
 // Only os name: ubuntu, centos, debian, ...
 model OS {
-  id         String  @id
-  name       String  
+  id         String   @id
+  name       String
   created_at DateTime @default(now()) @db.Timestamptz(3)
 
   VMs VM[]
@@ -82,10 +84,11 @@ model OS {
 }
 
 model Arch {
-  id String @id
-  name String
+  id         String   @id
+  name       String
   created_at DateTime @default(now()) @db.Timestamptz(3)
-  VMs VM[]
+  VMs        VM[]
+
   @@map("arch")
 }
 
@@ -93,3 +96,9 @@ enum PaymentType {
   VNPay
 }
 
+enum Role {
+  ADMIN
+  USER
+
+  @@map("role")
+}

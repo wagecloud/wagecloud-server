@@ -16,9 +16,9 @@ SELECT COUNT(id)
 FROM account_base
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
-  (username ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
-  (email ILIKE '%' || $3 || '%' OR $3 IS NULL) AND
-  (name ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
+  (role = $2 OR $2 IS NULL) AND
+  (name ILIKE '%' || $3 || '%' OR $3 IS NULL) AND
+  (username ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
   (created_at >= $5 OR $5 IS NULL) AND
   (created_at <= $6 OR $6 IS NULL)
 )
@@ -26,9 +26,9 @@ WHERE (
 
 type CountAccountsParams struct {
 	ID            pgtype.Text
-	Username      pgtype.Text
-	Email         pgtype.Text
+	Role          NullRole
 	Name          pgtype.Text
+	Username      pgtype.Text
 	CreatedAtFrom pgtype.Timestamptz
 	CreatedAtTo   pgtype.Timestamptz
 }
@@ -36,9 +36,9 @@ type CountAccountsParams struct {
 func (q *Queries) CountAccounts(ctx context.Context, arg CountAccountsParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countAccounts,
 		arg.ID,
-		arg.Username,
-		arg.Email,
+		arg.Role,
 		arg.Name,
+		arg.Username,
 		arg.CreatedAtFrom,
 		arg.CreatedAtTo,
 	)
@@ -48,31 +48,31 @@ func (q *Queries) CountAccounts(ctx context.Context, arg CountAccountsParams) (i
 }
 
 const createAccount = `-- name: CreateAccount :one
-INSERT INTO account_base (username, email, name, password)
+INSERT INTO account_base (role, name, username, password)
 VALUES ($1, $2, $3, $4)
-RETURNING id, username, email, name, password, created_at, updated_at
+RETURNING id, role, name, username, password, created_at, updated_at
 `
 
 type CreateAccountParams struct {
-	Username string
-	Email    string
+	Role     Role
 	Name     string
+	Username string
 	Password string
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (AccountBase, error) {
 	row := q.db.QueryRow(ctx, createAccount,
-		arg.Username,
-		arg.Email,
+		arg.Role,
 		arg.Name,
+		arg.Username,
 		arg.Password,
 	)
 	var i AccountBase
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
-		&i.Email,
+		&i.Role,
 		&i.Name,
+		&i.Username,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -91,12 +91,13 @@ func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, username, email, name, password, created_at, updated_at 
-FROM account_base
+SELECT b.id, b.role, b.name, b.username, b.password, b.created_at, b.updated_at, u.id, u.email
+FROM account_base b
+LEFT JOIN account_user u ON b.id = u.id
 WHERE (
-  (id = $1 OR $1 IS NULL) AND
-  (username = $2 OR $2 IS NULL) AND
-  (email = $3 OR $3 IS NULL)
+  (b.id = $1 OR $1 IS NULL) AND
+  (b.username = $2 OR $2 IS NULL) AND 
+  (u.email = $3 OR $3 IS NULL)
 )
 `
 
@@ -106,29 +107,44 @@ type GetAccountParams struct {
 	Email    pgtype.Text
 }
 
-func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (AccountBase, error) {
+type GetAccountRow struct {
+	ID        int64
+	Role      Role
+	Name      string
+	Username  string
+	Password  string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	ID_2      pgtype.Int8
+	Email     pgtype.Text
+}
+
+func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAccountRow, error) {
 	row := q.db.QueryRow(ctx, getAccount, arg.ID, arg.Username, arg.Email)
-	var i AccountBase
+	var i GetAccountRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
-		&i.Email,
+		&i.Role,
 		&i.Name,
+		&i.Username,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ID_2,
+		&i.Email,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT u.id, b.id, b.username, b.email, b.name, b.password, b.created_at, b.updated_at
+SELECT u.id, u.email, b.id, b.role, b.name, b.username, b.password, b.created_at, b.updated_at
 FROM account_user u
 INNER JOIN account_base b ON b.id = u.id
 WHERE (
+  (b.role = 'USER') AND
   (b.id = $1 OR $1 IS NULL) AND
   (b.username = $2 OR $2 IS NULL) AND
-  (b.email = $3 OR $3 IS NULL)
+  (u.email = $3 OR $3 IS NULL)
 )
 `
 
@@ -140,10 +156,11 @@ type GetUserParams struct {
 
 type GetUserRow struct {
 	ID        int64
-	ID_2      int64
-	Username  string
 	Email     string
+	ID_2      int64
+	Role      Role
 	Name      string
+	Username  string
 	Password  string
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
@@ -154,10 +171,11 @@ func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, e
 	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
-		&i.ID_2,
-		&i.Username,
 		&i.Email,
+		&i.ID_2,
+		&i.Role,
 		&i.Name,
+		&i.Username,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -166,13 +184,13 @@ func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, e
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, username, email, name, password, created_at, updated_at
+SELECT id, role, name, username, password, created_at, updated_at
 FROM account_base
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
-  (username ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
-  (email ILIKE '%' || $3 || '%' OR $3 IS NULL) AND
-  (name ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
+  (role = $2 OR $2 IS NULL) AND
+  (name ILIKE '%' || $3 || '%' OR $3 IS NULL) AND
+  (username ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
   (created_at >= $5 OR $5 IS NULL) AND
   (created_at <= $6 OR $6 IS NULL)
 )
@@ -183,9 +201,9 @@ OFFSET $7
 
 type ListAccountsParams struct {
 	ID            pgtype.Text
-	Username      pgtype.Text
-	Email         pgtype.Text
+	Role          NullRole
 	Name          pgtype.Text
+	Username      pgtype.Text
 	CreatedAtFrom pgtype.Timestamptz
 	CreatedAtTo   pgtype.Timestamptz
 	Offset        int32
@@ -195,9 +213,9 @@ type ListAccountsParams struct {
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]AccountBase, error) {
 	rows, err := q.db.Query(ctx, listAccounts,
 		arg.ID,
-		arg.Username,
-		arg.Email,
+		arg.Role,
 		arg.Name,
+		arg.Username,
 		arg.CreatedAtFrom,
 		arg.CreatedAtTo,
 		arg.Offset,
@@ -212,9 +230,9 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 		var i AccountBase
 		if err := rows.Scan(
 			&i.ID,
-			&i.Username,
-			&i.Email,
+			&i.Role,
 			&i.Name,
+			&i.Username,
 			&i.Password,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -232,36 +250,33 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 const updateAccount = `-- name: UpdateAccount :one
 UPDATE account_base
 SET 
-    username = COALESCE($2, username),
-    email = COALESCE($3, email),
-    name = COALESCE($4, name),
-    password = COALESCE($5, password)
+    name = COALESCE($2, name),
+    username = COALESCE($3, username),
+    password = COALESCE($4, password)
 WHERE id = $1
-RETURNING id, username, email, name, password, created_at, updated_at
+RETURNING id, role, name, username, password, created_at, updated_at
 `
 
 type UpdateAccountParams struct {
 	ID       int64
-	Username pgtype.Text
-	Email    pgtype.Text
 	Name     pgtype.Text
+	Username pgtype.Text
 	Password pgtype.Text
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (AccountBase, error) {
 	row := q.db.QueryRow(ctx, updateAccount,
 		arg.ID,
-		arg.Username,
-		arg.Email,
 		arg.Name,
+		arg.Username,
 		arg.Password,
 	)
 	var i AccountBase
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
-		&i.Email,
+		&i.Role,
 		&i.Name,
+		&i.Username,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,

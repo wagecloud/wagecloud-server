@@ -67,7 +67,7 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 				r.Get("/", h.GetAccount)
 				r.Route("/user", func(r chi.Router) {
 					r.Post("/login", h.LoginUser)
-					r.Delete("/register", h.RegisterUser)
+					r.Post("/register", h.RegisterUser)
 				})
 			})
 		})

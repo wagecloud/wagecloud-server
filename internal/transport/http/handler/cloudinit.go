@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/internal/model"
+	"github.com/wagecloud/wagecloud-server/internal/transport/http/middleware/auth"
 	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
 )
 
@@ -20,6 +21,12 @@ type CreateCloudinitRequest struct {
 
 // CreateCloudinit handles the creation of a new cloudinit ISO
 func (h *Handler) CreateCloudinit(w http.ResponseWriter, r *http.Request) {
+	_, err := auth.GetClaims(r)
+	if err != nil {
+		response.FromHTTPError(w, http.StatusUnauthorized)
+		return
+	}
+
 	var req CreateCloudinitRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.FromHTTPError(w, http.StatusBadRequest)

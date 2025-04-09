@@ -15,16 +15,16 @@ type GetVMParams struct {
 	AccountID *int64
 }
 
-func (r *RepositoryImpl) GetVM(ctx context.Context, params GetVMParams) (*model.VM, error) {
+func (r *RepositoryImpl) GetVM(ctx context.Context, params GetVMParams) (model.VM, error) {
 	row, err := r.sqlc.GetVM(ctx, sqlc.GetVMParams{
 		ID:        params.ID,
 		AccountID: *pgxutil.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
 	})
 	if err != nil {
-		return nil, err
+		return model.VM{}, err
 	}
 
-	return &model.VM{
+	return model.VM{
 		ID:        row.ID,
 		NetworkID: row.NetworkID,
 		OsID:      row.OsID,
@@ -36,7 +36,7 @@ func (r *RepositoryImpl) GetVM(ctx context.Context, params GetVMParams) (*model.
 	}, nil
 }
 
-type ListVMParams struct {
+type ListVMsParams struct {
 	model.PaginationParams
 	AccountID     *int64
 	NetworkID     *string
@@ -53,7 +53,7 @@ type ListVMParams struct {
 	CreatedAtTo   *int64
 }
 
-func (r *RepositoryImpl) CountVMs(ctx context.Context, params ListVMParams) (int64, error) {
+func (r *RepositoryImpl) CountVMs(ctx context.Context, params ListVMsParams) (int64, error) {
 	return r.sqlc.CountVMs(ctx, sqlc.CountVMsParams{
 		AccountID:     *pgxutil.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
 		NetworkID:     *pgxutil.PtrToPgtype(&pgtype.Text{}, params.NetworkID),
@@ -71,7 +71,7 @@ func (r *RepositoryImpl) CountVMs(ctx context.Context, params ListVMParams) (int
 	})
 }
 
-func (r *RepositoryImpl) ListVMs(ctx context.Context, params ListVMParams) ([]*model.VM, error) {
+func (r *RepositoryImpl) ListVMs(ctx context.Context, params ListVMsParams) ([]model.VM, error) {
 	rows, err := r.sqlc.ListVMs(ctx, sqlc.ListVMsParams{
 		Offset:        params.Offset(),
 		Limit:         params.Limit,
@@ -93,9 +93,9 @@ func (r *RepositoryImpl) ListVMs(ctx context.Context, params ListVMParams) ([]*m
 		return nil, err
 	}
 
-	vms := make([]*model.VM, 0, len(rows))
+	vms := make([]model.VM, 0, len(rows))
 	for _, row := range rows {
-		vms = append(vms, &model.VM{
+		vms = append(vms, model.VM{
 			ID:        row.ID,
 			NetworkID: row.NetworkID,
 			OsID:      row.OsID,
@@ -140,6 +140,7 @@ func (r *RepositoryImpl) CreateVM(ctx context.Context, vm model.VM) (model.VM, e
 
 type UpdateVMParams struct {
 	ID        int64
+	AccountID *int64
 	NetworkID *string
 	OsID      *string
 	ArchID    *string
@@ -152,6 +153,7 @@ type UpdateVMParams struct {
 func (r *RepositoryImpl) UpdateVM(ctx context.Context, params UpdateVMParams) (model.VM, error) {
 	row, err := r.sqlc.UpdateVM(ctx, sqlc.UpdateVMParams{
 		ID:        params.ID,
+		AccountID: *pgxutil.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
 		NetworkID: *pgxutil.PtrToPgtype(&pgtype.Text{}, params.NetworkID),
 		OsID:      *pgxutil.PtrToPgtype(&pgtype.Text{}, params.OsID),
 		ArchID:    *pgxutil.PtrToPgtype(&pgtype.Text{}, params.ArchID),

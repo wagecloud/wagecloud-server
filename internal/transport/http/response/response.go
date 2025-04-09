@@ -62,8 +62,9 @@ func FromError(w http.ResponseWriter, err error) {
 
 	// Internal server error
 	// writeError(w, http.StatusText(http.StatusInternalServerError), err.Error())
-	logger.Log.Error(err.Error())
-	writeError(w, http.StatusText(http.StatusInternalServerError), "Internal Server Error")
+	logger.Log.Info(err.Error())
+	// writeError(w, http.StatusText(http.StatusInternalServerError), "Internal Server Error")
+	writeError(w, http.StatusText(http.StatusInternalServerError), err.Error())
 }
 
 func FromHTTPError(w http.ResponseWriter, httpCode int) {

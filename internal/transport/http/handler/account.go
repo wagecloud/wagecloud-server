@@ -35,6 +35,7 @@ type LoginUserParams struct {
 }
 
 func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+
 	var req LoginUserParams
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.FromHTTPError(w, http.StatusBadRequest)
@@ -72,10 +73,10 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	result, err := h.service.Account.RegisterUser(r.Context(), model.AccountUser{
 		AccountBase: model.AccountBase{
 			Username: req.Username,
-			Email:    req.Email,
 			Name:     req.Name,
 			Password: req.Password,
 		},
+		Email: req.Email,
 	})
 	if err != nil {
 		response.FromError(w, err)

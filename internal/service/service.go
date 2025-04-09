@@ -6,6 +6,7 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/service/cloudinit"
 	"github.com/wagecloud/wagecloud-server/internal/service/libvirt"
 	"github.com/wagecloud/wagecloud-server/internal/service/qemu"
+	"github.com/wagecloud/wagecloud-server/internal/service/vm"
 )
 
 type Service struct {
@@ -13,16 +14,21 @@ type Service struct {
 	Cloudinit cloudinit.ServiceInterface
 	Libvirt   libvirt.ServiceInterface
 	Qemu      qemu.ServiceInterface
+	VM        vm.ServiceInterface
 }
 
 func New(repo *repository.RepositoryImpl) *Service {
-	cloudinitService := cloudinit.NewService(repo)
-	libvirtService := libvirt.NewService(repo)
-	qemuService := qemu.NewService(repo)
+	accountSvc := account.NewService(repo)
+	cloudinitSvc := cloudinit.NewService(repo)
+	libvirtSvc := libvirt.NewService(repo)
+	qemuSvc := qemu.NewService(repo)
+	vmSvc := vm.NewService(repo)
 
 	return &Service{
-		Cloudinit: cloudinitService,
-		Libvirt:   libvirtService,
-		Qemu:      qemuService,
+		Account:   accountSvc,
+		Cloudinit: cloudinitSvc,
+		Libvirt:   libvirtSvc,
+		Qemu:      qemuSvc,
+		VM:        vmSvc,
 	}
 }

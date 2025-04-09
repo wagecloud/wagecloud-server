@@ -55,7 +55,6 @@ RETURNING *;
 -- name: UpdateVM :one
 UPDATE vm
 SET 
-  account_id = COALESCE(sqlc.narg('account_id'), account_id),
   network_id = COALESCE(sqlc.narg('network_id'), network_id),
   os_id = COALESCE(sqlc.narg('os_id'), os_id),
   arch_id = COALESCE(sqlc.narg('arch_id'), arch_id),

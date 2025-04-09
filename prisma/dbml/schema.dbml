@@ -2,12 +2,19 @@
 //// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 //// ------------------------------------------------------
 
-Table Account {
-  id BigInt [pk]
+Table AccountBase {
+  id BigInt [pk, increment]
+  role Role [not null]
+  username String [unique, not null]
   email String [unique, not null]
-  name String
+  name String [not null]
   password String [not null]
   created_at DateTime [default: `now()`, not null]
+  updated_at DateTime [default: `now()`, not null]
+}
+
+Table AccountUser {
+  id BigInt [pk]
 }
 
 Table VM {
@@ -46,7 +53,14 @@ Enum PaymentType {
   VNPay
 }
 
-Ref: VM.account_id > Account.id
+Enum Role {
+  ADMIN
+  USER
+}
+
+Ref: AccountUser.id - AccountBase.id
+
+Ref: VM.account_id > AccountUser.id
 
 Ref: VM.network_id > Network.id
 
