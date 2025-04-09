@@ -2,55 +2,67 @@ package vm
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
+	"github.com/wagecloud/wagecloud-server/internal/service/libvirt"
 )
 
 var _ ServiceInterface = (*Service)(nil)
 
 type Service struct {
-	repo repository.Repository
+	repo    repository.Repository
+	libvirt libvirt.ServiceInterface
 }
 
 type ServiceInterface interface {
 	GetVM(ctx context.Context, params GetVMParams) (model.VM, error)
 	ListVMs(ctx context.Context, params ListVMsParams) (model.PaginateResult[model.VM], error)
-	CreateVM(ctx context.Context, vm model.VM) (model.VM, error)
+	CreateVM(ctx context.Context, params CreateVMParams) (model.VM, error)
 	UpdateVM(ctx context.Context, params UpdateVMParams) (model.VM, error)
 	DeleteVM(ctx context.Context, params DeleteVMParams) error
+	StartVM(ctx context.Context, params StartVMParams) error
+	StopVM(ctx context.Context, params StopVMParams) error
 }
 
-func NewService(repo repository.Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo repository.Repository, libvirt libvirt.ServiceInterface) *Service {
+	return &Service{repo: repo, libvirt: libvirt}
 }
 
 type GetVMParams struct {
+	Role      model.Role
 	AccountID int64
 	ID        int64
 }
 
 func (s *Service) GetVM(ctx context.Context, params GetVMParams) (model.VM, error) {
-	return s.repo.GetVM(ctx, repository.GetVMParams{
+	repoParams := repository.GetVMParams{
 		ID:        params.ID,
 		AccountID: &params.AccountID,
-	})
+	}
+
+	if params.Role == model.RoleUser {
+		repoParams.AccountID = &params.AccountID
+	}
+
+	return s.repo.GetVM(ctx, repoParams)
 }
 
 type ListVMsParams struct {
 	model.PaginationParams
-	AccountID     int64
 	Role          model.Role
+	AccountID     int64
 	NetworkID     *string
 	OsID          *string
 	ArchID        *string
 	Name          *string
 	CpuFrom       *int64
 	CpuTo         *int64
-	RamFrom       *int32
-	RamTo         *int32
-	StorageFrom   *int32
-	StorageTo     *int32
+	RamFrom       *int64
+	RamTo         *int64
+	StorageFrom   *int64
+	StorageTo     *int64
 	CreatedAtFrom *int64
 	CreatedAtTo   *int64
 }
@@ -97,14 +109,113 @@ func (s *Service) ListVMs(ctx context.Context, params ListVMsParams) (res model.
 	}, nil
 }
 
-func (s *Service) CreateVM(ctx context.Context, vm model.VM) (model.VM, error) {
-	return s.repo.CreateVM(ctx, vm)
+type CreateVMParams struct {
+	AccountID int64
+	// Userdata
+	Name              string
+	SSHAuthorizedKeys []string
+	Password          string
+	// Metadata
+	LocalHostname string
+	//Spec
+	OsID    string
+	ArchID  string
+	Memory  int
+	Cpu     int
+	Storage int
+}
+
+func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM, error) {
+	txRepo, err := s.repo.Begin(ctx)
+	if err != nil {
+		return model.VM{}, err
+	}
+	defer txRepo.Rollback(ctx)
+
+	// 1. Create records in database
+
+	os, err := txRepo.GetOS(ctx, params.OsID)
+	if err != nil {
+		return model.VM{}, err
+	}
+
+	arch, err := txRepo.GetArch(ctx, params.ArchID)
+	if err != nil {
+		return model.VM{}, err
+	}
+
+	network, err := txRepo.CreateNetwork(ctx, model.Network{
+		PrivateIP: "",
+	})
+	if err != nil {
+		return model.VM{}, err
+	}
+
+	vm, err := txRepo.CreateVM(ctx, model.VM{
+		AccountID: params.AccountID,
+		NetworkID: network.ID,
+		OsID:      os.ID,
+		ArchID:    arch.ID,
+		Name:      params.Name,
+		Cpu:       int32(params.Cpu),
+		Ram:       int32(params.Memory),
+		Storage:   int32(params.Storage),
+	})
+	if err != nil {
+		return model.VM{}, err
+	}
+
+	// 2. Create cloudinit
+	userdata := libvirt.NewDefaultUserdata()
+	userdata.Users[0].Name = params.Name
+	userdata.Users[0].SSHAuthorizedKeys = params.SSHAuthorizedKeys
+	userdata.Users[0].Passwd = params.Password
+
+	metadata := libvirt.NewDefaultMetadata()
+	metadata.LocalHostname = params.LocalHostname
+
+	networkConfig := libvirt.NewDefaultNetworkConfig()
+
+	if err = s.libvirt.CreateCloudinit(libvirt.CreateCloudinitParams{
+		Filename:      fmt.Sprintf("%d", vm.ID),
+		Userdata:      userdata,
+		Metadata:      metadata,
+		NetworkConfig: networkConfig,
+	}); err != nil {
+		return model.VM{}, err
+	}
+
+	// 3. Create domain
+	_, err = s.libvirt.CreateDomain(libvirt.Domain{
+		ID:   fmt.Sprintf("%d", vm.ID),
+		Name: vm.Name,
+		Memory: libvirt.Memory{
+			Value: uint(params.Memory),
+			Unit:  libvirt.UnitMB,
+		},
+		Cpu: libvirt.Cpu{
+			Value: uint(params.Cpu),
+		},
+		OS: libvirt.OS{
+			Type: "hvm",
+			Arch: arch.ID,
+		},
+	})
+	if err != nil {
+		return model.VM{}, err
+	}
+
+	if err := txRepo.Commit(ctx); err != nil {
+		return model.VM{}, err
+	}
+
+	return vm, nil
 }
 
 type UpdateVMParams struct {
-	ID        int64
-	AccountID int64
 	Role      model.Role
+	AccountID int64
+	ID        int64
 	NetworkID *string
 	OsID      *string
 	ArchID    *string
@@ -156,4 +267,24 @@ func (s *Service) DeleteVM(ctx context.Context, params DeleteVMParams) error {
 	}
 
 	return s.repo.DeleteVM(ctx, repoParams)
+}
+
+type StartVMParams struct {
+	AccountID int64
+	Role      model.Role
+	ID        int64
+}
+
+func (s *Service) StartVM(ctx context.Context, params StartVMParams) error {
+	return nil
+}
+
+type StopVMParams struct {
+	AccountID int64
+	Role      model.Role
+	ID        int64
+}
+
+func (s *Service) StopVM(ctx context.Context, params StopVMParams) error {
+	return nil
 }
