@@ -1,4 +1,4 @@
-package model
+package libvirt
 
 type Unit string
 
