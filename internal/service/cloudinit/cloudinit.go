@@ -18,6 +18,10 @@ type Service struct {
 	repo *repository.RepositoryImpl
 }
 
+type FinalUserData struct {
+	Users []model.Userdata `yaml:"users"`
+}
+
 type ServiceInterface interface {
 	CreateCloudinit(
 		filename string,
@@ -59,25 +63,26 @@ func (s *Service) CreateCloudinit(
 		return fmt.Errorf("failed to create temporary file: %s", err)
 	}
 
-	userdataReader, err := createUserDataReader(userdata)
-
-	if err != nil {
-		return fmt.Errorf("failed to create userdata reader: %s", err)
+	var finalUserData FinalUserData = FinalUserData{
+		Users: []model.Userdata{userdata},
 	}
 
-	metadataYaml, err := yaml.Marshal(metadata)
+	finalUserDataReader, err := createFinalUserDataReader(finalUserData)
 	if err != nil {
-		return fmt.Errorf("failed to marshal metadata: %s", err)
+		return fmt.Errorf("failed to create cloudinit reader: %s", err)
 	}
-	metadataReader := bytes.NewReader(metadataYaml)
 
-	networkConfigYaml, err := yaml.Marshal(networkConfig)
+	metadataReader, err := createMetadataReader(metadata)
 	if err != nil {
-		return fmt.Errorf("failed to marshal network config: %s", err)
+		return fmt.Errorf("failed to create metadata reader: %s", err)
 	}
-	networkConfigReader := bytes.NewReader(networkConfigYaml)
 
-	if err = s.WriteCloudinit(cloudinitFile, userdataReader, metadataReader, networkConfigReader); err != nil {
+	networkConfigReader, err := createNetworkConfigReader(networkConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create network config reader: %s", err)
+	}
+
+	if err = s.WriteCloudinit(cloudinitFile, finalUserDataReader, metadataReader, networkConfigReader); err != nil {
 		return fmt.Errorf("failed to write cloudinit ISO: %s", err)
 	}
 
@@ -111,6 +116,7 @@ func (s *Service) WriteCloudinit(
 	metadata io.Reader,
 	networkConfig io.Reader,
 ) error {
+
 	writer, err := iso9660.NewWriter()
 	if err != nil {
 		return fmt.Errorf("failed to create writer: %s", err)
@@ -125,10 +131,6 @@ func (s *Service) WriteCloudinit(
 		return fmt.Errorf("failed to add meta-data: %s", err)
 	}
 
-	// if err = writer.AddFile(networkConfig, "network-config"); err != nil {
-	// 	return fmt.Errorf("failed to add network-config: %s", err)
-	// }
-
 	if err = writer.WriteTo(cloudinitFile, "cidata"); err != nil {
 		return fmt.Errorf("failed to write ISO image: %s", err)
 	}
@@ -136,17 +138,52 @@ func (s *Service) WriteCloudinit(
 	return nil
 }
 
-func createUserDataReader(userdata model.Userdata) (*bytes.Reader, error) {
-	userdataYaml, err := yaml.Marshal(userdata)
+func createFinalUserDataReader(final FinalUserData) (*bytes.Reader, error) {
+	cloudInitYaml, err := yaml.Marshal(final)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal userdata: %s", err)
 	}
 
 	comment := "#cloud-config\n" // this is required for
-	fullYaml := []byte(comment + string(userdataYaml))
-
-
-	fmt.Printf("Full YAML: %s\n", string(fullYaml))
+	fullYaml := []byte(comment + string(cloudInitYaml))
 
 	return bytes.NewReader(fullYaml), nil
+}
+
+func createUserDataReader(userdata model.Userdata) (*bytes.Reader, error) {
+	cloudinitModel := FinalUserData{
+		Users: []model.Userdata{userdata},
+	}
+
+	cloudInitYaml, err := yaml.Marshal(cloudinitModel)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal userdata: %s", err)
+	}
+
+	comment := "#cloud-config\n" // this is required for
+	fullYaml := []byte(comment + string(cloudInitYaml))
+
+	fmt.Println(string(fullYaml))
+
+	return bytes.NewReader(fullYaml), nil
+}
+
+func createMetadataReader(metadata model.Metadata) (*bytes.Reader, error) {
+	metadataYaml, err := yaml.Marshal(metadata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal metadata: %s", err)
+	}
+
+	return bytes.NewReader(metadataYaml), nil
+}
+
+func createNetworkConfigReader(networkConfig model.NetworkConfig) (*bytes.Reader, error) {
+	networkConfigYaml, err := yaml.Marshal(networkConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal network config: %s", err)
+	}
+
+	return bytes.NewReader(networkConfigYaml), nil
 }

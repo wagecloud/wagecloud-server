@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"fmt"
+	"os"
 
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
 	"github.com/wagecloud/wagecloud-server/internal/model"
@@ -143,7 +144,15 @@ func (s *Service) UpdateDomain(domainID string, domain model.Domain) (*libvirt.D
 	return newDom, nil
 }
 
+
 func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) {
+	imagePath := domain.ImagePath()
+	cloudinitPath := domain.CloudinitPath()
+
+	if !(exist(imagePath) && exist(cloudinitPath)) {
+		return nil, fmt.Errorf("image or cloudinit file not found")
+	}
+
 	domainXML := &libvirtxml.Domain{
 		Type: "kvm",
 		Name: domain.Name,
@@ -190,7 +199,7 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.ImagePath(),
+							File: imagePath,
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -206,7 +215,7 @@ func (s *Service) GetXMLConfig(domain model.Domain) (*libvirtxml.Domain, error) 
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: domain.CloudinitPath(),
+							File: cloudinitPath,
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -352,5 +361,10 @@ func toEntity(domain *libvirt.Domain) (*model.Domain, error) {
 			Name: domConf.OS.Type.Type,
 			// Arch: model.Arch(domConf.OS.Type.Arch),
 		}}, nil
+}
 
+
+func exist(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
 }
