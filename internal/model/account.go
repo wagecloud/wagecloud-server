@@ -1,6 +1,5 @@
 package model
 
-import "time"
 
 type Role string
 
@@ -19,8 +18,8 @@ type AccountBase struct {
 	Name      string    `json:"name"`
 	Username  string    `json:"username"` /* unique */
 	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt int64 `json:"created_at"`
+	UpdatedAt int64 `json:"updated_at"`
 }
 
 func (a AccountBase) Base() AccountBase {
