@@ -5,6 +5,7 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/service/account"
 	"github.com/wagecloud/wagecloud-server/internal/service/arch"
 	"github.com/wagecloud/wagecloud-server/internal/service/libvirt"
+	"github.com/wagecloud/wagecloud-server/internal/service/os"
 	"github.com/wagecloud/wagecloud-server/internal/service/vm"
 )
 
@@ -13,6 +14,7 @@ type Service struct {
 	Arch    arch.ServiceInterface
 	Libvirt libvirt.ServiceInterface
 	VM      vm.ServiceInterface
+  OS      os.ServiceInterface
 }
 
 func New(repo *repository.RepositoryImpl) *Service {
@@ -20,11 +22,13 @@ func New(repo *repository.RepositoryImpl) *Service {
 	archSvc := arch.NewService(repo)
 	libvirtSvc := libvirt.NewService(repo)
 	vmSvc := vm.NewService(repo, libvirtSvc)
+  osSvc := os.NewService(repo, libvirtSvc)
 
 	return &Service{
 		Account: accountSvc,
 		Arch:    archSvc,
 		Libvirt: libvirtSvc,
 		VM:      vmSvc,
+    OS:      osSvc,
 	}
 }
