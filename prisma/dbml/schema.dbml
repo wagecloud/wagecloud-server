@@ -18,7 +18,7 @@ Table AccountUser {
 }
 
 Table VM {
-  id BigInt [pk, increment]
+  id String [pk]
   account_id BigInt [not null]
   network_id String [unique, not null]
   os_id String [not null]
