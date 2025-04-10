@@ -48,8 +48,8 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateVM :one
-INSERT INTO vm (account_id, network_id, os_id, arch_id, name, cpu, ram, storage)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO vm (id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: UpdateVM :one

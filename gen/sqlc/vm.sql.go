@@ -69,12 +69,13 @@ func (q *Queries) CountVMs(ctx context.Context, arg CountVMsParams) (int64, erro
 }
 
 const createVM = `-- name: CreateVM :one
-INSERT INTO vm (account_id, network_id, os_id, arch_id, name, cpu, ram, storage)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO vm (id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage, created_at, updated_at
 `
 
 type CreateVMParams struct {
+	ID        string
 	AccountID int64
 	NetworkID string
 	OsID      string
@@ -87,6 +88,7 @@ type CreateVMParams struct {
 
 func (q *Queries) CreateVM(ctx context.Context, arg CreateVMParams) (Vm, error) {
 	row := q.db.QueryRow(ctx, createVM,
+		arg.ID,
 		arg.AccountID,
 		arg.NetworkID,
 		arg.OsID,

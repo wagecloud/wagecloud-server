@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/wagecloud/wagecloud-server/gen/sqlc"
 	pgxutil "github.com/wagecloud/wagecloud-server/internal/db/pgx"
@@ -112,6 +113,7 @@ func (r *RepositoryImpl) ListVMs(ctx context.Context, params ListVMsParams) ([]m
 
 func (r *RepositoryImpl) CreateVM(ctx context.Context, vm model.VM) (model.VM, error) {
 	row, err := r.sqlc.CreateVM(ctx, sqlc.CreateVMParams{
+		ID:        uuid.New().String(),
 		AccountID: vm.AccountID,
 		NetworkID: vm.NetworkID,
 		OsID:      vm.OsID,
