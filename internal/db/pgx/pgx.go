@@ -59,11 +59,13 @@ func InitPgConnectionPool(postgresConfig config.Postgres) error {
 }
 
 func GetPgxPool() (*pgxpool.Pool, error) {
-	if pgxPool == nil {
-		err := InitPgConnectionPool(config.GetConfig().Postgres)
-		if err != nil {
-			return nil, err
-		}
+	if pgxPool != nil {
+		return pgxPool, nil
+	}
+
+	err := InitPgConnectionPool(config.GetConfig().Postgres)
+	if err != nil {
+		return nil, err
 	}
 
 	return pgxPool, nil

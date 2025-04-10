@@ -37,8 +37,8 @@ func (r *RepositoryImpl) GetAccount(ctx context.Context, params GetAccountParams
 		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
-		CreatedAt: row.CreatedAt.Time,
-		UpdatedAt: row.UpdatedAt.Time,
+		CreatedAt: row.CreatedAt.Time.UnixMilli(),
+		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
 	}, nil
 }
 
@@ -86,8 +86,8 @@ func (r *RepositoryImpl) ListAccounts(ctx context.Context, params ListAccountsPa
 			Name:      row.Name,
 			Username:  row.Username,
 			Password:  row.Password,
-			CreatedAt: row.CreatedAt.Time,
-			UpdatedAt: row.UpdatedAt.Time,
+			CreatedAt: row.CreatedAt.Time.UnixMilli(),
+			UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
 		})
 	}
 
@@ -111,8 +111,8 @@ func (r *RepositoryImpl) CreateAccount(ctx context.Context, account model.Accoun
 		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
-		CreatedAt: row.CreatedAt.Time,
-		UpdatedAt: row.UpdatedAt.Time,
+		CreatedAt: row.CreatedAt.Time.UnixMilli(),
+		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
 	}, nil
 }
 
@@ -140,8 +140,8 @@ func (r *RepositoryImpl) UpdateAccount(ctx context.Context, params UpdateAccount
 		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
-		CreatedAt: row.CreatedAt.Time,
-		UpdatedAt: row.UpdatedAt.Time,
+		CreatedAt: row.CreatedAt.Time.UnixMilli(),
+		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
 	}, nil
 }
 
@@ -176,8 +176,8 @@ func (r *RepositoryImpl) GetUser(ctx context.Context, params GetUserParams) (mod
 			Name:      row.Name,
 			Username:  row.Username,
 			Password:  row.Password,
-			CreatedAt: row.CreatedAt.Time,
-			UpdatedAt: row.UpdatedAt.Time,
+			CreatedAt: row.CreatedAt.Time.UnixMilli(),
+			UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
 		},
 		Email: row.Email,
 	}, nil
