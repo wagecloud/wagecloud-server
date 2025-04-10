@@ -65,8 +65,6 @@ func (s *Service) ListOSs(ctx context.Context, params ListOSsParams) (res model.
 		CreatedAtTo:      params.CreatedAtTo,
 	}
 
-	return model.PaginateResult[model.OS]{}, nil
-
 	total, err := s.repo.CountOSs(ctx, repoParams)
 	if err != nil {
 		return res, err
