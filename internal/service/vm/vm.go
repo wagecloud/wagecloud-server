@@ -175,7 +175,7 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 
 	networkConfig := libvirt.NewDefaultNetworkConfig()
 
-	domain := libvirt.ToDomain(vm)
+	domain := libvirt.FromVMToDomain(vm)
 
 	if err = s.libvirt.CreateCloudinit(libvirt.CreateCloudinitParams{
 		Filepath:      domain.CloudinitPath(),

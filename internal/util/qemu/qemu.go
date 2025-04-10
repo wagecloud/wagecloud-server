@@ -7,91 +7,49 @@ import (
 	"path"
 
 	"github.com/wagecloud/wagecloud-server/config"
+	"github.com/wagecloud/wagecloud-server/internal/util/file"
+	"github.com/wagecloud/wagecloud-server/internal/util/transaction"
 )
 
-func CreateImage(baseImgFile string, cloneImgFile string, size uint) error {
+func CreateImage(baseImagePath string, cloneImagePath string, size uint) error {
 	if config.GetConfig().App.BaseImageDir == "" {
 		return fmt.Errorf("base image dir not set")
 	}
 
-	baseImgPath := path.Join(
-		config.GetConfig().App.BaseImageDir,
-		baseImgFile,
-	)
-
-	if !exist(baseImgPath) {
+	if !file.Exists(baseImagePath) {
 		return fmt.Errorf("base image not found")
-	}
-
-	if config.GetConfig().App.VMImageDir == "" {
-		return fmt.Errorf("image dir not set")
-	}
-
-	if !exist(config.GetConfig().App.VMImageDir) {
-		os.MkdirAll(config.GetConfig().App.VMImageDir, 0777)
 	}
 
 	cloneImgPath := path.Join(
 		config.GetConfig().App.VMImageDir,
-		cloneImgFile,
+		cloneImagePath,
 	)
 
 	sizeStr := fmt.Sprintf("%dG", size)
 
-	// Eg: qemu-img create -b ubuntu_amd64.img -f qcow2 -F qcow2 ubuntu_amd64_mod.img 10G
-	// set permissions to 777
-	cmd := exec.Command("qemu-img",
-		"create", "-b",
-		baseImgPath,
-		"-f",
-		"qcow2",
-		"-F",
-		"qcow2",
-		cloneImgPath,
-		// "10G", // TODO: add volume params
-		sizeStr, // G for GB
-	)
+	tx := transaction.NewTransaction()
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to create image: %s", err)
-	}
+	tx.Add(func() error {
+		// Eg: qemu-img create -b ubuntu_amd64.img -f qcow2 -F qcow2 ubuntu_amd64_mod.img 10G
+		// set permissions to 777
+		cmd := exec.Command("qemu-img",
+			"create", "-b",
+			baseImagePath,
+			"-f",
+			"qcow2",
+			"-F",
+			"qcow2",
+			cloneImagePath,
+			sizeStr, // G for GB
+		)
+		return cmd.Run()
+	}, func() error {
+		return os.Remove(cloneImgPath)
+	})
 
-	return nil
-}
-
-// neet account id, base path with clone path
-
-func CreateImageWithPath(basePath string, clonePath string, size uint) error {
-	if !exist(basePath) {
-		return fmt.Errorf("base image not found")
-	}
-
-	if err := os.MkdirAll(path.Dir(clonePath), 0777); err != nil {
-		return fmt.Errorf("failed to create directory: %s", err)
-	}
-
-	sizeStr := fmt.Sprintf("%dG", size)
-	fmt.Println("sizeStr", sizeStr)
-	fmt.Println("basePath", basePath)
-	fmt.Println("clonePath", clonePath)
-	//eg: sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudimg-amd64.img
-	// -f qcow2 -F qcow2
-	// /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img
-	// set permissions to 777
-	cmd := exec.Command("qemu-img",
-		"create", "-b",
-		basePath,
-		"-f",
-		"qcow2",
-		"-F",
-		"qcow2",
-		clonePath,
-		// "10G", // TODO: add volume params
-		sizeStr, // G for GB
-	)
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to create image: %s", err)
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to commit transaction: %s", err)
 	}
 
 	return nil
@@ -138,8 +96,3 @@ func CreateImageWithPath(basePath string, clonePath string, size uint) error {
 
 // 	return nil
 // }
-
-func exist(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
-}

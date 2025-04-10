@@ -27,9 +27,10 @@ type ServiceInterface interface {
 
 	// DOMAIN
 	GetDomain(domainID string) (Domain, error)
-	GetListDomains() ([]Domain, error)
+	ListDomains(params ListDomainsParams) ([]Domain, error)
 	CreateDomain(domain Domain) error
-	UpdateDomain(domainID string, domain Domain) error
+	UpdateDomain(domainID string, params UpdateDomainParams) error
+	DeleteDomain(domainID string) error
 	StartDomain(domainID string) error
 	StopDomain(domainID string) error
 }
@@ -82,17 +83,20 @@ func (s *Service) GetDomain(domainID string) (Domain, error) {
 		return Domain{}, ErrDomainNotFound
 	}
 
-	return toEntity(domain)
+	return FromLibvirtToDomain(*domain)
 }
 
-func (s *Service) GetListDomains() ([]Domain, error) {
+type ListDomainsParams struct {
+	Flags libvirt.ConnectListAllDomainsFlags
+}
+
+func (s *Service) ListDomains(params ListDomainsParams) ([]Domain, error) {
 	conn, err := s.getConnect()
 	if err != nil {
 		return nil, err
 	}
 
-	domains, err := conn.ListAllDomains(0)
-
+	domains, err := conn.ListAllDomains(params.Flags)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list domains: %v", err)
 	}
@@ -100,12 +104,12 @@ func (s *Service) GetListDomains() ([]Domain, error) {
 	domainsModel := make([]Domain, len(domains))
 
 	for i, domain := range domains {
-		model, err := toEntity(&domain)
+		model, err := FromLibvirtToDomain(domain)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
 		}
-		domainsModel[i] = model
 
+		domainsModel[i] = model
 	}
 
 	return domainsModel, nil
@@ -118,7 +122,7 @@ func (s *Service) CreateDomain(domain Domain) error {
 	}
 
 	// Create new qcow2 image from base image
-	if err = qemu.CreateImageWithPath(
+	if err = qemu.CreateImage(
 		domain.BaseImagePath(),
 		domain.VMImagePath(),
 		domain.Storage,
@@ -142,20 +146,46 @@ func (s *Service) CreateDomain(domain Domain) error {
 	}
 
 	return nil
-
 }
 
-func (s *Service) UpdateDomain(domainID string, domain Domain) error {
+type UpdateDomainParams struct {
+	Name    *string
+	Cpu     *uint
+	Ram     *uint
+	Storage *uint
+}
+
+func (s *Service) UpdateDomain(domainID string, params UpdateDomainParams) error {
 	conn, err := s.getConnect()
 	if err != nil {
 		return err
 	}
 
-	domainObj, err := conn.LookupDomainByUUIDString(domainID)
+	libDomain, err := s.getDomain(domainID)
 	if err != nil {
-		return ErrDomainNotFound
+		return err
 	}
 
+	domain, err := FromLibvirtToDomain(*libDomain)
+	if err != nil {
+		return fmt.Errorf("failed to convert domain to model: %v", err)
+	}
+
+	// Start updating domain
+	if params.Name != nil {
+		domain.Name = *params.Name
+	}
+	if params.Cpu != nil {
+		domain.Cpu.Value = *params.Cpu
+	}
+	if params.Ram != nil {
+		domain.Memory.Value = *params.Ram
+	}
+	if params.Storage != nil {
+		domain.Storage = *params.Storage
+	}
+
+	// Generate new XML config
 	domainXML, err := getXMLConfig(domain)
 	if err != nil {
 		return fmt.Errorf("failed to generate domain XML: %v", err)
@@ -171,9 +201,10 @@ func (s *Service) UpdateDomain(domainID string, domain Domain) error {
 		return fmt.Errorf("failed to define domain: %v", err)
 	}
 
+	// TODO: real update domain, not redefine and start it again
 	// If the domain is running, we need to start it again
-	if val, err := domainObj.IsActive(); err != nil && val {
-		if err := domainObj.Destroy(); err != nil {
+	if val, err := libDomain.IsActive(); err != nil && val {
+		if err := libDomain.Destroy(); err != nil {
 			return fmt.Errorf("failed to destroy domain: %v", err)
 		}
 	}
@@ -181,28 +212,13 @@ func (s *Service) UpdateDomain(domainID string, domain Domain) error {
 	return nil
 }
 
-func (s *Service) GetListActiveDomains() ([]Domain, error) {
-	conn, err := s.getConnect()
+func (s *Service) DeleteDomain(domainID string) error {
+	domain, err := s.getDomain(domainID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	domains, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list domains: %v", err)
-	}
-
-	domainsModel := make([]Domain, len(domains))
-
-	for i, domain := range domains {
-		model, err := toEntity(&domain)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
-		}
-		domainsModel[i] = model
-	}
-
-	return domainsModel, nil
+	return domain.Undefine()
 }
 
 func (s *Service) StartDomain(domainID string) error {
@@ -337,39 +353,4 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 	}
 
 	return domainXML, nil
-}
-
-func toEntity(domain *libvirt.Domain) (Domain, error) {
-	domainID, _ := domain.GetUUIDString()
-	name, _ := domain.GetName()
-	memory, _ := domain.GetMaxMemory() // always in kB
-	cpu, _ := domain.GetVcpus()        // temp
-	// osType, _ := domain.GetOSType() // temp, ostype doesn't return specific os like ubuntu, centos, etc. just return hvm or other type of vm
-
-	xmlDesc, err := domain.GetXMLDesc(0)
-	if err != nil {
-		return Domain{}, fmt.Errorf("failed to get XML description: %v", err)
-	}
-
-	var domConf libvirtxml.Domain
-	if err := domConf.Unmarshal(xmlDesc); err != nil {
-		return Domain{}, fmt.Errorf("failed to unmarshal XML description: %v", err)
-	}
-
-	return Domain{
-		ID:   domainID,
-		Name: name,
-		Memory: Memory{
-			Value: uint(memory / 1024),
-			Unit:  UnitMB,
-		},
-		Cpu: Cpu{
-			Value: uint(cpu[0].Cpu), // just for temp
-		},
-
-		OS: OS{
-			Type: domConf.OS.Type.Type,
-			Arch: domConf.OS.Type.Arch,
-		},
-	}, nil
 }
