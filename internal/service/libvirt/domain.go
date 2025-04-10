@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"path"
 
+	libvirtxml "github.com/libvirt/libvirt-go-xml"
 	"github.com/wagecloud/wagecloud-server/config"
 	"github.com/wagecloud/wagecloud-server/internal/model"
+	"libvirt.org/go/libvirt"
 )
 
 type Memory struct {
@@ -37,11 +39,11 @@ func (d Domain) CloudinitFileName() string {
 }
 
 func (d Domain) VMFileName() string {
-	return fmt.Sprintf("vm_%s.iso", d.ID)
+	return fmt.Sprintf("vm_%s.img", d.ID)
 }
 
 func (d Domain) BaseFileName() string {
-	return fmt.Sprintf("%s_%s.iso", d.OS.Arch, d.OS.Name)
+	return fmt.Sprintf("%s_%s.img", d.OS.Arch, d.OS.Name)
 }
 
 func (d Domain) CloudinitPath() string {
@@ -56,7 +58,7 @@ func (d Domain) BaseImagePath() string {
 	return path.Join(config.GetConfig().App.BaseImageDir, d.BaseFileName())
 }
 
-func ToDomain(vm model.VM) Domain {
+func FromVMToDomain(vm model.VM) Domain {
 	return Domain{
 		ID:   vm.ID,
 		Name: vm.Name,
@@ -74,4 +76,38 @@ func ToDomain(vm model.VM) Domain {
 		},
 		Storage: uint(vm.Storage),
 	}
+}
+
+func FromLibvirtToDomain(domain libvirt.Domain) (Domain, error) {
+	domainID, _ := domain.GetUUIDString()
+	name, _ := domain.GetName()
+	memory, _ := domain.GetMaxMemory() // always in kB
+	cpu, _ := domain.GetVcpus()        // temp
+	osType, _ := domain.GetOSType()
+
+	xmlDesc, err := domain.GetXMLDesc(0)
+	if err != nil {
+		return Domain{}, fmt.Errorf("failed to get XML description: %v", err)
+	}
+
+	var domainXML libvirtxml.Domain
+	if err := domainXML.Unmarshal(xmlDesc); err != nil {
+		return Domain{}, fmt.Errorf("failed to unmarshal XML description: %v", err)
+	}
+
+	return Domain{
+		ID:   domainID,
+		Name: name,
+		Memory: Memory{
+			Value: uint(memory / 1024),
+			Unit:  UnitMB,
+		},
+		Cpu: Cpu{
+			Value: uint(cpu[0].Cpu), // just for temp
+		},
+		OS: OS{
+			Type: osType,
+			Arch: domainXML.OS.Type.Arch,
+		},
+	}, nil
 }
