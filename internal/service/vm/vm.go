@@ -3,6 +3,7 @@ package vm
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 	"github.com/wagecloud/wagecloud-server/internal/service/libvirt"
@@ -143,6 +144,7 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 	}
 
 	network, err := txRepo.CreateNetwork(ctx, model.Network{
+		ID:        uuid.New().String(),
 		PrivateIP: "",
 	})
 	if err != nil {
@@ -242,6 +244,12 @@ type DeleteVMParams struct {
 }
 
 func (s *Service) DeleteVM(ctx context.Context, params DeleteVMParams) error {
+	txRepo, err := s.repo.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer txRepo.Rollback(ctx)
+
 	repoParams := repository.DeleteVMParams{
 		ID: params.ID,
 	}
@@ -251,7 +259,19 @@ func (s *Service) DeleteVM(ctx context.Context, params DeleteVMParams) error {
 		repoParams.AccountID = &params.AccountID
 	}
 
-	return s.repo.DeleteVM(ctx, repoParams)
+	if err := s.repo.DeleteVM(ctx, repoParams); err != nil {
+		return err
+	}
+
+	if err := s.libvirt.DeleteDomain(params.ID); err != nil {
+		return err
+	}
+
+	if err := txRepo.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type StartVMParams struct {
@@ -261,7 +281,19 @@ type StartVMParams struct {
 }
 
 func (s *Service) StartVM(ctx context.Context, params StartVMParams) error {
-	return nil
+	// Users can only start their own VMs
+	if params.Role == model.RoleUser {
+		_, err := s.repo.GetVM(ctx, repository.GetVMParams{
+			ID:        params.ID,
+			AccountID: &params.AccountID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO: put this in background, kinda slow 💀
+	return s.libvirt.StartDomain(params.ID)
 }
 
 type StopVMParams struct {
@@ -271,5 +303,16 @@ type StopVMParams struct {
 }
 
 func (s *Service) StopVM(ctx context.Context, params StopVMParams) error {
-	return nil
+	// Users can only stop their own VMs
+	if params.Role == model.RoleUser {
+		_, err := s.repo.GetVM(ctx, repository.GetVMParams{
+			ID:        params.ID,
+			AccountID: &params.AccountID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return s.libvirt.StopDomain(params.ID)
 }
