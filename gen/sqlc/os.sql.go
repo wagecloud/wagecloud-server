@@ -42,13 +42,18 @@ func (q *Queries) CountOSs(ctx context.Context, arg CountOSsParams) (int64, erro
 }
 
 const createOS = `-- name: CreateOS :one
-INSERT INTO os (name)
-VALUES ($1)
+INSERT INTO os (id, name)
+VALUES ($1, $2)
 RETURNING id, name, created_at
 `
 
-func (q *Queries) CreateOS(ctx context.Context, name string) (O, error) {
-	row := q.db.QueryRow(ctx, createOS, name)
+type CreateOSParams struct {
+	ID   string
+	Name string
+}
+
+func (q *Queries) CreateOS(ctx context.Context, arg CreateOSParams) (O, error) {
+	row := q.db.QueryRow(ctx, createOS, arg.ID, arg.Name)
 	var i O
 	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
 	return i, err

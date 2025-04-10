@@ -72,13 +72,12 @@ func FromHTTPError(w http.ResponseWriter, httpCode int) {
 	writeError(w, strconv.Itoa(httpCode), http.StatusText(httpCode))
 }
 
-func FromPaginate[T any](w http.ResponseWriter, paginateResult model.PaginateResult[T], message string) {
+func FromPaginate[T any](w http.ResponseWriter, paginateResult model.PaginateResult[T]) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	writeResponse(w, PaginateResponse[T]{
-		Message: message,
-		Data:    paginateResult.Data,
+		Data: paginateResult.Data,
 		Pagination: Pagination{
 			Limit:      paginateResult.Limit,
 			Page:       paginateResult.Page,

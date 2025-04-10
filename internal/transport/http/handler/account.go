@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/wagecloud/wagecloud-server/internal/model"
@@ -28,17 +27,16 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 type LoginUserParams struct {
-	ID       *int64  `json:"id"`
-	Username *string `json:"username"`
-	Email    *string `json:"email"`
-	Password string  `json:"password"`
+	ID       *int64  `json:"id" validate:"omitempty"`
+	Username *string `json:"username" validate:"omitempty"`
+	Email    *string `json:"email" validate:"omitempty"`
+	Password string  `json:"password" validate:"required"`
 }
 
 func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
-
 	var req LoginUserParams
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.FromHTTPError(w, http.StatusBadRequest)
+	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -57,16 +55,16 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 type RegisterUserParams struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required,min=1,max=255"`
+	Email    string `json:"email" validate:"required,email"`
+	Name     string `json:"name" validate:"required,min=1,max=255"`
+	Password string `json:"password" validate:"required,min=8,max=72"`
 }
 
 func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var req RegisterUserParams
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.FromHTTPError(w, http.StatusBadRequest)
+	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 

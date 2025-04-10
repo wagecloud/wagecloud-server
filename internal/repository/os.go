@@ -66,7 +66,10 @@ func (r *RepositoryImpl) ListOSs(ctx context.Context, params ListOSsParams) ([]m
 }
 
 func (r *RepositoryImpl) CreateOS(ctx context.Context, os model.OS) (model.OS, error) {
-	osCreated, err := r.sqlc.CreateOS(ctx, os.Name)
+	osCreated, err := r.sqlc.CreateOS(ctx, sqlc.CreateOSParams{
+		ID:   os.ID,
+		Name: os.Name,
+	})
 	if err != nil {
 		return model.OS{}, err
 	}

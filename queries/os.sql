@@ -27,8 +27,8 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateOS :one
-INSERT INTO os (name)
-VALUES ($1)
+INSERT INTO os (id, name)
+VALUES ($1, $2)
 RETURNING *;
 
 -- name: UpdateOS :one

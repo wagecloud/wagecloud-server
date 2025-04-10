@@ -11,7 +11,6 @@ type CommonResponse struct {
 }
 
 type PaginateResponse[T any] struct {
-	Message    string     `json:"message"`
 	Data       []T        `json:"data"`
 	Pagination Pagination `json:"pagination"`
 	Error      *Error     `json:"errors,omitempty"`
