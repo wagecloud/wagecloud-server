@@ -43,7 +43,7 @@ func (d Domain) VMFileName() string {
 }
 
 func (d Domain) BaseFileName() string {
-	return fmt.Sprintf("%s_%s.img", d.OS.Arch, d.OS.Name)
+	return fmt.Sprintf("%s_%s.img", d.OS.Name, d.OS.Arch)
 }
 
 func (d Domain) CloudinitPath() string {
