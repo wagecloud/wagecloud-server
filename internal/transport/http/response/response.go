@@ -8,7 +8,9 @@ import (
 
 	// "github.com/bytedance/sonic"
 
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/model"
+	"go.uber.org/zap"
 )
 
 func writeError(w http.ResponseWriter, errCode string, message string) {
@@ -53,11 +55,13 @@ func FromError(w http.ResponseWriter, err error, httpCode int) {
 	// Internal server error
 	var errWithCode *model.ErrorWithCode
 	if errors.As(err, &errWithCode) {
+		logger.Log.Error("error", zap.Error(errWithCode.Err))
 		writeError(w, errWithCode.Code, errWithCode.Msg)
 		return
 	}
 
 	// Normal http error
+	logger.Log.Error("error", zap.Error(err))
 	writeError(w, strconv.Itoa(httpCode), err.Error())
 }
 

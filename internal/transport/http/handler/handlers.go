@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -56,7 +58,7 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 				r.Get("/{vmID}", h.GetVM)
 				r.Post("/", h.CreateVM)
 				r.Post("/start/{vmID}", h.StartVM)
-				r.Post("/{vmID}/stop", h.StopVM)
+				r.Post("/stop/{vmID}", h.StopVM)
 				r.Put("/{vmID}", h.UpdateVM)
 				r.Delete("/{vmID}", h.DeleteVM)
 			})
@@ -81,12 +83,24 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	return r
 }
 
-func decodeAndValidate(r *http.Request, v any) error {
-	if err := decoder.Decode(v, r.URL.Query()); err != nil {
+func decodeAndValidate(dst any, src map[string][]string) error {
+	if err := decoder.Decode(dst, src); err != nil {
 		return err
 	}
 
-	if err := validate.Struct(v); err != nil {
+	if err := validate.Struct(dst); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func decodeAndValidateJSON(dst any, src io.Reader) error {
+	if err := json.NewDecoder(src).Decode(dst); err != nil {
+		return err
+	}
+
+	if err := validate.Struct(dst); err != nil {
 		return err
 	}
 

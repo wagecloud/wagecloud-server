@@ -62,7 +62,7 @@ func (h *Handler) ListVMs(w http.ResponseWriter, r *http.Request) {
 
 	var req ListVMsRequest
 
-	if err := decodeAndValidate(r, &req); err != nil {
+	if err := decodeAndValidate(&req, r.URL.Query()); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
@@ -97,20 +97,20 @@ func (h *Handler) ListVMs(w http.ResponseWriter, r *http.Request) {
 
 type CreateVMRequest struct {
 	Userdata struct {
-		Name              string   `json:"name" validate:"required,min=1,max=255"`
-		SSHAuthorizedKeys []string `json:"ssh-authorized-keys" validate:"omitempty,dive,min=20,max=5000"`
-		Password          string   `json:"password" validate:"omitempty,min=8,max=72"`
-	} `json:"userdata" validate:"required"`
+		Name              string   `json:"name" schema:"name" validate:"required,min=1,max=255"`
+		SSHAuthorizedKeys []string `json:"ssh-authorized-keys" schema:"ssh-authorized-keys" validate:"omitempty,dive,min=20,max=5000"`
+		Password          string   `json:"password" schema:"password" validate:"required,min=8,max=72"`
+	} `json:"userdata" schema:"userdata" validate:"required"`
 	Metadata struct {
-		LocalHostname string `json:"local-hostname" validate:"required,hostname"`
-	} `json:"metadata" validate:"required"`
+		LocalHostname string `json:"local-hostname" schema:"local-hostname" validate:"required,hostname"`
+	} `json:"metadata" schema:"metadata" validate:"required"`
 	Spec struct {
-		OsID    string `json:"os_id" validate:"required,min=1,max=255"`
-		ArchID  string `json:"arch_id" validate:"required,min=1,max=255"`
-		Memory  int    `json:"memory" validate:"required,min=512,max=262144"` // 512MB to 256GB
-		Cpu     int    `json:"cpu" validate:"required,min=1,max=64"`          // 1 to 64 cores
-		Storage int    `json:"storage" validate:"required,min=10,max=2048"`   // 10GB to 2TB
-	} `json:"spec" validate:"required"`
+		OsID    string `json:"os_id" schema:"os_id" validate:"required,min=1,max=255"`
+		ArchID  string `json:"arch_id" schema:"arch_id" validate:"required,min=1,max=255"`
+		Memory  int    `json:"memory" schema:"memory" validate:"required,min=512,max=262144"` // 512MB to 262144MB (256GB)
+		Cpu     int    `json:"cpu" schema:"cpu" validate:"required,min=1,max=64"`             // 1 to 64 cores
+		Storage int    `json:"storage" schema:"storage" validate:"required,min=10,max=2048"`  // 10GB to 2TB
+	} `json:"spec" schema:"spec" validate:"required"`
 }
 
 func (h *Handler) CreateVM(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +121,7 @@ func (h *Handler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req CreateVMRequest
-	if err := decodeAndValidate(r, &req); err != nil {
+	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
@@ -147,13 +147,13 @@ func (h *Handler) CreateVM(w http.ResponseWriter, r *http.Request) {
 }
 
 type UpdateVMRequest struct {
-	NetworkID *string `json:"network_id" validate:"omitempty"`
-	OsID      *string `json:"os_id" validate:"omitempty"`
-	ArchID    *string `json:"arch_id" validate:"omitempty"`
-	Name      *string `json:"name" validate:"omitempty,min=1,max=255"`
-	Cpu       *int32  `json:"cpu" validate:"omitempty,min=1,max=64"`
-	Ram       *int32  `json:"ram" validate:"omitempty,min=512,max=262144"`
-	Storage   *int32  `json:"storage" validate:"omitempty,min=10,max=2048"`
+	NetworkID *string `json:"network_id" schema:"network_id" validate:"omitempty"`
+	OsID      *string `json:"os_id" schema:"os_id" validate:"omitempty"`
+	ArchID    *string `json:"arch_id" schema:"arch_id" validate:"omitempty"`
+	Name      *string `json:"name" schema:"name" validate:"omitempty,min=1,max=255"`
+	Cpu       *int32  `json:"cpu" schema:"cpu" validate:"omitempty,min=1,max=64"`
+	Ram       *int32  `json:"ram" schema:"ram" validate:"omitempty,min=512,max=262144"`
+	Storage   *int32  `json:"storage" schema:"storage" validate:"omitempty,min=10,max=2048"`
 }
 
 func (h *Handler) UpdateVM(w http.ResponseWriter, r *http.Request) {
@@ -170,7 +170,7 @@ func (h *Handler) UpdateVM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req UpdateVMRequest
-	if err := decodeAndValidate(r, &req); err != nil {
+	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
