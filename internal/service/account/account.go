@@ -119,6 +119,14 @@ func (s *Service) RegisterUser(ctx context.Context, account model.AccountUser) (
 		return res, fmt.Errorf("failed to create account: %w", err)
 	}
 
+	createdUser, err := txRepo.CreateUser(ctx, model.AccountUser{
+		AccountBase: createdAccount,
+		Email:       account.Email,
+	})
+	if err != nil {
+		return res, fmt.Errorf("failed to create user: %w", err)
+	}
+
 	token, err := jwt.GenerateAccessToken(createdAccount)
 	if err != nil {
 		return res, fmt.Errorf("failed to generate access token: %w", err)
@@ -132,6 +140,7 @@ func (s *Service) RegisterUser(ctx context.Context, account model.AccountUser) (
 		Token: token,
 		Account: model.AccountUser{
 			AccountBase: createdAccount,
+			Email:       createdUser.Email,
 		},
 	}, nil
 }

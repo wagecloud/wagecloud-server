@@ -22,6 +22,7 @@ type Repository interface {
 	UpdateAccount(ctx context.Context, params UpdateAccountParams) (model.AccountBase, error)
 	DeleteAccount(ctx context.Context, id int64) error
 	GetUser(ctx context.Context, params GetUserParams) (model.AccountUser, error)
+	CreateUser(ctx context.Context, user model.AccountUser) (model.AccountUser, error)
 
 	// Arch
 	GetArch(ctx context.Context, id string) (model.Arch, error)
@@ -62,7 +63,7 @@ type RepositoryImpl struct {
 }
 
 type RepositoryTx struct {
-	*RepositoryImpl
+	Repository
 	tx pgx.Tx
 }
 
@@ -80,8 +81,8 @@ func (r *RepositoryImpl) Begin(ctx context.Context) (*RepositoryTx, error) {
 	}
 
 	return &RepositoryTx{
-		RepositoryImpl: NewRepository(tx),
-		tx:             tx,
+		Repository: NewRepository(tx),
+		tx:         tx,
 	}, nil
 }
 

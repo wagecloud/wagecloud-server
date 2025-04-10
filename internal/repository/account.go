@@ -182,3 +182,21 @@ func (r *RepositoryImpl) GetUser(ctx context.Context, params GetUserParams) (mod
 		Email: row.Email,
 	}, nil
 }
+
+func (r *RepositoryImpl) CreateUser(ctx context.Context, user model.AccountUser) (model.AccountUser, error) {
+	row, err := r.sqlc.CreateUser(ctx, sqlc.CreateUserParams{
+		ID:    user.ID,
+		Email: user.Email,
+	})
+	if err != nil {
+		return model.AccountUser{}, err
+	}
+
+	return model.AccountUser{
+		AccountBase: model.AccountBase{
+			ID:   row.ID,
+			Role: model.RoleUser,
+		},
+		Email: row.Email,
+	}, nil
+}

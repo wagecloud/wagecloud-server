@@ -4,10 +4,9 @@ FROM account_base b
 LEFT JOIN account_user u ON b.id = u.id
 WHERE (
   (b.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL) AND
-  (b.username = sqlc.narg('username') OR sqlc.narg('username') IS NULL) AND 
+  (b.username = sqlc.narg('username') OR sqlc.narg('username') IS NULL) AND
   (u.email = sqlc.narg('email') OR sqlc.narg('email') IS NULL)
 );
-
 
 -- name: CountAccounts :one
 SELECT COUNT(id)
@@ -43,7 +42,7 @@ RETURNING *;
 
 -- name: UpdateAccount :one
 UPDATE account_base
-SET 
+SET
     name = COALESCE(sqlc.narg('name'), name),
     username = COALESCE(sqlc.narg('username'), username),
     password = COALESCE(sqlc.narg('password'), password)
@@ -64,3 +63,8 @@ WHERE (
   (b.username = sqlc.narg('username') OR sqlc.narg('username') IS NULL) AND
   (u.email = sqlc.narg('email') OR sqlc.narg('email') IS NULL)
 );
+
+-- name: CreateUser :one
+INSERT INTO account_user (id, email)
+VALUES ($1, $2)
+RETURNING *;

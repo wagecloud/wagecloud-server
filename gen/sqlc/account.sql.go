@@ -80,6 +80,24 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 	return i, err
 }
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO account_user (id, email)
+VALUES ($1, $2)
+RETURNING id, email
+`
+
+type CreateUserParams struct {
+	ID    int64
+	Email string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (AccountUser, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.ID, arg.Email)
+	var i AccountUser
+	err := row.Scan(&i.ID, &i.Email)
+	return i, err
+}
+
 const deleteAccount = `-- name: DeleteAccount :exec
 DELETE FROM account_base
 WHERE id = $1
@@ -96,7 +114,7 @@ FROM account_base b
 LEFT JOIN account_user u ON b.id = u.id
 WHERE (
   (b.id = $1 OR $1 IS NULL) AND
-  (b.username = $2 OR $2 IS NULL) AND 
+  (b.username = $2 OR $2 IS NULL) AND
   (u.email = $3 OR $3 IS NULL)
 )
 `
@@ -249,7 +267,7 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 
 const updateAccount = `-- name: UpdateAccount :one
 UPDATE account_base
-SET 
+SET
     name = COALESCE($2, name),
     username = COALESCE($3, username),
     password = COALESCE($4, password)
