@@ -2,7 +2,6 @@ package vm
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
@@ -133,7 +132,6 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 	defer txRepo.Rollback(ctx)
 
 	// 1. Create records in database
-
 	os, err := txRepo.GetOS(ctx, params.OsID)
 	if err != nil {
 		return model.VM{}, err
@@ -176,8 +174,10 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 
 	networkConfig := libvirt.NewDefaultNetworkConfig()
 
+	domain := libvirt.ToDomain(vm)
+
 	if err = s.libvirt.CreateCloudinit(libvirt.CreateCloudinitParams{
-		Filename:      fmt.Sprintf("%d", vm.ID),
+		Filepath:      domain.CloudinitPath(),
 		Userdata:      userdata,
 		Metadata:      metadata,
 		NetworkConfig: networkConfig,
@@ -186,22 +186,7 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 	}
 
 	// 3. Create domain
-	_, err = s.libvirt.CreateDomain(libvirt.Domain{
-		ID:   fmt.Sprintf("%d", vm.ID),
-		Name: vm.Name,
-		Memory: libvirt.Memory{
-			Value: uint(params.Memory),
-			Unit:  libvirt.UnitMB,
-		},
-		Cpu: libvirt.Cpu{
-			Value: uint(params.Cpu),
-		},
-		OS: libvirt.OS{
-			Type: "hvm",
-			Arch: arch.ID,
-		},
-	})
-	if err != nil {
+	if err := s.libvirt.CreateDomain(domain); err != nil {
 		return model.VM{}, err
 	}
 

@@ -5,24 +5,22 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 
 	"github.com/kdomanski/iso9660"
-	"github.com/wagecloud/wagecloud-server/config"
 	"gopkg.in/yaml.v3"
 )
 
 const cloudInitPrefix = "#cloud-config"
 
 type CreateCloudinitParams struct {
-	Filename      string
+	Filepath      string
 	Userdata      Userdata
 	Metadata      Metadata
 	NetworkConfig NetworkConfig
 }
 
 func (s *Service) CreateCloudinit(params CreateCloudinitParams) error {
-	cloudinitFile, err := os.Create(path.Join(config.GetConfig().App.CloudinitDir, params.Filename))
+	cloudinitFile, err := os.Create(params.Filepath)
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file: %s", err)
 	}
@@ -58,14 +56,14 @@ func (s *Service) CreateCloudinit(params CreateCloudinitParams) error {
 }
 
 type CreateCloudinitByReaderParams struct {
-	Filename      string
+	Filepath      string
 	Userdata      io.Reader
 	Metadata      io.Reader
 	NetworkConfig io.Reader
 }
 
 func (s *Service) CreateCloudinitByReader(params CreateCloudinitByReaderParams) error {
-	cloudinitFile, err := os.Create(path.Join(config.GetConfig().App.CloudinitDir, params.Filename))
+	cloudinitFile, err := os.Create(params.Filepath)
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file: %s", err)
 	}

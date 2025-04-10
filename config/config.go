@@ -27,7 +27,7 @@ type Config struct {
 type App struct {
 	AccessTokenDuration int64  `yaml:"accessTokenDuration"`
 	BaseImageDir        string `yaml:"baseImageDir"`
-	ImageDir            string `yaml:"imageDir"`
+	VMImageDir          string `yaml:"vmImageDir"`
 	CloudinitDir        string `yaml:"cloudinitDir"`
 }
 

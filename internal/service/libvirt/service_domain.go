@@ -26,10 +26,10 @@ type ServiceInterface interface {
 	WriteCloudinit(userdata io.Reader, metadata io.Reader, networkConfig io.Reader, cloudinitFile io.Writer) error
 
 	// DOMAIN
-	GetDomain(domainID string) (*Domain, error)
+	GetDomain(domainID string) (Domain, error)
 	GetListDomains() ([]Domain, error)
-	CreateDomain(domain Domain) (*libvirt.Domain, error)
-	UpdateDomain(domainID string, domain Domain) (*libvirt.Domain, error)
+	CreateDomain(domain Domain) error
+	UpdateDomain(domainID string, domain Domain) error
 	StartDomain(domainID string) error
 	StopDomain(domainID string) error
 }
@@ -71,15 +71,15 @@ func (s *Service) getDomain(domainID string) (*libvirt.Domain, error) {
 	return domain, nil
 }
 
-func (s *Service) GetDomain(domainID string) (*Domain, error) {
+func (s *Service) GetDomain(domainID string) (Domain, error) {
 	conn, err := s.getConnect()
 	if err != nil {
-		return nil, err
+		return Domain{}, err
 	}
 
 	domain, err := conn.LookupDomainByUUIDString(domainID)
 	if err != nil {
-		return nil, ErrDomainNotFound
+		return Domain{}, ErrDomainNotFound
 	}
 
 	return toEntity(domain)
@@ -104,81 +104,81 @@ func (s *Service) GetListDomains() ([]Domain, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
 		}
-		domainsModel[i] = *model
+		domainsModel[i] = model
 
 	}
 
 	return domainsModel, nil
 }
 
-func (s *Service) CreateDomain(domain Domain) (*libvirt.Domain, error) {
+func (s *Service) CreateDomain(domain Domain) error {
 	conn, err := s.getConnect()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Create new qcow2 image from base image
 	if err = qemu.CreateImageWithPath(
-		domain.BaseImagePath("focal-server-cloudimg-amd64.img"),
-		domain.ImagePath(),
+		domain.BaseImagePath(),
+		domain.VMImagePath(),
 		domain.Storage,
 	); err != nil {
-		return nil, fmt.Errorf("failed to clone image: %v", err)
+		return fmt.Errorf("failed to clone image: %v", err)
 	}
 
 	domainXML, err := getXMLConfig(domain)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate domain XML: %v", err)
+		return fmt.Errorf("failed to generate domain XML: %v", err)
 	}
 
 	xmlData, err := domainXML.Marshal()
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal domain XML: %v", err)
+		return fmt.Errorf("failed to marshal domain XML: %v", err)
 	}
 
-	domainVirt, err := conn.DomainDefineXML(xmlData)
+	_, err = conn.DomainDefineXML(xmlData)
 	if err != nil {
-		return nil, fmt.Errorf("failed to define domain: %v", err)
+		return fmt.Errorf("failed to define domain: %v", err)
 	}
 
-	return domainVirt, nil
+	return nil
 
 }
 
-func (s *Service) UpdateDomain(domainID string, domain Domain) (*libvirt.Domain, error) {
+func (s *Service) UpdateDomain(domainID string, domain Domain) error {
 	conn, err := s.getConnect()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	domainObj, err := conn.LookupDomainByUUIDString(domainID)
 	if err != nil {
-		return nil, ErrDomainNotFound
+		return ErrDomainNotFound
 	}
 
 	domainXML, err := getXMLConfig(domain)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate domain XML: %v", err)
+		return fmt.Errorf("failed to generate domain XML: %v", err)
 	}
 
 	xmlData, err := domainXML.Marshal()
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal domain XML: %v", err)
+		return fmt.Errorf("failed to marshal domain XML: %v", err)
 	}
 
-	newDom, err := conn.DomainDefineXML(xmlData)
+	_, err = conn.DomainDefineXML(xmlData)
 	if err != nil {
-		return nil, fmt.Errorf("failed to define domain: %v", err)
+		return fmt.Errorf("failed to define domain: %v", err)
 	}
 
 	// If the domain is running, we need to start it again
 	if val, err := domainObj.IsActive(); err != nil && val {
 		if err := domainObj.Destroy(); err != nil {
-			return nil, fmt.Errorf("failed to destroy domain: %v", err)
+			return fmt.Errorf("failed to destroy domain: %v", err)
 		}
 	}
 
-	return newDom, nil
+	return nil
 }
 
 func (s *Service) GetListActiveDomains() ([]Domain, error) {
@@ -199,7 +199,7 @@ func (s *Service) GetListActiveDomains() ([]Domain, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
 		}
-		domainsModel[i] = *model
+		domainsModel[i] = model
 	}
 
 	return domainsModel, nil
@@ -224,10 +224,10 @@ func (s *Service) StopDomain(domainID string) error {
 }
 
 func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
-	imagePath := domain.ImagePath()
+	vmImagePath := domain.VMImagePath()
 	cloudinitPath := domain.CloudinitPath()
 
-	if !file.Exists(imagePath) || !file.Exists(cloudinitPath) {
+	if !file.Exists(vmImagePath) || !file.Exists(cloudinitPath) {
 		return nil, fmt.Errorf("image or cloudinit file not found")
 	}
 
@@ -276,7 +276,7 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 					},
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{
-							File: imagePath,
+							File: vmImagePath,
 						},
 					},
 					Target: &libvirtxml.DomainDiskTarget{
@@ -339,7 +339,7 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 	return domainXML, nil
 }
 
-func toEntity(domain *libvirt.Domain) (*Domain, error) {
+func toEntity(domain *libvirt.Domain) (Domain, error) {
 	domainID, _ := domain.GetUUIDString()
 	name, _ := domain.GetName()
 	memory, _ := domain.GetMaxMemory() // always in kB
@@ -348,15 +348,15 @@ func toEntity(domain *libvirt.Domain) (*Domain, error) {
 
 	xmlDesc, err := domain.GetXMLDesc(0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get XML description: %v", err)
+		return Domain{}, fmt.Errorf("failed to get XML description: %v", err)
 	}
 
 	var domConf libvirtxml.Domain
 	if err := domConf.Unmarshal(xmlDesc); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal XML description: %v", err)
+		return Domain{}, fmt.Errorf("failed to unmarshal XML description: %v", err)
 	}
 
-	return &Domain{
+	return Domain{
 		ID:   domainID,
 		Name: name,
 		Memory: Memory{

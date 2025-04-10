@@ -23,16 +23,16 @@ func CreateImage(baseImgFile string, cloneImgFile string, size uint) error {
 		return fmt.Errorf("base image not found")
 	}
 
-	if config.GetConfig().App.ImageDir == "" {
+	if config.GetConfig().App.VMImageDir == "" {
 		return fmt.Errorf("image dir not set")
 	}
 
-	if !exist(config.GetConfig().App.ImageDir) {
-		os.MkdirAll(config.GetConfig().App.ImageDir, 0777)
+	if !exist(config.GetConfig().App.VMImageDir) {
+		os.MkdirAll(config.GetConfig().App.VMImageDir, 0777)
 	}
 
 	cloneImgPath := path.Join(
-		config.GetConfig().App.ImageDir,
+		config.GetConfig().App.VMImageDir,
 		cloneImgFile,
 	)
 
@@ -72,6 +72,8 @@ func CreateImageWithPath(basePath string, clonePath string, size uint) error {
 
 	sizeStr := fmt.Sprintf("%dG", size)
 	fmt.Println("sizeStr", sizeStr)
+	fmt.Println("basePath", basePath)
+	fmt.Println("clonePath", clonePath)
 	//eg: sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudimg-amd64.img
 	// -f qcow2 -F qcow2
 	// /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img
