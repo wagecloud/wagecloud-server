@@ -41,7 +41,7 @@ model AccountUser {
 }
 
 model VM {
-  id         BigInt @id @default(autoincrement())
+  id         String @id 
   account_id BigInt
   network_id String @unique
   os_id      String

@@ -122,7 +122,7 @@ WHERE (
 `
 
 type DeleteVMParams struct {
-	ID        int64
+	ID        string
 	AccountID pgtype.Int8
 }
 
@@ -141,7 +141,7 @@ WHERE (
 `
 
 type GetVMParams struct {
-	ID        int64
+	ID        string
 	AccountID pgtype.Int8
 }
 
@@ -271,7 +271,7 @@ RETURNING id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage, c
 `
 
 type UpdateVMParams struct {
-	ID        int64
+	ID        string
 	NetworkID pgtype.Text
 	OsID      pgtype.Text
 	ArchID    pgtype.Text

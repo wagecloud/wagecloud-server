@@ -27,7 +27,7 @@ CREATE TABLE "account_user" (
 
 -- CreateTable
 CREATE TABLE "vm" (
-    "id" BIGSERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "account_id" BIGINT NOT NULL,
     "network_id" TEXT NOT NULL,
     "os_id" TEXT NOT NULL,

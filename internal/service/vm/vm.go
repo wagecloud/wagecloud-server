@@ -33,7 +33,7 @@ func NewService(repo repository.Repository, libvirt libvirt.ServiceInterface) *S
 type GetVMParams struct {
 	Role      model.Role
 	AccountID int64
-	ID        int64
+	ID        string
 }
 
 func (s *Service) GetVM(ctx context.Context, params GetVMParams) (model.VM, error) {
@@ -215,7 +215,7 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 type UpdateVMParams struct {
 	Role      model.Role
 	AccountID int64
-	ID        int64
+	ID        string
 	NetworkID *string
 	OsID      *string
 	ArchID    *string
@@ -251,7 +251,7 @@ func (s *Service) UpdateVM(ctx context.Context, params UpdateVMParams) (model.VM
 }
 
 type DeleteVMParams struct {
-	ID        int64
+	ID        string
 	AccountID int64
 	Role      model.Role
 }
@@ -272,7 +272,7 @@ func (s *Service) DeleteVM(ctx context.Context, params DeleteVMParams) error {
 type StartVMParams struct {
 	AccountID int64
 	Role      model.Role
-	ID        int64
+	ID        string
 }
 
 func (s *Service) StartVM(ctx context.Context, params StartVMParams) error {
@@ -282,7 +282,7 @@ func (s *Service) StartVM(ctx context.Context, params StartVMParams) error {
 type StopVMParams struct {
 	AccountID int64
 	Role      model.Role
-	ID        int64
+	ID        string
 }
 
 func (s *Service) StopVM(ctx context.Context, params StopVMParams) error {

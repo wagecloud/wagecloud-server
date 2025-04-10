@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
+	"github.com/wagecloud/wagecloud-server/internal/util/file"
 	"github.com/wagecloud/wagecloud-server/internal/util/qemu"
 	"libvirt.org/go/libvirt"
 )
@@ -26,12 +26,12 @@ type ServiceInterface interface {
 	WriteCloudinit(userdata io.Reader, metadata io.Reader, networkConfig io.Reader, cloudinitFile io.Writer) error
 
 	// DOMAIN
-	StartDomainByID(domainID string) error
-	CreateDomain(domain Domain) (*libvirt.Domain, error)
-	UpdateDomain(domainID string, domain Domain) (*libvirt.Domain, error)
-	GetXMLConfig(domain Domain) (*libvirtxml.Domain, error)
 	GetDomain(domainID string) (*Domain, error)
 	GetListDomains() ([]Domain, error)
+	CreateDomain(domain Domain) (*libvirt.Domain, error)
+	UpdateDomain(domainID string, domain Domain) (*libvirt.Domain, error)
+	StartDomain(domainID string) error
+	StopDomain(domainID string) error
 }
 
 const (
@@ -57,24 +57,58 @@ func (s *Service) getConnect() (*libvirt.Connect, error) {
 	return s.connect, nil
 }
 
-func (s *Service) StartDomainByID(domainID string) error {
+func (s *Service) getDomain(domainID string) (*libvirt.Domain, error) {
 	conn, err := s.getConnect()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	domain, err := conn.LookupDomainByUUIDString(domainID)
 	if err != nil {
-		return ErrDomainNotFound
+		return nil, ErrDomainNotFound
 	}
 
-	err = domain.Create()
+	return domain, nil
+}
+
+func (s *Service) GetDomain(domainID string) (*Domain, error) {
+	conn, err := s.getConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	domain, err := conn.LookupDomainByUUIDString(domainID)
+	if err != nil {
+		return nil, ErrDomainNotFound
+	}
+
+	return toEntity(domain)
+}
+
+func (s *Service) GetListDomains() ([]Domain, error) {
+	conn, err := s.getConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	domains, err := conn.ListAllDomains(0)
 
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to list domains: %v", err)
 	}
 
-	return nil
+	domainsModel := make([]Domain, len(domains))
+
+	for i, domain := range domains {
+		model, err := toEntity(&domain)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
+		}
+		domainsModel[i] = *model
+
+	}
+
+	return domainsModel, nil
 }
 
 func (s *Service) CreateDomain(domain Domain) (*libvirt.Domain, error) {
@@ -92,7 +126,7 @@ func (s *Service) CreateDomain(domain Domain) (*libvirt.Domain, error) {
 		return nil, fmt.Errorf("failed to clone image: %v", err)
 	}
 
-	domainXML, err := s.GetXMLConfig(domain)
+	domainXML, err := getXMLConfig(domain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate domain XML: %v", err)
 	}
@@ -122,7 +156,7 @@ func (s *Service) UpdateDomain(domainID string, domain Domain) (*libvirt.Domain,
 		return nil, ErrDomainNotFound
 	}
 
-	domainXML, err := s.GetXMLConfig(domain)
+	domainXML, err := getXMLConfig(domain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate domain XML: %v", err)
 	}
@@ -147,11 +181,53 @@ func (s *Service) UpdateDomain(domainID string, domain Domain) (*libvirt.Domain,
 	return newDom, nil
 }
 
-func (s *Service) GetXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
+func (s *Service) GetListActiveDomains() ([]Domain, error) {
+	conn, err := s.getConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	domains, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list domains: %v", err)
+	}
+
+	domainsModel := make([]Domain, len(domains))
+
+	for i, domain := range domains {
+		model, err := toEntity(&domain)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
+		}
+		domainsModel[i] = *model
+	}
+
+	return domainsModel, nil
+}
+
+func (s *Service) StartDomain(domainID string) error {
+	domain, err := s.getDomain(domainID)
+	if err != nil {
+		return err
+	}
+
+	return domain.Create()
+}
+
+func (s *Service) StopDomain(domainID string) error {
+	domain, err := s.getDomain(domainID)
+	if err != nil {
+		return err
+	}
+
+	return domain.Shutdown()
+}
+
+func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 	imagePath := domain.ImagePath()
 	cloudinitPath := domain.CloudinitPath()
 
-	if !(exist(imagePath) && exist(cloudinitPath)) {
+	if !file.Exists(imagePath) || !file.Exists(cloudinitPath) {
 		return nil, fmt.Errorf("image or cloudinit file not found")
 	}
 
@@ -263,70 +339,6 @@ func (s *Service) GetXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 	return domainXML, nil
 }
 
-func (s *Service) GetDomain(domainID string) (*Domain, error) {
-	conn, err := s.getConnect()
-	if err != nil {
-		return nil, err
-	}
-
-	domain, err := conn.LookupDomainByUUIDString(domainID)
-	if err != nil {
-		return nil, ErrDomainNotFound
-	}
-
-	return toEntity(domain)
-}
-
-func (s *Service) GetListDomains() ([]Domain, error) {
-	conn, err := s.getConnect()
-	if err != nil {
-		return nil, err
-	}
-
-	domains, err := conn.ListAllDomains(0)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to list domains: %v", err)
-	}
-
-	domainsModel := make([]Domain, len(domains))
-
-	for i, domain := range domains {
-		model, err := toEntity(&domain)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
-		}
-		domainsModel[i] = *model
-
-	}
-
-	return domainsModel, nil
-}
-
-func (s *Service) GetListActiveDomains() ([]Domain, error) {
-	conn, err := s.getConnect()
-	if err != nil {
-		return nil, err
-	}
-
-	domains, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list domains: %v", err)
-	}
-
-	domainsModel := make([]Domain, len(domains))
-
-	for i, domain := range domains {
-		model, err := toEntity(&domain)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert domain to model: %v", err)
-		}
-		domainsModel[i] = *model
-	}
-
-	return domainsModel, nil
-}
-
 func toEntity(domain *libvirt.Domain) (*Domain, error) {
 	domainID, _ := domain.GetUUIDString()
 	name, _ := domain.GetName()
@@ -360,9 +372,4 @@ func toEntity(domain *libvirt.Domain) (*Domain, error) {
 			Arch: domConf.OS.Type.Arch,
 		},
 	}, nil
-}
-
-func exist(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
 }

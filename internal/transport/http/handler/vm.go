@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/wagecloud/wagecloud-server/internal/model"
@@ -18,8 +17,8 @@ func (h *Handler) GetVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vmID, err := strconv.ParseInt(chi.URLParam(r, "vmID"), 10, 64)
-	if err != nil {
+	vmID := chi.URLParam(r, "vmID")
+	if vmID == "" {
 		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
@@ -164,8 +163,8 @@ func (h *Handler) UpdateVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vmID, err := strconv.ParseInt(chi.URLParam(r, "vmID"), 10, 64)
-	if err != nil {
+	vmID := chi.URLParam(r, "vmID")
+	if vmID == "" {
 		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
@@ -203,8 +202,8 @@ func (h *Handler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vmID, err := strconv.ParseInt(chi.URLParam(r, "vmID"), 10, 64)
-	if err != nil {
+	vmID := chi.URLParam(r, "vmID")
+	if vmID == "" {
 		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
@@ -229,8 +228,8 @@ func (h *Handler) StartVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vmID, err := strconv.ParseInt(chi.URLParam(r, "vmID"), 10, 64)
-	if err != nil {
+	vmID := chi.URLParam(r, "vmID")
+	if vmID == "" {
 		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}
@@ -255,8 +254,8 @@ func (h *Handler) StopVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vmID, err := strconv.ParseInt(chi.URLParam(r, "vmID"), 10, 64)
-	if err != nil {
+	vmID := chi.URLParam(r, "vmID")
+	if vmID == "" {
 		response.FromHTTPError(w, http.StatusBadRequest)
 		return
 	}

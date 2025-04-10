@@ -11,7 +11,7 @@ import (
 )
 
 type GetVMParams struct {
-	ID        int64
+	ID        string
 	AccountID *int64
 }
 
@@ -139,7 +139,7 @@ func (r *RepositoryImpl) CreateVM(ctx context.Context, vm model.VM) (model.VM, e
 }
 
 type UpdateVMParams struct {
-	ID        int64
+	ID        string
 	AccountID *int64
 	NetworkID *string
 	OsID      *string
@@ -180,7 +180,7 @@ func (r *RepositoryImpl) UpdateVM(ctx context.Context, params UpdateVMParams) (m
 }
 
 type DeleteVMParams struct {
-	ID        int64
+	ID        string
 	AccountID *int64
 }
 

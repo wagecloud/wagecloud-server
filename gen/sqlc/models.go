@@ -128,7 +128,7 @@ type O struct {
 }
 
 type Vm struct {
-	ID        int64
+	ID        string
 	AccountID int64
 	NetworkID string
 	OsID      string

@@ -1,7 +1,7 @@
 package model
 
 type VM struct {
-	ID        int64  `json:"id"`
+	ID        string `json:"id"`
 	AccountID int64  `json:"account_id"`
 	NetworkID string `json:"network_id"`
 	OsID      string `json:"os_id"`
