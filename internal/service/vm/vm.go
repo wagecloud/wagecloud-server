@@ -37,6 +37,7 @@ type GetVMParams struct {
 }
 
 func (s *Service) GetVM(ctx context.Context, params GetVMParams) (model.VM, error) {
+
 	repoParams := repository.GetVMParams{
 		ID:        params.ID,
 		AccountID: &params.AccountID,

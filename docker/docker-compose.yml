@@ -13,7 +13,7 @@ services:
       - "5433"
     environment:
       POSTGRES_USER: wagecloud
-      POSTGRES_PASSWORD: wagecloudpassword
+      POSTGRES_PASSWORD: wagecloud
       POSTGRES_DB: wagecloud
     volumes:
       - wagecloud-data:/var/lib/postgresql/data

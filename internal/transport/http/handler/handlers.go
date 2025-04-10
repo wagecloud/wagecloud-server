@@ -70,6 +70,14 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 					r.Post("/register", h.RegisterUser)
 				})
 			})
+
+			r.Route("/os", func(r chi.Router) {
+				r.Get("/", h.ListOSs)
+				r.Get("/{osID}", h.GetOS)
+				r.Post("/", h.CreateOS)
+				// r.Put("/{osID}", h.UpdateOS)
+				// r.Delete("/{osID}", h.DeleteOS)
+			})
 		})
 	})
 
