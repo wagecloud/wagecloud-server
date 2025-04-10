@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	libvirtxml "github.com/libvirt/libvirt-go-xml"
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 	"github.com/wagecloud/wagecloud-server/internal/util/file"
-	"github.com/wagecloud/wagecloud-server/internal/util/qemu"
+	"github.com/wagecloud/wagecloud-server/internal/util/transaction"
+	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
@@ -17,9 +20,12 @@ var _ ServiceInterface = (*Service)(nil)
 type Service struct {
 	repo    *repository.RepositoryImpl
 	connect *libvirt.Connect
+	tx      *transaction.Transaction
 }
 
 type ServiceInterface interface {
+	WithTx(tx *transaction.Transaction) ServiceInterface
+
 	// CLOUDINIT
 	CreateCloudinit(params CreateCloudinitParams) error
 	CreateCloudinitByReader(params CreateCloudinitByReaderParams) error
@@ -33,6 +39,9 @@ type ServiceInterface interface {
 	DeleteDomain(domainID string) error
 	StartDomain(domainID string) error
 	StopDomain(domainID string) error
+
+	// QEMU
+	CreateImage(params CreateImageParams) error
 }
 
 const (
@@ -44,7 +53,7 @@ var (
 )
 
 func NewService(repo *repository.RepositoryImpl) *Service {
-	return &Service{repo: repo}
+	return &Service{repo: repo, tx: transaction.NewTransaction(true)}
 }
 
 func (s *Service) getConnect() (*libvirt.Connect, error) {
@@ -70,6 +79,12 @@ func (s *Service) getDomain(domainID string) (*libvirt.Domain, error) {
 	}
 
 	return domain, nil
+}
+
+func (s *Service) WithTx(tx *transaction.Transaction) ServiceInterface {
+	newSvc := NewService(s.repo)
+	newSvc.tx = tx
+	return newSvc
 }
 
 func (s *Service) GetDomain(domainID string) (Domain, error) {
@@ -121,12 +136,16 @@ func (s *Service) CreateDomain(domain Domain) error {
 		return err
 	}
 
+	tx := transaction.NewTransaction(false)
+	svcTx := s.WithTx(tx)
+	defer tx.Rollback()
+
 	// Create new qcow2 image from base image
-	if err = qemu.CreateImage(
-		domain.BaseImagePath(),
-		domain.VMImagePath(),
-		domain.Storage,
-	); err != nil {
+	if err = svcTx.CreateImage(CreateImageParams{
+		BaseImagePath:  domain.BaseImagePath(),
+		CloneImagePath: domain.VMImagePath(),
+		Size:           domain.Storage,
+	}); err != nil {
 		return fmt.Errorf("failed to clone image: %v", err)
 	}
 
@@ -144,6 +163,8 @@ func (s *Service) CreateDomain(domain Domain) error {
 	if err != nil {
 		return fmt.Errorf("failed to define domain: %v", err)
 	}
+
+	tx.Commit()
 
 	return nil
 }
@@ -213,12 +234,25 @@ func (s *Service) UpdateDomain(domainID string, params UpdateDomainParams) error
 }
 
 func (s *Service) DeleteDomain(domainID string) error {
-	domain, err := s.getDomain(domainID)
+	libDomain, err := s.getDomain(domainID)
 	if err != nil {
 		return err
 	}
 
-	return domain.Undefine()
+	domain, err := FromLibvirtToDomain(*libDomain)
+	if err != nil {
+		return fmt.Errorf("failed to convert domain to model: %v", err)
+	}
+
+	// remove vm and cloudinit
+	if err := os.Remove(domain.VMImagePath()); err != nil {
+		logger.Log.Error("failed to remove vm image", zap.String("path", domain.VMImagePath()), zap.Error(err))
+	}
+	if err := os.Remove(domain.CloudinitPath()); err != nil {
+		logger.Log.Error("failed to remove cloudinit", zap.String("path", domain.CloudinitPath()), zap.Error(err))
+	}
+
+	return libDomain.Undefine()
 }
 
 func (s *Service) StartDomain(domainID string) error {
@@ -249,7 +283,7 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 
 	domainXML := &libvirtxml.Domain{
 		Type: "kvm",
-		Name: domain.Name,
+		Name: domain.ID,
 		UUID: domain.ID,
 		Memory: &libvirtxml.DomainMemory{
 			Value: domain.Memory.Value,

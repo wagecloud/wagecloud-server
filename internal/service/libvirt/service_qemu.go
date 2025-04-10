@@ -1,4 +1,4 @@
-package qemu
+package libvirt
 
 import (
 	"fmt"
@@ -8,48 +8,48 @@ import (
 
 	"github.com/wagecloud/wagecloud-server/config"
 	"github.com/wagecloud/wagecloud-server/internal/util/file"
-	"github.com/wagecloud/wagecloud-server/internal/util/transaction"
 )
 
-func CreateImage(baseImagePath string, cloneImagePath string, size uint) error {
+type CreateImageParams struct {
+	BaseImagePath  string
+	CloneImagePath string
+	Size           uint
+}
+
+func (s *Service) CreateImage(params CreateImageParams) error {
 	if config.GetConfig().App.BaseImageDir == "" {
 		return fmt.Errorf("base image dir not set")
 	}
 
-	if !file.Exists(baseImagePath) {
+	if !file.Exists(params.BaseImagePath) {
 		return fmt.Errorf("base image not found")
 	}
 
 	cloneImgPath := path.Join(
 		config.GetConfig().App.VMImageDir,
-		cloneImagePath,
+		params.CloneImagePath,
 	)
 
-	sizeStr := fmt.Sprintf("%dG", size)
+	sizeStr := fmt.Sprintf("%dG", params.Size)
 
-	tx := transaction.NewTransaction()
-
-	tx.Add(func() error {
+	if err := s.tx.Do(func() error {
 		// Eg: qemu-img create -b ubuntu_amd64.img -f qcow2 -F qcow2 ubuntu_amd64_mod.img 10G
 		// set permissions to 777
 		cmd := exec.Command("qemu-img",
 			"create", "-b",
-			baseImagePath,
+			params.BaseImagePath,
 			"-f",
 			"qcow2",
 			"-F",
 			"qcow2",
-			cloneImagePath,
+			params.CloneImagePath,
 			sizeStr, // G for GB
 		)
 		return cmd.Run()
 	}, func() error {
 		return os.Remove(cloneImgPath)
-	})
-
-	if err := tx.Commit(); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to commit transaction: %s", err)
+	}); err != nil {
+		return err
 	}
 
 	return nil
