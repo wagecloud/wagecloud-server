@@ -7,6 +7,7 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/model"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 	"github.com/wagecloud/wagecloud-server/internal/service/libvirt"
+	"github.com/wagecloud/wagecloud-server/internal/util/hash"
 )
 
 var _ ServiceInterface = (*Service)(nil)
@@ -170,7 +171,10 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 	userdata := libvirt.NewDefaultUserdata()
 	userdata.Users[0].Name = params.Name
 	userdata.Users[0].SSHAuthorizedKeys = params.SSHAuthorizedKeys
-	userdata.Users[0].Passwd = params.Password
+	userdata.Users[0].Passwd, err = hash.Password(params.Password)
+	if err != nil {
+		return model.VM{}, err
+	}
 
 	metadata := libvirt.NewDefaultMetadata()
 	metadata.LocalHostname = params.LocalHostname
@@ -260,15 +264,16 @@ func (s *Service) DeleteVM(ctx context.Context, params DeleteVMParams) error {
 		repoParams.AccountID = &params.AccountID
 	}
 
-	if err := s.repo.DeleteVM(ctx, repoParams); err != nil {
-		return err
-	}
-
-	if err := s.libvirt.DeleteDomain(params.ID); err != nil {
+	if err := txRepo.DeleteVM(ctx, repoParams); err != nil {
 		return err
 	}
 
 	if err := txRepo.Commit(ctx); err != nil {
+		return err
+	}
+
+	// ! Delete domain does not support rollback operation so it should done last (after commit)
+	if err := s.libvirt.DeleteDomain(params.ID); err != nil {
 		return err
 	}
 
