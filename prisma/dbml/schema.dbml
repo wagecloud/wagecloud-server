@@ -33,7 +33,7 @@ Table VM {
 
 Table Network {
   id String [pk]
-  private_ip String [unique, not null]
+  private_ip String [not null, note: '@unique']
   created_at DateTime [default: `now()`, not null]
 }
 

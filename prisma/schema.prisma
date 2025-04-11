@@ -64,7 +64,7 @@ model VM {
 
 model Network {
   id         String   @id
-  private_ip String   @unique
+  private_ip String   /*@unique*/
   created_at DateTime @default(now()) @db.Timestamptz(3)
 
   VMs VM[]
