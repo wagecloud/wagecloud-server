@@ -8,7 +8,7 @@ type User struct {
 	Name              string   `json:"name,omitempty" yaml:"name,omitempty"`
 	SSHAuthorizedKeys []string `json:"ssh-authorized-keys,omitempty" yaml:"ssh-authorized-keys,omitempty"`
 	Passwd            string   `json:"passwd,omitempty" yaml:"passwd,omitempty"`
-	LockPasswd        bool     `json:"lock_passwd,omitempty" yaml:"lock_passwd,omitempty"`
+	LockPasswd        bool     `json:"lock_passwd" yaml:"lock_passwd"`
 	Groups            string   `json:"groups,omitempty" yaml:"groups,omitempty"`
 	Sudo              string   `json:"sudo,omitempty" yaml:"sudo,omitempty"`
 	Shell             string   `json:"shell,omitempty" yaml:"shell,omitempty"`
