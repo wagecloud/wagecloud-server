@@ -85,6 +85,14 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 				r.Patch("/{networkID}", h.UpdateNetwork)
 				r.Delete("/{networkID}", h.DeleteNetwork)
 			})
+
+			r.Route("/arch", func(r chi.Router) {
+				r.Get("/", h.ListArchs)
+				r.Get("/{archID}", h.GetArch)
+				r.Post("/", h.CreateArch)
+				r.Patch("/{archID}", h.UpdateArch)
+				r.Delete("/{archID}", h.DeleteArch)
+			})
 		})
 	})
 
