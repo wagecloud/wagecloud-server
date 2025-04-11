@@ -81,8 +81,8 @@ func FromVMToDomain(vm model.VM) Domain {
 func FromLibvirtToDomain(domain libvirt.Domain) (Domain, error) {
 	domainID, _ := domain.GetUUIDString()
 	name, _ := domain.GetName()
-	memory, _ := domain.GetMaxMemory() // always in kB
-	cpu, _ := domain.GetVcpus()        // temp
+	memory, _ := domain.GetMaxMemory() // return kB, should convert to MB later
+	vcpus, _ := domain.GetMaxVcpus()
 	osType, _ := domain.GetOSType()
 
 	xmlDesc, err := domain.GetXMLDesc(0)
@@ -103,7 +103,7 @@ func FromLibvirtToDomain(domain libvirt.Domain) (Domain, error) {
 			Unit:  UnitMB,
 		},
 		Cpu: Cpu{
-			Value: uint(cpu[0].Cpu), // just for temp
+			Value: vcpus,
 		},
 		OS: OS{
 			Type: osType,
