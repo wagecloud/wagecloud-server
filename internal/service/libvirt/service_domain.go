@@ -130,6 +130,9 @@ func (s *Service) ListDomains(params ListDomainsParams) ([]Domain, error) {
 	return domainsModel, nil
 }
 
+// CreateDomain creates a new domain in libvirt
+//
+// Supports rollback operation, safe to use in anywhere, anytime
 func (s *Service) CreateDomain(domain Domain) error {
 	conn, err := s.getConnect()
 	if err != nil {
@@ -233,6 +236,9 @@ func (s *Service) UpdateDomain(domainID string, params UpdateDomainParams) error
 	return nil
 }
 
+// DeleteDomain removes the domain from libvirt
+//
+// Does not support rollback operation so it should done last
 func (s *Service) DeleteDomain(domainID string) error {
 	libDomain, err := s.getDomain(domainID)
 	if err != nil {
@@ -244,11 +250,23 @@ func (s *Service) DeleteDomain(domainID string) error {
 		return fmt.Errorf("failed to convert domain to model: %v", err)
 	}
 
-	if err := s.StopDomain(domainID); err != nil {
-		return fmt.Errorf("failed to stop domain: %v", err)
+	isActive, err := libDomain.IsActive()
+	if err != nil {
+		return fmt.Errorf("failed to check if domain is active: %v", err)
 	}
 
-	// remove vm and cloudinit
+	if isActive {
+		if err := libDomain.Destroy(); err != nil {
+			return fmt.Errorf("failed to destroy domain: %v", err)
+		}
+	}
+
+	if err = libDomain.Undefine(); err != nil {
+		return fmt.Errorf("failed to undefine domain: %v", err)
+	}
+
+	// remove vm and cloudinit (always after domain is stopped and should not return error)
+	//! These removal operations cannot be rolled back, so it should be done last
 	if err := os.Remove(domain.VMImagePath()); err != nil {
 		logger.Log.Error("failed to remove vm image", zap.String("path", domain.VMImagePath()), zap.Error(err))
 	}
@@ -256,7 +274,7 @@ func (s *Service) DeleteDomain(domainID string) error {
 		logger.Log.Error("failed to remove cloudinit", zap.String("path", domain.CloudinitPath()), zap.Error(err))
 	}
 
-	return libDomain.Undefine()
+	return nil
 }
 
 func (s *Service) StartDomain(domainID string) error {
