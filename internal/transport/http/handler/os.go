@@ -10,15 +10,18 @@ import (
 )
 
 func (h *Handler) GetOS(w http.ResponseWriter, r *http.Request) {
-	osID := chi.URLParam(r, "osID")
-
-	if osID == "" {
-		response.FromHTTPError(w, http.StatusBadRequest)
+	var params = struct {
+		ID string `schema:"osID" validate:"required,min=1,max=255"`
+	}{
+		ID: chi.URLParam(r, "osID"),
+	}
+	if err := validate.Struct(params); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	os, err := h.service.OS.GetOS(r.Context(), os.GetOSParams{
-		ID: osID,
+		ID: params.ID,
 	})
 
 	if err != nil {
@@ -29,17 +32,14 @@ func (h *Handler) GetOS(w http.ResponseWriter, r *http.Request) {
 	response.FromDTO(w, os, http.StatusOK)
 }
 
-type ListOSsRequest struct {
-	Page          int32   `validate:"required,min=1"`
-	Limit         int32   `validate:"required,min=5,max=100"`
-	CreatedAtFrom *int64  `validate:"omitempty,min=0,ltefield=CreatedAtTo"`
-	CreatedAtTo   *int64  `validate:"omitempty,min=0,gtefield=CreatedAtFrom"`
-	Name          *string `validate:"omitempty,min=1,max=255"`
-}
-
 func (h *Handler) ListOSs(w http.ResponseWriter, r *http.Request) {
-	var req ListOSsRequest
-
+	var req struct {
+		Page          int32   `schema:"page" validate:"required,min=1"`
+		Limit         int32   `schema:"limit" validate:"required,min=5,max=100"`
+		CreatedAtFrom *int64  `schema:"created_at_from" validate:"omitempty,min=0,ltefield=CreatedAtTo"`
+		CreatedAtTo   *int64  `schema:"created_at_to" validate:"omitempty,min=0,gtefield=CreatedAtFrom"`
+		Name          *string `schema:"name" validate:"omitempty,min=1,max=255"`
+	}
 	if err := decodeAndValidate(&req, r.URL.Query()); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
@@ -63,14 +63,11 @@ func (h *Handler) ListOSs(w http.ResponseWriter, r *http.Request) {
 	response.FromPaginate(w, osList)
 }
 
-type CreateOSRequest struct {
-	ID   string `json:"id" validate:"required,min=1,max=255"`
-	Name string `json:"name" validate:"required,min=1,max=255"`
-}
-
 func (h *Handler) CreateOS(w http.ResponseWriter, r *http.Request) {
-	var req CreateOSRequest
-
+	var req struct {
+		ID   string `json:"id" validate:"required,min=1,max=255"`
+		Name string `json:"name" validate:"required,min=1,max=255"`
+	}
 	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
@@ -89,22 +86,28 @@ func (h *Handler) CreateOS(w http.ResponseWriter, r *http.Request) {
 	response.FromDTO(w, os, http.StatusCreated)
 }
 
-type UpdateOSRequest struct {
-	ID    string  `json:"id" validate:"required,min=1,max=255"`
-	NewID *string `json:"new_id" validate:"omitempty,min=1,max=255"`
-	Name  *string `json:"name" validate:"omitempty,min=1,max=255"`
-}
-
 func (h *Handler) UpdateOS(w http.ResponseWriter, r *http.Request) {
-	var req UpdateOSRequest
+	var params = struct {
+		ID string `schema:"osID" validate:"required,min=1,max=255"`
+	}{
+		ID: chi.URLParam(r, "osID"),
+	}
+	if err := validate.Struct(params); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
+		return
+	}
 
+	var req struct {
+		NewID *string `json:"new_id" validate:"omitempty,min=1,max=255"`
+		Name  *string `json:"name" validate:"omitempty,min=1,max=255"`
+	}
 	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	os, err := h.service.OS.UpdateOS(r.Context(), os.UpdateOSParams{
-		ID:    req.ID,
+		ID:    params.ID,
 		NewID: req.NewID,
 		Name:  req.Name,
 	})
@@ -118,19 +121,22 @@ func (h *Handler) UpdateOS(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteOS(w http.ResponseWriter, r *http.Request) {
-	osID := chi.URLParam(r, "osID")
-
-	if osID == "" {
-		response.FromHTTPError(w, http.StatusBadRequest)
+	var params = struct {
+		ID string `schema:"osID" validate:"required,min=1,max=255"`
+	}{
+		ID: chi.URLParam(r, "osID"),
+	}
+	if err := validate.Struct(params); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	if err := h.service.OS.DeleteOS(r.Context(), os.DeleteOSParams{
-		ID: osID,
+		ID: params.ID,
 	}); err != nil {
 		response.FromError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	response.FromHTTPError(w, http.StatusNoContent)
+	response.FromDTO(w, nil, http.StatusOK)
 }

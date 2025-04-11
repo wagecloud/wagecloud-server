@@ -10,14 +10,18 @@ import (
 )
 
 func (h *Handler) GetNetwork(w http.ResponseWriter, r *http.Request) {
-	networkID := chi.URLParam(r, "networkID")
-	if networkID == "" {
-		response.FromHTTPError(w, http.StatusBadRequest)
+	var params = struct {
+		ID string `schema:"networkID" validate:"required,min=1,max=255"`
+	}{
+		ID: chi.URLParam(r, "networkID"),
+	}
+	if err := validate.Struct(params); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	network, err := h.service.Network.GetNetwork(r.Context(), network.GetNetworkParams{
-		ID: networkID,
+		ID: params.ID,
 	})
 	if err != nil {
 		response.FromError(w, err, http.StatusInternalServerError)
@@ -27,17 +31,15 @@ func (h *Handler) GetNetwork(w http.ResponseWriter, r *http.Request) {
 	response.FromDTO(w, network, http.StatusOK)
 }
 
-type ListNetworksRequest struct {
-	Page          int32   `validate:"required,min=1"`
-	Limit         int32   `validate:"required,min=5,max=100"`
-	ID            *string `validate:"omitempty"`
-	PrivateIP     *string `validate:"omitempty,ip"`
-	CreatedAtFrom *int64  `validate:"omitempty,min=0,ltefield=CreatedAtTo"`
-	CreatedAtTo   *int64  `validate:"omitempty,min=0,gtefield=CreatedAtFrom"`
-}
-
 func (h *Handler) ListNetworks(w http.ResponseWriter, r *http.Request) {
-	var req ListNetworksRequest
+	var req struct {
+		Page          int32   `schema:"page" validate:"required,min=1"`
+		Limit         int32   `schema:"limit" validate:"required,min=5,max=100"`
+		ID            *string `schema:"id" validate:"omitempty"`
+		PrivateIP     *string `schema:"private_ip" validate:"omitempty,ip"`
+		CreatedAtFrom *int64  `schema:"created_at_from" validate:"omitempty,min=0,ltefield=CreatedAtTo"`
+		CreatedAtTo   *int64  `schema:"created_at_to" validate:"omitempty,min=0,gtefield=CreatedAtFrom"`
+	}
 	if err := decodeAndValidate(&req, r.URL.Query()); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
@@ -61,13 +63,11 @@ func (h *Handler) ListNetworks(w http.ResponseWriter, r *http.Request) {
 	response.FromPaginate(w, networks)
 }
 
-type CreateNetworkRequest struct {
-	ID        string `json:"id" validate:"required,min=1,max=255"`
-	PrivateIP string `json:"private_ip" validate:"required,ip"`
-}
-
 func (h *Handler) CreateNetwork(w http.ResponseWriter, r *http.Request) {
-	var req CreateNetworkRequest
+	var req struct {
+		ID        string `json:"id" validate:"required,min=1,max=255"`
+		PrivateIP string `json:"private_ip" validate:"required,ip"`
+	}
 	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
@@ -85,26 +85,28 @@ func (h *Handler) CreateNetwork(w http.ResponseWriter, r *http.Request) {
 	response.FromDTO(w, network, http.StatusCreated)
 }
 
-type UpdateNetworkRequest struct {
-	NewID     *string `json:"new_id" validate:"omitempty,min=1,max=255"`
-	PrivateIP *string `json:"private_ip" validate:"omitempty,ip"`
-}
-
 func (h *Handler) UpdateNetwork(w http.ResponseWriter, r *http.Request) {
-	networkID := chi.URLParam(r, "networkID")
-	if networkID == "" {
-		response.FromHTTPError(w, http.StatusBadRequest)
+	var params = struct {
+		ID string `schema:"networkID" validate:"required,min=1,max=255"`
+	}{
+		ID: chi.URLParam(r, "networkID"),
+	}
+	if err := validate.Struct(params); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	var req UpdateNetworkRequest
+	var req struct {
+		NewID     *string `json:"new_id" validate:"omitempty,min=1,max=255"`
+		PrivateIP *string `json:"private_ip" validate:"omitempty,ip"`
+	}
 	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	network, err := h.service.Network.UpdateNetwork(r.Context(), network.UpdateNetworkParams{
-		ID:        networkID,
+		ID:        params.ID,
 		NewID:     req.NewID,
 		PrivateIP: req.PrivateIP,
 	})
@@ -117,14 +119,18 @@ func (h *Handler) UpdateNetwork(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteNetwork(w http.ResponseWriter, r *http.Request) {
-	networkID := chi.URLParam(r, "networkID")
-	if networkID == "" {
-		response.FromHTTPError(w, http.StatusBadRequest)
+	var params = struct {
+		ID string `schema:"networkID" validate:"required,min=1,max=255"`
+	}{
+		ID: chi.URLParam(r, "networkID"),
+	}
+	if err := validate.Struct(params); err != nil {
+		response.FromError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err := h.service.Network.DeleteNetwork(r.Context(), network.DeleteNetworkParams{
-		ID: networkID,
+		ID: params.ID,
 	})
 	if err != nil {
 		response.FromError(w, err, http.StatusInternalServerError)

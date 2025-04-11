@@ -52,17 +52,6 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	// Routes
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-			// Domain routes
-			r.Route("/vm", func(r chi.Router) {
-				r.Get("/", h.ListVMs)
-				r.Get("/{vmID}", h.GetVM)
-				r.Post("/", h.CreateVM)
-				r.Post("/start/{vmID}", h.StartVM)
-				r.Post("/stop/{vmID}", h.StopVM)
-				r.Patch("/", h.UpdateVM)
-				r.Delete("/{vmID}", h.DeleteVM)
-			})
-
 			r.Route("/account", func(r chi.Router) {
 				r.Get("/", h.GetAccount)
 				r.Route("/user", func(r chi.Router) {
@@ -71,12 +60,30 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 				})
 			})
 
+			r.Route("/vm", func(r chi.Router) {
+				r.Get("/", h.ListVMs)
+				r.Get("/{vmID}", h.GetVM)
+				r.Post("/", h.CreateVM)
+				r.Patch("/{vmID}", h.UpdateVM)
+				r.Delete("/{vmID}", h.DeleteVM)
+				r.Post("/start/{vmID}", h.StartVM)
+				r.Post("/stop/{vmID}", h.StopVM)
+			})
+
 			r.Route("/os", func(r chi.Router) {
 				r.Get("/", h.ListOSs)
 				r.Get("/{osID}", h.GetOS)
 				r.Post("/", h.CreateOS)
-				r.Patch("/", h.UpdateOS)
+				r.Patch("/{osID}", h.UpdateOS)
 				r.Delete("/{osID}", h.DeleteOS)
+			})
+
+			r.Route("/network", func(r chi.Router) {
+				r.Get("/", h.ListNetworks)
+				r.Get("/{networkID}", h.GetNetwork)
+				r.Post("/", h.CreateNetwork)
+				r.Patch("/{networkID}", h.UpdateNetwork)
+				r.Delete("/{networkID}", h.DeleteNetwork)
 			})
 		})
 	})
