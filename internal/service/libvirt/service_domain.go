@@ -244,6 +244,10 @@ func (s *Service) DeleteDomain(domainID string) error {
 		return fmt.Errorf("failed to convert domain to model: %v", err)
 	}
 
+	if err := s.StopDomain(domainID); err != nil {
+		return fmt.Errorf("failed to stop domain: %v", err)
+	}
+
 	// remove vm and cloudinit
 	if err := os.Remove(domain.VMImagePath()); err != nil {
 		logger.Log.Error("failed to remove vm image", zap.String("path", domain.VMImagePath()), zap.Error(err))
