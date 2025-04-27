@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-type NginxProtocolType string
+type ProtocolType string
 
 const (
-	http   NginxProtocolType = "http"
-	stream NginxProtocolType = "stream"
+	http   ProtocolType = "http"
+	stream ProtocolType = "stream"
 )
 
 func DeleteServerBlock(pathName string, targetPort string) error {
@@ -84,7 +84,7 @@ func DeleteServerBlock(pathName string, targetPort string) error {
 	return nil
 }
 
-func AddOrUpdateServerBlock(pathName string, internalPort, hostPort int, protocolType NginxProtocolType) error {
+func AddOrUpdateServerBlock(pathName, vmIP string, internalPort, hostPort int, protocolType ProtocolType) error {
 	hostPortStr := strconv.Itoa(hostPort)
 
 	// Step 1: Delete old block if exists
@@ -93,7 +93,7 @@ func AddOrUpdateServerBlock(pathName string, internalPort, hostPort int, protoco
 	}
 
 	// Step 2: Generate new block
-	newBlock, err := generateServerBlock(internalPort, hostPort, protocolType)
+	newBlock, err := generateServerBlock(vmIP, internalPort, hostPort, protocolType)
 	if err != nil {
 		return err
 	}
@@ -129,21 +129,22 @@ func fileExists(filePath string) bool {
 	return !info.IsDir()
 }
 
-func generateServerBlock(internalPort, hostPort int, protocolType NginxProtocolType) (string, error) {
+func generateServerBlock(vmIP string, internalPort, forwardingPort int, protocolType ProtocolType) (string, error) {
 	switch protocolType {
 	case "http":
 		return fmt.Sprintf(`server {
     listen %d;
 
     location / {
-        proxy_pass http://127.0.0.1:%d;
+	proxy_pass http://%s:%d;
     }
-}`, hostPort, internalPort), nil
+}`, forwardingPort, vmIP, internalPort), nil
+
 	case "stream":
 		return fmt.Sprintf(`server {
     listen %d;
-    proxy_pass 127.0.0.1:%d;
-}`, hostPort, internalPort), nil
+	proxy_pass %s:%d;
+}`, forwardingPort, vmIP, internalPort), nil
 	default:
 		return "", fmt.Errorf("unsupported protocol type: %s", protocolType)
 	}
