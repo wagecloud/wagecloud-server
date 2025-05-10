@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+	"github.com/go-playground/mold/v4"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/schema"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
@@ -22,6 +25,7 @@ type Handler struct {
 var (
 	validate = validator.New()
 	decoder  = schema.NewDecoder()
+	mod      = mold.New()
 )
 
 func NewHandler(service *service.Service) *Handler {
@@ -32,6 +36,17 @@ func NewHandler(service *service.Service) *Handler {
 
 func (h *Handler) SetupRoutes() *chi.Mux {
 	r := chi.NewRouter()
+
+	// CORS middleware
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	})
+	r.Use(corsMiddleware.Handler)
 
 	// Middleware
 	r.Use(middleware.Logger)
@@ -111,6 +126,10 @@ func decodeAndValidate(dst any, src map[string][]string) error {
 		return err
 	}
 
+	if err := mod.Struct(context.Background(), dst); err != nil {
+		return err
+	}
+
 	if err := validate.Struct(dst); err != nil {
 		return err
 	}
@@ -122,6 +141,11 @@ func decodeAndValidateJSON(dst any, src io.Reader) error {
 	if err := json.NewDecoder(src).Decode(dst); err != nil {
 		return err
 	}
+
+	if err := mod.Struct(context.Background(), dst); err != nil {
+		return err
+	}
+	fmt.Println(dst)
 
 	if err := validate.Struct(dst); err != nil {
 		return err
