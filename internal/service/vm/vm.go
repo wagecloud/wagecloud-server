@@ -18,10 +18,10 @@ type Service struct {
 }
 
 type ServiceInterface interface {
-	GetVM(ctx context.Context, params GetVMParams) (model.VM, error)
-	ListVMs(ctx context.Context, params ListVMsParams) (model.PaginateResult[model.VM], error)
-	CreateVM(ctx context.Context, params CreateVMParams) (model.VM, error)
-	UpdateVM(ctx context.Context, params UpdateVMParams) (model.VM, error)
+	GetVM(ctx context.Context, params GetVMParams) (VM, error)
+	ListVMs(ctx context.Context, params ListVMsParams) (model.PaginateResult[VM], error)
+	CreateVM(ctx context.Context, params CreateVMParams) (VM, error)
+	UpdateVM(ctx context.Context, params UpdateVMParams) (VM, error)
 	DeleteVM(ctx context.Context, params DeleteVMParams) error
 	StartVM(ctx context.Context, params StartVMParams) error
 	StopVM(ctx context.Context, params StopVMParams) error
@@ -37,7 +37,23 @@ type GetVMParams struct {
 	ID        string
 }
 
-func (s *Service) GetVM(ctx context.Context, params GetVMParams) (model.VM, error) {
+func (s *Service) withStatus(vm model.VM) (VM, error) {
+	isActive, err := s.libvirt.IsActive(vm.ID)
+	if err != nil {
+		return VM{}, err
+	}
+
+	var status VMStatus
+	if isActive {
+		status = VMStatusRunning
+	} else {
+		status = VMStatusStopped
+	}
+
+	return VM{VM: vm, Status: status}, nil
+}
+
+func (s *Service) GetVM(ctx context.Context, params GetVMParams) (VM, error) {
 
 	repoParams := repository.GetVMParams{
 		ID:        params.ID,
@@ -48,7 +64,12 @@ func (s *Service) GetVM(ctx context.Context, params GetVMParams) (model.VM, erro
 		repoParams.AccountID = &params.AccountID
 	}
 
-	return s.repo.GetVM(ctx, repoParams)
+	vm, err := s.repo.GetVM(ctx, repoParams)
+	if err != nil {
+		return VM{}, err
+	}
+
+	return s.withStatus(vm)
 }
 
 type ListVMsParams struct {
@@ -69,7 +90,7 @@ type ListVMsParams struct {
 	CreatedAtTo   *int64
 }
 
-func (s *Service) ListVMs(ctx context.Context, params ListVMsParams) (res model.PaginateResult[model.VM], err error) {
+func (s *Service) ListVMs(ctx context.Context, params ListVMsParams) (res model.PaginateResult[VM], err error) {
 	repoParams := repository.ListVMsParams{
 		PaginationParams: params.PaginationParams,
 		AccountID:        &params.AccountID,
@@ -102,8 +123,16 @@ func (s *Service) ListVMs(ctx context.Context, params ListVMsParams) (res model.
 		return res, err
 	}
 
-	return model.PaginateResult[model.VM]{
-		Data:     vms,
+	vmsWithStatus := make([]VM, len(vms))
+	for i, vm := range vms {
+		vmsWithStatus[i], err = s.withStatus(vm)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	return model.PaginateResult[VM]{
+		Data:     vmsWithStatus,
 		Limit:    params.Limit,
 		Page:     params.Page,
 		Total:    total,
@@ -127,22 +156,22 @@ type CreateVMParams struct {
 	Storage int
 }
 
-func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM, error) {
+func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (VM, error) {
 	txRepo, err := s.repo.Begin(ctx)
 	if err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 	defer txRepo.Rollback(ctx)
 
 	// 1. Create records in database
 	os, err := txRepo.GetOS(ctx, params.OsID)
 	if err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
 	arch, err := txRepo.GetArch(ctx, params.ArchID)
 	if err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
 	network, err := txRepo.CreateNetwork(ctx, model.Network{
@@ -150,7 +179,7 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 		PrivateIP: "",
 	})
 	if err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
 	vm, err := txRepo.CreateVM(ctx, model.VM{
@@ -164,7 +193,7 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 		Storage:   int32(params.Storage),
 	})
 	if err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
 	// 2. Create cloudinit
@@ -173,7 +202,7 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 	userdata.Users[0].SSHAuthorizedKeys = params.SSHAuthorizedKeys
 	userdata.Users[0].Passwd, err = hash.Password(params.Password)
 	if err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
 	metadata := libvirt.NewDefaultMetadata()
@@ -189,19 +218,19 @@ func (s *Service) CreateVM(ctx context.Context, params CreateVMParams) (model.VM
 		Metadata:      metadata,
 		NetworkConfig: networkConfig,
 	}); err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
 	// 3. Create domain
 	if err := s.libvirt.CreateDomain(domain); err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
 	if err := txRepo.Commit(ctx); err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
-	return vm, nil
+	return s.withStatus(vm)
 }
 
 type UpdateVMParams struct {
@@ -217,7 +246,7 @@ type UpdateVMParams struct {
 	Storage   *int32
 }
 
-func (s *Service) UpdateVM(ctx context.Context, params UpdateVMParams) (model.VM, error) {
+func (s *Service) UpdateVM(ctx context.Context, params UpdateVMParams) (VM, error) {
 	repoParams := repository.UpdateVMParams{
 		ID:        params.ID,
 		NetworkID: params.NetworkID,
@@ -236,10 +265,10 @@ func (s *Service) UpdateVM(ctx context.Context, params UpdateVMParams) (model.VM
 
 	updatedVM, err := s.repo.UpdateVM(ctx, repoParams)
 	if err != nil {
-		return model.VM{}, err
+		return VM{}, err
 	}
 
-	return updatedVM, nil
+	return s.withStatus(updatedVM)
 }
 
 type DeleteVMParams struct {

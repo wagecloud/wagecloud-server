@@ -33,6 +33,7 @@ type ServiceInterface interface {
 
 	// DOMAIN
 	GetDomain(domainID string) (Domain, error)
+	IsActive(domainID string) (bool, error)
 	ListDomains(params ListDomainsParams) ([]Domain, error)
 	CreateDomain(domain Domain) error
 	UpdateDomain(domainID string, params UpdateDomainParams) error
@@ -99,6 +100,14 @@ func (s *Service) GetDomain(domainID string) (Domain, error) {
 	}
 
 	return FromLibvirtToDomain(*domain)
+}
+
+func (s *Service) IsActive(domainID string) (bool, error) {
+	domain, err := s.getDomain(domainID)
+	if err != nil {
+		return false, err
+	}
+	return domain.IsActive()
 }
 
 type ListDomainsParams struct {
