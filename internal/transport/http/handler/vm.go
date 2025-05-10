@@ -11,8 +11,10 @@ import (
 )
 
 func (h *Handler) GetVM(w http.ResponseWriter, r *http.Request) {
-	var params struct {
+	var params = struct {
 		ID string `schema:"vmID" validate:"required,min=1,max=255"`
+	}{
+		ID: chi.URLParam(r, "vmID"),
 	}
 	if err := validate.Struct(params); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
@@ -112,6 +114,7 @@ func (h *Handler) CreateVM(w http.ResponseWriter, r *http.Request) {
 			Storage int    `json:"storage" validate:"required,min=10,max=2048"`   // 10GB to 2TB
 		} `json:"spec" validate:"required"`
 	}
+
 	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
 		response.FromError(w, err, http.StatusBadRequest)
 		return
