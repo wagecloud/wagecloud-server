@@ -10,4 +10,5 @@ type VM struct {
 	Cpu       int32  `json:"cpu"`
 	Ram       int32  `json:"ram"`     // In MB
 	Storage   int32  `json:"storage"` // In GB
+	CreatedAt int64  `json:"created_at"`
 }

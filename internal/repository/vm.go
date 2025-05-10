@@ -27,6 +27,7 @@ func (r *RepositoryImpl) GetVM(ctx context.Context, params GetVMParams) (model.V
 
 	return model.VM{
 		ID:        row.ID,
+		AccountID: row.AccountID,
 		NetworkID: row.NetworkID,
 		OsID:      row.OsID,
 		ArchID:    row.ArchID,
@@ -34,6 +35,7 @@ func (r *RepositoryImpl) GetVM(ctx context.Context, params GetVMParams) (model.V
 		Cpu:       row.Cpu,
 		Ram:       row.Ram,
 		Storage:   row.Storage,
+		CreatedAt: row.CreatedAt.Time.UnixMilli(),
 	}, nil
 }
 
@@ -98,6 +100,7 @@ func (r *RepositoryImpl) ListVMs(ctx context.Context, params ListVMsParams) ([]m
 	for _, row := range rows {
 		vms = append(vms, model.VM{
 			ID:        row.ID,
+			AccountID: row.AccountID,
 			NetworkID: row.NetworkID,
 			OsID:      row.OsID,
 			ArchID:    row.ArchID,
@@ -105,6 +108,7 @@ func (r *RepositoryImpl) ListVMs(ctx context.Context, params ListVMsParams) ([]m
 			Cpu:       row.Cpu,
 			Ram:       row.Ram,
 			Storage:   row.Storage,
+			CreatedAt: row.CreatedAt.Time.UnixMilli(),
 		})
 	}
 
@@ -137,6 +141,7 @@ func (r *RepositoryImpl) CreateVM(ctx context.Context, vm model.VM) (model.VM, e
 		Cpu:       row.Cpu,
 		Ram:       row.Ram,
 		Storage:   row.Storage,
+		CreatedAt: row.CreatedAt.Time.UnixMilli(),
 	}, nil
 }
 
@@ -178,6 +183,7 @@ func (r *RepositoryImpl) UpdateVM(ctx context.Context, params UpdateVMParams) (m
 		Cpu:       row.Cpu,
 		Ram:       row.Ram,
 		Storage:   row.Storage,
+		CreatedAt: row.CreatedAt.Time.UnixMilli(),
 	}, nil
 }
 
