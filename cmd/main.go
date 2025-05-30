@@ -8,7 +8,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/wagecloud/wagecloud-server/config"
-	pgxutil "github.com/wagecloud/wagecloud-server/internal/db/pgx"
+	"github.com/wagecloud/wagecloud-server/internal/client/pgxpool"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/repository"
 	"github.com/wagecloud/wagecloud-server/internal/service"
@@ -68,7 +68,16 @@ func setupSentry() {
 func setupHttp() {
 	log.Default().Printf("Setting up HTTP server...")
 
-	pool, err := pgxutil.GetPgxPool()
+	pool, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
+		Url:             config.GetConfig().Postgres.Url,
+		Host:            config.GetConfig().Postgres.Host,
+		Port:            config.GetConfig().Postgres.Port,
+		Username:        config.GetConfig().Postgres.Username,
+		Password:        config.GetConfig().Postgres.Password,
+		Database:        config.GetConfig().Postgres.Database,
+		MaxConnections:  config.GetConfig().Postgres.MaxConnections,
+		MaxConnIdleTime: config.GetConfig().Postgres.MaxConnIdleTime,
+	})
 	if err != nil {
 		log.Fatalf("Failed to get pgx pool: %v", err)
 	}

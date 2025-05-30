@@ -1,11 +1,11 @@
 -- name: GetArch :one
 SELECT arch.*
-FROM arch
+FROM "os"."arch" arch
 WHERE id = $1;
 
 -- name: CountArchs :one
 SELECT COUNT(id)
-FROM arch
+FROM "os"."arch"
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
@@ -15,7 +15,7 @@ WHERE (
 
 -- name: ListArchs :many
 SELECT arch.*
-FROM arch
+FROM "os"."arch" arch
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
@@ -27,18 +27,18 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateArch :one
-INSERT INTO arch (id, name)
+INSERT INTO "os"."arch" (id, name)
 VALUES ($1, $2)
 RETURNING *;
 
 -- name: UpdateArch :one
-UPDATE arch
-SET 
+UPDATE "os"."arch"
+SET
     id = COALESCE(sqlc.narg('new_id'), id),
     name = COALESCE(sqlc.narg('name'), name)
 WHERE id = $1
 RETURNING *;
 
 -- name: DeleteArch :exec
-DELETE FROM arch
+DELETE FROM "os"."arch"
 WHERE id = $1;

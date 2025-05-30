@@ -1,11 +1,11 @@
 -- name: GetNetwork :one
 SELECT network.*
-FROM network
+FROM "instance"."network" network
 WHERE id = $1;
 
 -- name: CountNetworks :one
 SELECT COUNT(id)
-FROM network
+FROM "instance"."network"
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
   (private_ip ILIKE '%' || sqlc.narg('private_ip') || '%' OR sqlc.narg('private_ip') IS NULL) AND
@@ -15,7 +15,7 @@ WHERE (
 
 -- name: ListNetworks :many
 SELECT network.*
-FROM network
+FROM "instance"."network" network
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
   (private_ip ILIKE '%' || sqlc.narg('private_ip') || '%' OR sqlc.narg('private_ip') IS NULL) AND
@@ -27,18 +27,18 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateNetwork :one
-INSERT INTO network (id, private_ip)
+INSERT INTO "instance"."network" (id, private_ip)
 VALUES ($1, $2)
 RETURNING *;
 
 -- name: UpdateNetwork :one
-UPDATE network
-SET 
+UPDATE "instance"."network"
+SET
     id = COALESCE(sqlc.narg('new_id'), id),
     private_ip = COALESCE(sqlc.narg('private_ip'), private_ip)
 WHERE id = $1
 RETURNING *;
 
 -- name: DeleteNetwork :exec
-DELETE FROM network
+DELETE FROM "instance"."network"
 WHERE id = $1;

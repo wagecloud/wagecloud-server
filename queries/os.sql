@@ -1,11 +1,11 @@
 -- name: GetOS :one
 SELECT os.*
-FROM os
+FROM "os"."base" os
 WHERE id = $1;
 
 -- name: CountOSs :one
 SELECT COUNT(id)
-FROM os
+FROM "os"."base"
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
@@ -15,7 +15,7 @@ WHERE (
 
 -- name: ListOSs :many
 SELECT os.*
-FROM os
+FROM "os"."base" os
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
@@ -27,12 +27,12 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateOS :one
-INSERT INTO os (id, name)
+INSERT INTO "os"."base" (id, name)
 VALUES ($1, $2)
 RETURNING *;
 
 -- name: UpdateOS :one
-UPDATE os
+UPDATE "os"."base"
 SET
     id = COALESCE(sqlc.narg('new_id'), id),
     name = COALESCE(sqlc.narg('name'), name)
@@ -40,5 +40,5 @@ WHERE id = $1
 RETURNING *;
 
 -- name: DeleteOS :exec
-DELETE FROM os
+DELETE FROM "os"."base"
 WHERE id = $1;
