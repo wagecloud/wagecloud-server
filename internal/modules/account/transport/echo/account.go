@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 	accountmodel "github.com/wagecloud/wagecloud-server/internal/modules/account/model"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
-	"github.com/wagecloud/wagecloud-server/internal/shared/echo/middleware/auth"
 )
 
 type EchoHandler struct {
@@ -20,7 +19,7 @@ func NewEchoHandler(accountsvc accountsvc.Service) *EchoHandler {
 }
 
 func (h *EchoHandler) GetAccount(c echo.Context) error {
-	claims, err := auth.GetClaims(c.Request())
+	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
 	}

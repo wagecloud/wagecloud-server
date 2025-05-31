@@ -208,7 +208,7 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 		Storage: uint(Instance.Storage),
 	}
 
-	if err = s.libvirt.CreateCloudinit(libvirt.CreateCloudinitParams{
+	if err = s.libvirt.CreateCloudinit(ctx, libvirt.CreateCloudinitParams{
 		Filepath:      domain.CloudinitPath(),
 		Userdata:      userdata,
 		Metadata:      metadata,
@@ -218,7 +218,7 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 	}
 
 	// 3. Create domain
-	if err := s.libvirt.CreateDomain(domain); err != nil {
+	if err := s.libvirt.CreateDomain(ctx, domain); err != nil {
 		return instancemodel.Instance{}, err
 	}
 
@@ -296,7 +296,7 @@ func (s *ServiceImpl) DeleteInstance(ctx context.Context, params DeleteInstanceP
 
 	// ! Delete domain does not support rollback operation so it should done last (after commit)
 	// TODO: move this libvirt create/delete logic to storage to support atomic operation (?)
-	if err := s.libvirt.DeleteDomain(params.ID); err != nil {
+	if err := s.libvirt.DeleteDomain(ctx, params.ID); err != nil {
 		return err
 	}
 
@@ -322,7 +322,7 @@ func (s *ServiceImpl) StartInstance(ctx context.Context, params StartInstancePar
 	}
 
 	// TODO: put this in background, kinda slow 💀
-	return s.libvirt.StartDomain(params.ID)
+	return s.libvirt.StartDomain(ctx, params.ID)
 }
 
 type StopInstanceParams struct {
@@ -343,5 +343,5 @@ func (s *ServiceImpl) StopInstance(ctx context.Context, params StopInstanceParam
 		}
 	}
 
-	return s.libvirt.StopDomain(params.ID)
+	return s.libvirt.StopDomain(ctx, params.ID)
 }
