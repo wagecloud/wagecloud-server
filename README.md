@@ -1,4 +1,5 @@
 # Wagecloud Server
+
 [![wakatime](https://wakatime.com/badge/github/wagecloud/wagecloud-server.svg)](https://wakatime.com/badge/github/wagecloud/wagecloud-server)
 
 A Go-based server application for managing virtual machines.
@@ -7,6 +8,7 @@ A Go-based server application for managing virtual machines.
 ## Overview
 
 Wagecloud Server is a backend service that provides VM management capabilities with features including:
+
 - User account management with role-based access (Admin/User)
 - Virtual machine provisioning and management
 - Network management for VMs
@@ -43,6 +45,7 @@ Copy `config/config.example.yml` to `config/config.yml` and adjust the settings:
 ## Development
 
 Start the development server:
+
 ```bash
 make dev
 ```
@@ -50,11 +53,13 @@ make dev
 ### Database Management
 
 Initialize database migrations:
+
 ```bash
 make init-migrate
 ```
 
 Generate SQL:
+
 ```bash
 make sqlc
 ```
@@ -78,8 +83,8 @@ make remove
 ```
 
 ## Project Structure
-WIP
 
+WIP
 
 ## Environment Variables
 
