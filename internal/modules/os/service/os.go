@@ -3,42 +3,49 @@ package ossvc
 import (
 	"context"
 
-	"github.com/wagecloud/wagecloud-server/internal/model"
-	"github.com/wagecloud/wagecloud-server/internal/repository"
-	"github.com/wagecloud/wagecloud-server/internal/service/libvirt"
+	osmodel "github.com/wagecloud/wagecloud-server/internal/modules/os/model"
+	osstorage "github.com/wagecloud/wagecloud-server/internal/modules/os/storage"
+	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 )
 
-var _ ServiceInterface = (*Service)(nil)
-
-type Service struct {
-	repo    repository.Repository
-	libvirt libvirt.ServiceInterface
+type ServiceImpl struct {
+	storage *osstorage.Storage
 }
 
-type ServiceInterface interface {
-	GetOS(ctx context.Context, params GetOSParams) (model.OS, error)
-	ListOSs(ctx context.Context, params ListOSsParams) (model.PaginateResult[model.OS], error)
-	CreateOS(ctx context.Context, params CreateOSParams) (model.OS, error)
-	UpdateOS(ctx context.Context, params UpdateOSParams) (model.OS, error)
+type Service interface {
+	// OS
+	GetOS(ctx context.Context, params GetOSParams) (osmodel.OS, error)
+	ListOSs(ctx context.Context, params ListOSsParams) (pagination.PaginateResult[osmodel.OS], error)
+	CreateOS(ctx context.Context, params CreateOSParams) (osmodel.OS, error)
+	UpdateOS(ctx context.Context, params UpdateOSParams) (osmodel.OS, error)
 	DeleteOS(ctx context.Context, params DeleteOSParams) error
+
+	// Arch
+	GetArch(ctx context.Context, id string) (osmodel.Arch, error)
+	ListArchs(ctx context.Context, params ListArchsParams) (pagination.PaginateResult[osmodel.Arch], error)
+	CreateArch(ctx context.Context, arch osmodel.Arch) (osmodel.Arch, error)
+	UpdateArch(ctx context.Context, params UpdateArchParams) (osmodel.Arch, error)
+	DeleteArch(ctx context.Context, id string) error
 }
 
-func NewService(repo repository.Repository, libvirt libvirt.ServiceInterface) *Service {
-	return &Service{repo: repo, libvirt: libvirt}
+func NewService(storage *osstorage.Storage) Service {
+	return &ServiceImpl{
+		storage: storage,
+	}
 }
 
 type GetOSParams struct {
 	ID string
 }
 
-func (s *Service) GetOS(ctx context.Context, params GetOSParams) (model.OS, error) {
-	os, err := s.repo.GetOS(ctx, params.ID)
+func (s *ServiceImpl) GetOS(ctx context.Context, params GetOSParams) (osmodel.OS, error) {
+	os, err := s.storage.GetOS(ctx, params.ID)
 
 	if err != nil {
-		return model.OS{}, err
+		return osmodel.OS{}, err
 	}
 
-	return model.OS{
+	return osmodel.OS{
 		ID:        os.ID,
 		Name:      os.Name,
 		CreatedAt: os.CreatedAt,
@@ -46,15 +53,15 @@ func (s *Service) GetOS(ctx context.Context, params GetOSParams) (model.OS, erro
 }
 
 type ListOSsParams struct {
-	model.PaginationParams
+	pagination.PaginationParams
 	ID            *string
 	Name          *string
 	CreatedAtFrom *int64
 	CreatedAtTo   *int64
 }
 
-func (s *Service) ListOSs(ctx context.Context, params ListOSsParams) (res model.PaginateResult[model.OS], err error) {
-	repoParams := repository.ListOSsParams{
+func (s *ServiceImpl) ListOSs(ctx context.Context, params ListOSsParams) (res pagination.PaginateResult[osmodel.OS], err error) {
+	repoParams := osstorage.ListOSsParams{
 		PaginationParams: params.PaginationParams,
 		ID:               params.ID,
 		Name:             params.Name,
@@ -62,17 +69,17 @@ func (s *Service) ListOSs(ctx context.Context, params ListOSsParams) (res model.
 		CreatedAtTo:      params.CreatedAtTo,
 	}
 
-	total, err := s.repo.CountOSs(ctx, repoParams)
+	total, err := s.storage.CountOSs(ctx, repoParams)
 	if err != nil {
 		return res, err
 	}
 
-	oss, err := s.repo.ListOSs(ctx, repoParams)
+	oss, err := s.storage.ListOSs(ctx, repoParams)
 	if err != nil {
 		return res, err
 	}
 
-	return model.PaginateResult[model.OS]{
+	return pagination.PaginateResult[osmodel.OS]{
 		Total: total,
 		Page:  params.Page,
 		Limit: params.Limit,
@@ -85,16 +92,16 @@ type CreateOSParams struct {
 	Name string
 }
 
-func (s *Service) CreateOS(ctx context.Context, params CreateOSParams) (model.OS, error) {
-	os, err := s.repo.CreateOS(ctx, model.OS{
+func (s *ServiceImpl) CreateOS(ctx context.Context, params CreateOSParams) (osmodel.OS, error) {
+	os, err := s.storage.CreateOS(ctx, osmodel.OS{
 		ID:   params.ID,
 		Name: params.Name,
 	})
 	if err != nil {
-		return model.OS{}, err
+		return osmodel.OS{}, err
 	}
 
-	return model.OS{
+	return osmodel.OS{
 		ID:        os.ID,
 		Name:      os.Name,
 		CreatedAt: os.CreatedAt,
@@ -107,17 +114,17 @@ type UpdateOSParams struct {
 	Name  *string
 }
 
-func (s *Service) UpdateOS(ctx context.Context, params UpdateOSParams) (model.OS, error) {
-	os, err := s.repo.UpdateOS(ctx, repository.UpdateOSParams{
+func (s *ServiceImpl) UpdateOS(ctx context.Context, params UpdateOSParams) (osmodel.OS, error) {
+	os, err := s.storage.UpdateOS(ctx, osstorage.UpdateOSParams{
 		ID:    params.ID,
 		NewID: params.NewID,
 		Name:  params.Name,
 	})
 	if err != nil {
-		return model.OS{}, err
+		return osmodel.OS{}, err
 	}
 
-	return model.OS{
+	return osmodel.OS{
 		ID:        os.ID,
 		Name:      os.Name,
 		CreatedAt: os.CreatedAt,
@@ -128,6 +135,6 @@ type DeleteOSParams struct {
 	ID string
 }
 
-func (s *Service) DeleteOS(ctx context.Context, params DeleteOSParams) error {
-	return s.repo.DeleteOS(ctx, params.ID)
+func (s *ServiceImpl) DeleteOS(ctx context.Context, params DeleteOSParams) error {
+	return s.storage.DeleteOS(ctx, params.ID)
 }

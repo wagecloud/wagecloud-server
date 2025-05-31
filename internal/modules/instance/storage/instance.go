@@ -84,6 +84,14 @@ type ListInstancesParams struct {
 	pagination.PaginationParams
 	AccountID     *int64
 	Name          *string
+	OsID          *string
+	ArchID        *string
+	CpuFrom       *int64
+	CpuTo         *int64
+	RamFrom       *int64
+	RamTo         *int64
+	StorageFrom   *int64
+	StorageTo     *int64
 	CreatedAtFrom *int64
 	CreatedAtTo   *int64
 }
@@ -92,6 +100,14 @@ func (s *Storage) CountInstances(ctx context.Context, params ListInstancesParams
 	return s.sqlc.CountInstances(ctx, sqlc.CountInstancesParams{
 		AccountID:     *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
+		OsID:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.OsID),
+		ArchID:        *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ArchID),
+		CpuFrom:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CpuFrom),
+		CpuTo:         *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CpuTo),
+		RamFrom:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RamFrom),
+		RamTo:         *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CpuTo),
+		StorageFrom:   *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.StorageFrom),
+		StorageTo:     *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.StorageTo),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
 		CreatedAtTo:   *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
 	})
@@ -132,6 +148,7 @@ func (s *Storage) ListInstances(ctx context.Context, params ListInstancesParams)
 
 func (s *Storage) CreateInstance(ctx context.Context, instance instancemodel.Instance) (instancemodel.Instance, error) {
 	row, err := s.sqlc.CreateInstance(ctx, sqlc.CreateInstanceParams{
+		ID:        instance.ID,
 		AccountID: instance.AccountID,
 		NetworkID: instance.NetworkID,
 		OsID:      instance.OSID,
@@ -161,20 +178,22 @@ func (s *Storage) CreateInstance(ctx context.Context, instance instancemodel.Ins
 }
 
 type UpdateInstanceParams struct {
-	ID      string
-	Name    *string
-	CPU     *int32
-	RAM     *int32
-	Storage *int32
+	ID        string
+	AccountID *int64
+	Name      *string
+	CPU       *int64
+	RAM       *int64
+	Storage   *int64
 }
 
 func (s *Storage) UpdateInstance(ctx context.Context, params UpdateInstanceParams) (instancemodel.Instance, error) {
 	row, err := s.sqlc.UpdateInstance(ctx, sqlc.UpdateInstanceParams{
-		ID:      params.ID,
-		Name:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
-		Cpu:     *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CPU),
-		Ram:     *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RAM),
-		Storage: *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.Storage),
+		ID:        params.ID,
+		AccountID: *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
+		Name:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
+		Cpu:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CPU),
+		Ram:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RAM),
+		Storage:   *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.Storage),
 	})
 	if err != nil {
 		return instancemodel.Instance{}, err

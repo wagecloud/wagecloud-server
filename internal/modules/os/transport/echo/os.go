@@ -1,52 +1,65 @@
-package handler
+package osecho
 
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/wagecloud/wagecloud-server/internal/model"
-	"github.com/wagecloud/wagecloud-server/internal/service/os"
-	"github.com/wagecloud/wagecloud-server/internal/transport/http/response"
+	"github.com/labstack/echo/v4"
+	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
+	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 )
 
-func (h *Handler) GetOS(w http.ResponseWriter, r *http.Request) {
-	var params = struct {
-		ID string `schema:"osID" validate:"required,min=1,max=255"`
-	}{
-		ID: chi.URLParam(r, "osID"),
-	}
-	if err := validate.Struct(params); err != nil {
-		response.FromError(w, err, http.StatusBadRequest)
-		return
-	}
-
-	os, err := h.service.OS.GetOS(r.Context(), os.GetOSParams{
-		ID: params.ID,
-	})
-
-	if err != nil {
-		response.FromError(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	response.FromDTO(w, os, http.StatusOK)
+type EchoHandler struct {
+	osSvc ossvc.Service
 }
 
-func (h *Handler) ListOSs(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Page          int32   `schema:"page" validate:"required,min=1"`
-		Limit         int32   `schema:"limit" validate:"required,min=5,max=100"`
-		CreatedAtFrom *int64  `schema:"created_at_from" validate:"omitempty,min=0,ltefield=CreatedAtTo"`
-		CreatedAtTo   *int64  `schema:"created_at_to" validate:"omitempty,min=0,gtefield=CreatedAtFrom"`
-		Name          *string `schema:"name" validate:"omitempty,min=1,max=255"`
+func NewEchoHandler(osSvc ossvc.Service) *EchoHandler {
+	return &EchoHandler{
+		osSvc: osSvc,
 	}
-	if err := decodeAndValidate(&req, r.URL.Query()); err != nil {
-		response.FromError(w, err, http.StatusBadRequest)
-		return
+}
+
+func (h *EchoHandler) GetOS(c echo.Context) error {
+	var req struct {
+		ID string `param:"id" validate:"required,min=1,max=255"`
 	}
 
-	osList, err := h.service.OS.ListOSs(r.Context(), os.ListOSsParams{
-		PaginationParams: model.PaginationParams{
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	os, err := h.osSvc.GetOS(c.Request().Context(), ossvc.GetOSParams{
+		ID: req.ID,
+	})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, os)
+}
+
+func (h *EchoHandler) ListOSs(c echo.Context) error {
+	var req struct {
+		Page          int32   `query:"page" validate:"required,min=1"`
+		Limit         int32   `query:"limit" validate:"required,min=5,max=100"`
+		Name          *string `query:"name"`
+		CreatedAtFrom *int64  `query:"created_at_from"`
+		CreatedAtTo   *int64  `query:"created_at_to"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	osList, err := h.osSvc.ListOSs(c.Request().Context(), ossvc.ListOSsParams{
+		PaginationParams: pagination.PaginationParams{
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
@@ -54,89 +67,84 @@ func (h *Handler) ListOSs(w http.ResponseWriter, r *http.Request) {
 		CreatedAtFrom: req.CreatedAtFrom,
 		CreatedAtTo:   req.CreatedAtTo,
 	})
-
 	if err != nil {
-		response.FromError(w, err, http.StatusInternalServerError)
-		return
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	response.FromPaginate(w, osList)
+	return c.JSON(http.StatusOK, osList)
 }
 
-func (h *Handler) CreateOS(w http.ResponseWriter, r *http.Request) {
+func (h *EchoHandler) CreateOS(c echo.Context) error {
 	var req struct {
 		ID   string `json:"id" validate:"required,min=1,max=255"`
 		Name string `json:"name" validate:"required,min=1,max=255"`
 	}
-	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
-		response.FromError(w, err, http.StatusBadRequest)
-		return
+
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
 	}
 
-	os, err := h.service.OS.CreateOS(r.Context(), os.CreateOSParams{
+	if err := c.Validate(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	os, err := h.osSvc.CreateOS(c.Request().Context(), ossvc.CreateOSParams{
 		ID:   req.ID,
 		Name: req.Name,
 	})
-
 	if err != nil {
-		response.FromError(w, err, http.StatusInternalServerError)
-		return
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	response.FromDTO(w, os, http.StatusCreated)
+	return c.JSON(http.StatusCreated, os)
 }
 
-func (h *Handler) UpdateOS(w http.ResponseWriter, r *http.Request) {
-	var params = struct {
-		ID string `schema:"osID" validate:"required,min=1,max=255"`
-	}{
-		ID: chi.URLParam(r, "osID"),
-	}
-	if err := validate.Struct(params); err != nil {
-		response.FromError(w, err, http.StatusBadRequest)
-		return
-	}
-
+func (h *EchoHandler) UpdateOS(c echo.Context) error {
 	var req struct {
-		NewID *string `json:"new_id" validate:"omitempty,min=1,max=255"`
-		Name  *string `json:"name" validate:"omitempty,min=1,max=255"`
-	}
-	if err := decodeAndValidateJSON(&req, r.Body); err != nil {
-		response.FromError(w, err, http.StatusBadRequest)
-		return
+		ID    string  `param:"id" validate:"required,min=1,max=255"`
+		NewID *string `json:"new_id"`
+		Name  *string `json:"name"`
 	}
 
-	os, err := h.service.OS.UpdateOS(r.Context(), os.UpdateOSParams{
-		ID:    params.ID,
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	os, err := h.osSvc.UpdateOS(c.Request().Context(), ossvc.UpdateOSParams{
+		ID:    req.ID,
 		NewID: req.NewID,
 		Name:  req.Name,
 	})
-
 	if err != nil {
-		response.FromError(w, err, http.StatusInternalServerError)
-		return
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	response.FromDTO(w, os, http.StatusOK)
+	return c.JSON(http.StatusOK, os)
 }
 
-func (h *Handler) DeleteOS(w http.ResponseWriter, r *http.Request) {
-	var params = struct {
-		ID string `schema:"osID" validate:"required,min=1,max=255"`
-	}{
-		ID: chi.URLParam(r, "osID"),
-	}
-	if err := validate.Struct(params); err != nil {
-		response.FromError(w, err, http.StatusBadRequest)
-		return
+func (h *EchoHandler) DeleteOS(c echo.Context) error {
+	var req struct {
+		ID string `param:"id" validate:"required,min=1,max=255"`
 	}
 
-	if err := h.service.OS.DeleteOS(r.Context(), os.DeleteOSParams{
-		ID: params.ID,
-	}); err != nil {
-		response.FromError(w, err, http.StatusInternalServerError)
-		return
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
 	}
 
-	response.FromDTO(w, nil, http.StatusOK)
+	if err := c.Validate(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err := h.osSvc.DeleteOS(c.Request().Context(), ossvc.DeleteOSParams{
+		ID: req.ID,
+	})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

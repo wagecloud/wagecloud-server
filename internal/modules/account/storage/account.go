@@ -105,7 +105,7 @@ type ListAccountsParams struct {
 func (s *Storage) CountAccounts(ctx context.Context, params ListAccountsParams) (int64, error) {
 	return s.sqlc.CountAccounts(ctx, sqlc.CountAccountsParams{
 		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
-		Role:          *pgxptr.PtrBrandedToPgType(&sqlc.NullRole{}, params.Role),
+		Role:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountRole{}, params.Role),
 		Username:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
@@ -118,7 +118,7 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 		Limit:         params.Limit,
 		Offset:        params.Offset(),
 		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
-		Role:          *pgxptr.PtrBrandedToPgType(&sqlc.NullRole{}, params.Role),
+		Role:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountRole{}, params.Role),
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		Username:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
@@ -146,7 +146,7 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 
 func (s *Storage) CreateAccount(ctx context.Context, account accountmodel.AccountBase) (accountmodel.AccountBase, error) {
 	row, err := s.sqlc.CreateAccount(ctx, sqlc.CreateAccountParams{
-		Role:     sqlc.Role(account.Role),
+		Role:     sqlc.AccountRole(account.Role),
 		Name:     account.Name,
 		Username: account.Username,
 		Password: account.Password,

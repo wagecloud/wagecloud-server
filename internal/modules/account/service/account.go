@@ -37,7 +37,7 @@ type Service interface {
 	RegisterUser(ctx context.Context, account accountmodel.AccountUser) (RegisterUserResult, error)
 }
 
-func NewService(storage *accountstorage.Storage) *ServiceImpl {
+func NewService(storage *accountstorage.Storage) Service {
 	return &ServiceImpl{
 		storage: storage,
 	}

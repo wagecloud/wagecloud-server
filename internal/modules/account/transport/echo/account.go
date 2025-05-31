@@ -7,28 +7,32 @@ import (
 	accountmodel "github.com/wagecloud/wagecloud-server/internal/modules/account/model"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
 	"github.com/wagecloud/wagecloud-server/internal/shared/echo/middleware/auth"
-	"github.com/wagecloud/wagecloud-server/internal/shared/echo/response"
 )
 
 type EchoHandler struct {
 	accountsvc accountsvc.Service
 }
 
-func (h *EchoHandler) GetAccount(c echo.Context) {
+func NewEchoHandler(accountsvc accountsvc.Service) *EchoHandler {
+	return &EchoHandler{
+		accountsvc: accountsvc,
+	}
+}
+
+func (h *EchoHandler) GetAccount(c echo.Context) error {
 	claims, err := auth.GetClaims(c.Request())
 	if err != nil {
-		response.FromHTTPError(c.Response().Writer, http.StatusUnauthorized)
-		return
+		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
 	}
 
 	account, err := h.accountsvc.GetAccount(c.Request().Context(), accountsvc.GetAccountParams{
 		ID: &claims.AccountID,
 	})
 	if err != nil {
-		response.FromError(c.Response().Writer, err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get account")
 	}
 
-	response.FromDTO(c.Response().Writer, account, http.StatusOK)
+	return c.JSON(http.StatusOK, account)
 }
 
 type LoginUserParams struct {
@@ -38,11 +42,10 @@ type LoginUserParams struct {
 	Password string  `json:"password" validate:"required"`
 }
 
-func (h *EchoHandler) LoginUser(c echo.Context) {
+func (h *EchoHandler) LoginUser(c echo.Context) error {
 	var req LoginUserParams
 	if err := c.Bind(&req); err != nil {
-		response.FromError(c.Response().Writer, err, http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
 	}
 
 	account, err := h.accountsvc.LoginUser(c.Request().Context(), accountsvc.LoginUserParams{
@@ -52,11 +55,10 @@ func (h *EchoHandler) LoginUser(c echo.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
-		response.FromError(c.Response().Writer, err, http.StatusInternalServerError)
-		return
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
 
-	response.FromDTO(c.Response().Writer, account, http.StatusOK)
+	return c.JSON(http.StatusOK, account)
 }
 
 type RegisterUserParams struct {
@@ -66,11 +68,10 @@ type RegisterUserParams struct {
 	Password string `json:"password" validate:"required,min=8,max=72"`
 }
 
-func (h *EchoHandler) RegisterUser(c echo.Context) {
+func (h *EchoHandler) RegisterUser(c echo.Context) error {
 	var req RegisterUserParams
 	if err := c.Bind(&req); err != nil {
-		response.FromError(c.Response().Writer, err, http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
 	}
 
 	result, err := h.accountsvc.RegisterUser(c.Request().Context(), accountmodel.AccountUser{
@@ -82,9 +83,8 @@ func (h *EchoHandler) RegisterUser(c echo.Context) {
 		Email: req.Email,
 	})
 	if err != nil {
-		response.FromError(c.Response().Writer, err, http.StatusInternalServerError)
-		return
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to register user")
 	}
 
-	response.FromDTO(c.Response().Writer, result, http.StatusCreated)
+	return c.JSON(http.StatusCreated, result)
 }

@@ -8,11 +8,13 @@ import (
 	accountmodel "github.com/wagecloud/wagecloud-server/internal/modules/account/model"
 	instancemodel "github.com/wagecloud/wagecloud-server/internal/modules/instance/model"
 	instancestorage "github.com/wagecloud/wagecloud-server/internal/modules/instance/storage"
+	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 	"github.com/wagecloud/wagecloud-server/internal/utils/hash"
 )
 
 type ServiceImpl struct {
+	osSvc   ossvc.Service
 	libvirt libvirt.Client
 	storage *instancestorage.Storage
 }
@@ -20,13 +22,13 @@ type ServiceImpl struct {
 type Service interface {
 	// Instance
 	GetInstance(ctx context.Context, params GetInstanceParams) (instancemodel.Instance, error)
-	ListInstances(ctx context.Context, params ListInstancesParams) ([]instancemodel.Instance, error)
+	ListInstances(ctx context.Context, params ListInstancesParams) (pagination.PaginateResult[instancemodel.Instance], error)
 	CreateInstance(ctx context.Context, params CreateInstanceParams) (instancemodel.Instance, error)
 	UpdateInstance(ctx context.Context, params UpdateInstanceParams) (instancemodel.Instance, error)
-	DeleteInstance(ctx context.Context, instanceID string) error
-	StartInstance(ctx context.Context, instanceID string) error
-	StopInstance(ctx context.Context, instanceID string) error
-	RestartInstance(ctx context.Context, instanceID string) error
+	DeleteInstance(ctx context.Context, params DeleteInstanceParams) error
+	StartInstance(ctx context.Context, params StartInstanceParams) error
+	StopInstance(ctx context.Context, params StopInstanceParams) error
+	// RestartInstance(ctx context.Context, params RestartInstanceParams) error
 
 	// Network
 	GetNetwork(ctx context.Context, params GetNetworkParams) (instancemodel.Network, error)
@@ -36,7 +38,7 @@ type Service interface {
 	DeleteNetwork(ctx context.Context, params DeleteNetworkParams) error
 }
 
-func NewService(libvirt libvirt.Client, storage *instancestorage.Storage) *ServiceImpl {
+func NewService(libvirt libvirt.Client, storage *instancestorage.Storage) Service {
 	return &ServiceImpl{
 		libvirt: libvirt,
 		storage: storage,
@@ -66,7 +68,6 @@ type ListInstancesParams struct {
 	pagination.PaginationParams
 	Role          accountmodel.Role
 	AccountID     int64
-	NetworkID     *string
 	OsID          *string
 	ArchID        *string
 	Name          *string
@@ -83,8 +84,6 @@ type ListInstancesParams struct {
 func (s *ServiceImpl) ListInstances(ctx context.Context, params ListInstancesParams) (res pagination.PaginateResult[instancemodel.Instance], err error) {
 	storageParams := instancestorage.ListInstancesParams{
 		PaginationParams: params.PaginationParams,
-		AccountID:        &params.AccountID,
-		NetworkID:        params.NetworkID,
 		OsID:             params.OsID,
 		ArchID:           params.ArchID,
 		Name:             params.Name,
@@ -108,13 +107,13 @@ func (s *ServiceImpl) ListInstances(ctx context.Context, params ListInstancesPar
 		return res, err
 	}
 
-	Instances, err := s.storage.ListInstances(ctx, storageParams)
+	instances, err := s.storage.ListInstances(ctx, storageParams)
 	if err != nil {
 		return res, err
 	}
 
 	return pagination.PaginateResult[instancemodel.Instance]{
-		Data:     Instances,
+		Data:     instances,
 		Limit:    params.Limit,
 		Page:     params.Page,
 		Total:    total,
@@ -146,12 +145,14 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 	defer txStorage.Rollback(ctx)
 
 	// 1. Create records in database
-	os, err := txStorage.GetOS(ctx, params.OsID)
+	os, err := s.osSvc.GetOS(ctx, ossvc.GetOSParams{
+		ID: params.OsID,
+	})
 	if err != nil {
 		return instancemodel.Instance{}, err
 	}
 
-	arch, err := txStorage.GetArch(ctx, params.ArchID)
+	arch, err := s.osSvc.GetArch(ctx, params.ArchID)
 	if err != nil {
 		return instancemodel.Instance{}, err
 	}
@@ -165,13 +166,14 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 	}
 
 	Instance, err := txStorage.CreateInstance(ctx, instancemodel.Instance{
+		ID:        uuid.New().String(),
 		AccountID: params.AccountID,
 		NetworkID: network.ID,
-		OsID:      os.ID,
+		OSID:      os.ID,
 		ArchID:    arch.ID,
 		Name:      params.Name,
-		Cpu:       int32(params.Cpu),
-		Ram:       int32(params.Memory),
+		CPU:       int32(params.Cpu),
+		RAM:       int32(params.Memory),
 		Storage:   int32(params.Storage),
 	})
 	if err != nil {
@@ -192,7 +194,19 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 
 	networkConfig := libvirt.NewDefaultNetworkConfig()
 
-	domain := libvirt.FromInstanceToDomain(Instance)
+	// Convert from our model to libvirt Domain
+	domain := libvirt.Domain{
+		ID:     Instance.ID,
+		Name:   Instance.Name,
+		Memory: libvirt.Memory{Value: uint(Instance.RAM), Unit: libvirt.UnitMB},
+		Cpu:    libvirt.Cpu{Value: uint(Instance.CPU)},
+		OS: libvirt.OS{
+			Name: os.Name,
+			Type: "kvm",
+			Arch: arch.ID,
+		},
+		Storage: uint(Instance.Storage),
+	}
 
 	if err = s.libvirt.CreateCloudinit(libvirt.CreateCloudinitParams{
 		Filepath:      domain.CloudinitPath(),
@@ -223,9 +237,9 @@ type UpdateInstanceParams struct {
 	OsID      *string
 	ArchID    *string
 	Name      *string
-	Cpu       *int32
-	Ram       *int32
-	Storage   *int32
+	Cpu       *int64
+	Ram       *int64
+	Storage   *int64
 }
 
 func (s *ServiceImpl) UpdateInstance(ctx context.Context, params UpdateInstanceParams) (instancemodel.Instance, error) {
@@ -237,7 +251,7 @@ func (s *ServiceImpl) UpdateInstance(ctx context.Context, params UpdateInstanceP
 		Storage: params.Storage,
 	}
 
-	// Users can only see their own Instances
+	// Users can only see their own instances
 	if params.Role == accountmodel.RoleUser {
 		storageParams.AccountID = &params.AccountID
 	}
@@ -281,6 +295,7 @@ func (s *ServiceImpl) DeleteInstance(ctx context.Context, params DeleteInstanceP
 	}
 
 	// ! Delete domain does not support rollback operation so it should done last (after commit)
+	// TODO: move this libvirt create/delete logic to storage to support atomic operation (?)
 	if err := s.libvirt.DeleteDomain(params.ID); err != nil {
 		return err
 	}

@@ -1,22 +1,23 @@
-package repository
+package osstorage
 
 import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/wagecloud/wagecloud-server/gen/sqlc"
-	"github.com/wagecloud/wagecloud-server/internal/model"
+	osmodel "github.com/wagecloud/wagecloud-server/internal/modules/os/model"
+	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 	pgxptr "github.com/wagecloud/wagecloud-server/internal/utils/pgx/ptr"
 	"github.com/wagecloud/wagecloud-server/internal/utils/ptr"
 )
 
-func (r *RepositoryImpl) GetArch(ctx context.Context, id string) (model.Arch, error) {
+func (r *Storage) GetArch(ctx context.Context, id string) (osmodel.Arch, error) {
 	row, err := r.sqlc.GetArch(ctx, id)
 	if err != nil {
-		return model.Arch{}, err
+		return osmodel.Arch{}, err
 	}
 
-	return model.Arch{
+	return osmodel.Arch{
 		ID:        row.ID,
 		Name:      row.Name,
 		CreatedAt: row.CreatedAt.Time.UnixMilli(),
@@ -24,14 +25,14 @@ func (r *RepositoryImpl) GetArch(ctx context.Context, id string) (model.Arch, er
 }
 
 type ListArchsParams struct {
-	model.PaginationParams
+	pagination.PaginationParams
 	ID            *string
 	Name          *string
 	CreatedAtFrom *int64
 	CreatedAtTo   *int64
 }
 
-func (r *RepositoryImpl) CountArchs(ctx context.Context, params ListArchsParams) (int64, error) {
+func (r *Storage) CountArchs(ctx context.Context, params ListArchsParams) (int64, error) {
 	return r.sqlc.CountArchs(ctx, sqlc.CountArchsParams{
 		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
@@ -40,7 +41,7 @@ func (r *RepositoryImpl) CountArchs(ctx context.Context, params ListArchsParams)
 	})
 }
 
-func (r *RepositoryImpl) ListArchs(ctx context.Context, params ListArchsParams) ([]model.Arch, error) {
+func (r *Storage) ListArchs(ctx context.Context, params ListArchsParams) ([]osmodel.Arch, error) {
 	rows, err := r.sqlc.ListArchs(ctx, sqlc.ListArchsParams{
 		Limit:         params.Limit,
 		Offset:        params.Offset(),
@@ -53,9 +54,9 @@ func (r *RepositoryImpl) ListArchs(ctx context.Context, params ListArchsParams) 
 		return nil, err
 	}
 
-	var archs []model.Arch
+	var archs []osmodel.Arch
 	for _, row := range rows {
-		archs = append(archs, model.Arch{
+		archs = append(archs, osmodel.Arch{
 			ID:        row.ID,
 			Name:      row.Name,
 			CreatedAt: row.CreatedAt.Time.UnixMilli(),
@@ -65,16 +66,16 @@ func (r *RepositoryImpl) ListArchs(ctx context.Context, params ListArchsParams) 
 	return archs, nil
 }
 
-func (r *RepositoryImpl) CreateArch(ctx context.Context, arch model.Arch) (model.Arch, error) {
+func (r *Storage) CreateArch(ctx context.Context, arch osmodel.Arch) (osmodel.Arch, error) {
 	row, err := r.sqlc.CreateArch(ctx, sqlc.CreateArchParams{
 		ID:   arch.ID,
 		Name: arch.Name,
 	})
 	if err != nil {
-		return model.Arch{}, err
+		return osmodel.Arch{}, err
 	}
 
-	return model.Arch{
+	return osmodel.Arch{
 		ID:        row.ID,
 		Name:      row.Name,
 		CreatedAt: row.CreatedAt.Time.UnixMilli(),
@@ -87,23 +88,23 @@ type UpdateArchParams struct {
 	Name  *string
 }
 
-func (r *RepositoryImpl) UpdateArch(ctx context.Context, params UpdateArchParams) (model.Arch, error) {
+func (r *Storage) UpdateArch(ctx context.Context, params UpdateArchParams) (osmodel.Arch, error) {
 	row, err := r.sqlc.UpdateArch(ctx, sqlc.UpdateArchParams{
 		ID:    params.ID,
 		NewID: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.NewID),
 		Name:  *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 	})
 	if err != nil {
-		return model.Arch{}, err
+		return osmodel.Arch{}, err
 	}
 
-	return model.Arch{
+	return osmodel.Arch{
 		ID:        row.ID,
 		Name:      row.Name,
 		CreatedAt: row.CreatedAt.Time.UnixMilli(),
 	}, nil
 }
 
-func (r *RepositoryImpl) DeleteArch(ctx context.Context, id string) error {
+func (r *Storage) DeleteArch(ctx context.Context, id string) error {
 	return r.sqlc.DeleteArch(ctx, id)
 }

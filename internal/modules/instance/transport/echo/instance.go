@@ -87,7 +87,6 @@ func (h *EchoHandler) ListInstances(c echo.Context) error {
 		},
 		AccountID:     claims.AccountID,
 		Role:          claims.Role,
-		NetworkID:     req.NetworkID,
 		OsID:          req.OsID,
 		ArchID:        req.ArchID,
 		Name:          req.Name,
@@ -165,9 +164,9 @@ func (h *EchoHandler) UpdateInstance(c echo.Context) error {
 		OsID      *string `json:"os_id"`
 		ArchID    *string `json:"arch_id"`
 		Name      *string `json:"name"`
-		Cpu       *int32  `json:"cpu"`
-		Ram       *int32  `json:"ram"`
-		Storage   *int32  `json:"storage"`
+		Cpu       *int64  `json:"cpu"`
+		Ram       *int64  `json:"ram"`
+		Storage   *int64  `json:"storage"`
 	}
 
 	if err := c.Bind(&req); err != nil {

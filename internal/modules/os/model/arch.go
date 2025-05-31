@@ -1,4 +1,4 @@
-package model
+package osmodel
 
 type Arch struct {
 	ID        string `json:"id"`

@@ -3,42 +3,25 @@ package ossvc
 import (
 	"context"
 
-	"github.com/wagecloud/wagecloud-server/internal/model"
-	"github.com/wagecloud/wagecloud-server/internal/repository"
+	osmodel "github.com/wagecloud/wagecloud-server/internal/modules/os/model"
+	osstorage "github.com/wagecloud/wagecloud-server/internal/modules/os/storage"
+	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 )
 
-var _ ServiceInterface = (*Service)(nil)
-
-type Service struct {
-	repo repository.Repository
-}
-
-type ServiceInterface interface {
-	GetArch(ctx context.Context, id string) (model.Arch, error)
-	ListArchs(ctx context.Context, params ListArchsParams) (model.PaginateResult[model.Arch], error)
-	CreateArch(ctx context.Context, arch model.Arch) (model.Arch, error)
-	UpdateArch(ctx context.Context, params UpdateArchParams) (model.Arch, error)
-	DeleteArch(ctx context.Context, id string) error
-}
-
-func NewService(repo repository.Repository) *Service {
-	return &Service{repo: repo}
-}
-
-func (s *Service) GetArch(ctx context.Context, id string) (model.Arch, error) {
-	return s.repo.GetArch(ctx, id)
+func (s *ServiceImpl) GetArch(ctx context.Context, id string) (osmodel.Arch, error) {
+	return s.storage.GetArch(ctx, id)
 }
 
 type ListArchsParams struct {
-	model.PaginationParams
+	pagination.PaginationParams
 	ID            *string
 	Name          *string
 	CreatedAtFrom *int64
 	CreatedAtTo   *int64
 }
 
-func (s *Service) ListArchs(ctx context.Context, params ListArchsParams) (res model.PaginateResult[model.Arch], err error) {
-	total, err := s.repo.CountArchs(ctx, repository.ListArchsParams{
+func (s *ServiceImpl) ListArchs(ctx context.Context, params ListArchsParams) (res pagination.PaginateResult[osmodel.Arch], err error) {
+	total, err := s.storage.CountArchs(ctx, osstorage.ListArchsParams{
 		PaginationParams: params.PaginationParams,
 		ID:               params.ID,
 		Name:             params.Name,
@@ -49,7 +32,7 @@ func (s *Service) ListArchs(ctx context.Context, params ListArchsParams) (res mo
 		return res, err
 	}
 
-	archs, err := s.repo.ListArchs(ctx, repository.ListArchsParams{
+	archs, err := s.storage.ListArchs(ctx, osstorage.ListArchsParams{
 		PaginationParams: params.PaginationParams,
 		ID:               params.ID,
 		Name:             params.Name,
@@ -60,7 +43,7 @@ func (s *Service) ListArchs(ctx context.Context, params ListArchsParams) (res mo
 		return res, err
 	}
 
-	return model.PaginateResult[model.Arch]{
+	return pagination.PaginateResult[osmodel.Arch]{
 		Total: total,
 		Limit: params.Limit,
 		Page:  params.Offset(),
@@ -68,8 +51,8 @@ func (s *Service) ListArchs(ctx context.Context, params ListArchsParams) (res mo
 	}, nil
 }
 
-func (s *Service) CreateArch(ctx context.Context, arch model.Arch) (model.Arch, error) {
-	return s.repo.CreateArch(ctx, arch)
+func (s *ServiceImpl) CreateArch(ctx context.Context, arch osmodel.Arch) (osmodel.Arch, error) {
+	return s.storage.CreateArch(ctx, arch)
 }
 
 type UpdateArchParams struct {
@@ -78,14 +61,14 @@ type UpdateArchParams struct {
 	Name  *string
 }
 
-func (s *Service) UpdateArch(ctx context.Context, params UpdateArchParams) (model.Arch, error) {
-	return s.repo.UpdateArch(ctx, repository.UpdateArchParams{
+func (s *ServiceImpl) UpdateArch(ctx context.Context, params UpdateArchParams) (osmodel.Arch, error) {
+	return s.storage.UpdateArch(ctx, osstorage.UpdateArchParams{
 		ID:    params.ID,
 		NewID: params.NewID,
 		Name:  params.Name,
 	})
 }
 
-func (s *Service) DeleteArch(ctx context.Context, id string) error {
-	return s.repo.DeleteArch(ctx, id)
+func (s *ServiceImpl) DeleteArch(ctx context.Context, id string) error {
+	return s.storage.DeleteArch(ctx, id)
 }
