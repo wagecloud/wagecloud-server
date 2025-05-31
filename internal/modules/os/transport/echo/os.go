@@ -43,8 +43,8 @@ func (h *EchoHandler) GetOS(c echo.Context) error {
 
 func (h *EchoHandler) ListOSs(c echo.Context) error {
 	var req struct {
-		Page          int32   `query:"page" validate:"required,min=1"`
-		Limit         int32   `query:"limit" validate:"required,min=5,max=100"`
+		Page          int32   `query:"page" validate:"min=1"`
+		Limit         int32   `query:"limit" validate:"min=5,max=100"`
 		Name          *string `query:"name"`
 		CreatedAtFrom *int64  `query:"created_at_from"`
 		CreatedAtTo   *int64  `query:"created_at_to"`

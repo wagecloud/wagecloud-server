@@ -77,7 +77,7 @@ type LoginUserResult struct {
 }
 
 func (s *ServiceImpl) LoginUser(ctx context.Context, params LoginUserParams) (LoginUserResult, error) {
-	account, err := s.storage.GetAccount(ctx, accountstorage.GetAccountParams{
+	user, err := s.storage.GetUser(ctx, accountstorage.GetUserParams{
 		ID:       params.ID,
 		Username: params.Username,
 		Email:    params.Email,
@@ -86,7 +86,7 @@ func (s *ServiceImpl) LoginUser(ctx context.Context, params LoginUserParams) (Lo
 		return LoginUserResult{}, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(params.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(params.Password))
 	if err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return LoginUserResult{}, fmt.Errorf("wrong password")
@@ -94,16 +94,14 @@ func (s *ServiceImpl) LoginUser(ctx context.Context, params LoginUserParams) (Lo
 		return LoginUserResult{}, fmt.Errorf("failed to compare password: %w", err)
 	}
 
-	token, err := GenerateAccessToken(account)
+	token, err := GenerateAccessToken(user)
 	if err != nil {
 		return LoginUserResult{}, err
 	}
 
 	return LoginUserResult{
-		Token: token,
-		Account: accountmodel.AccountUser{
-			AccountBase: account,
-		},
+		Token:   token,
+		Account: user,
 	}, nil
 }
 

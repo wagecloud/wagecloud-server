@@ -9,6 +9,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/wagecloud/wagecloud-server/config"
 	"github.com/wagecloud/wagecloud-server/internal/client/libvirt"
 	"github.com/wagecloud/wagecloud-server/internal/client/pgxpool"
@@ -22,6 +23,8 @@ import (
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
 	osstorage "github.com/wagecloud/wagecloud-server/internal/modules/os/storage"
 	osecho "github.com/wagecloud/wagecloud-server/internal/modules/os/transport/echo"
+	echovalidator "github.com/wagecloud/wagecloud-server/internal/shared/echo/validator"
+	"go.uber.org/zap"
 )
 
 const defaultConfigFile = "config/config.dev.yml"
@@ -94,6 +97,15 @@ func setupModules() {
 
 	e := echo.New()
 
+	e.Pre(middleware.AddTrailingSlash())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"*"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowCredentials: true,
+	}))
+	e.Validator = echovalidator.NewCustomValidator()
+
 	api := e.Group("/api")
 	v1 := api.Group("/v1")
 
@@ -108,34 +120,29 @@ func setupModules() {
 	instance.GET("/", instanceHandler.ListInstances)
 	instance.GET("/:id", instanceHandler.GetInstance)
 	instance.POST("/", instanceHandler.CreateInstance)
-	instance.PUT("/:id", instanceHandler.UpdateInstance)
+	instance.PATCH("/:id", instanceHandler.UpdateInstance)
 	instance.DELETE("/:id", instanceHandler.DeleteInstance)
 
 	// OS
 	os := v1.Group("/os")
 	os.GET("/", osHandler.ListOSs)
 	os.GET("/:id", osHandler.GetOS)
-	os.POST("/", osHandler.CreateOS)
-	os.PUT("/:id", osHandler.UpdateOS)
+	os.POST("", osHandler.CreateOS)
+	os.PATCH("/:id", osHandler.UpdateOS)
 	os.DELETE("/:id", osHandler.DeleteOS)
-	// Start the server
-	if err := e.Start(fmt.Sprintf(":%d", 3000)); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
 
-	// Setup CORS middleware
-	e.Use(echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-			c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-			if c.Request().Method == http.MethodOptions {
-				return c.NoContent(http.StatusNoContent)
-			}
-			return next(c)
-		}
-	}))
+	// Arch
+	arch := v1.Group("/os/arch")
+	arch.GET("/", osHandler.ListArchs)
+	arch.GET("/:id", osHandler.GetArch)
+	arch.POST("/", osHandler.CreateArch)
+	arch.PATCH("/:id", osHandler.UpdateArch)
+	arch.DELETE("/:id", osHandler.DeleteArch)
+
+	// Print the api routes
+	for _, route := range e.Routes() {
+		logger.Log.Info("Route registered", zap.String("method", route.Method), zap.String("path", route.Path))
+	}
 
 	// Setup 404 handler
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
@@ -144,5 +151,10 @@ func setupModules() {
 		} else {
 			c.JSON(http.StatusInternalServerError, map[string]string{"error": "Internal Server Error"})
 		}
+	}
+
+	// Start the server
+	if err := e.Start(fmt.Sprintf(":%d", 3000)); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }

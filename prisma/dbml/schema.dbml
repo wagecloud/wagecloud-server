@@ -17,7 +17,7 @@ Table AccountUser {
   email String [unique, not null]
 }
 
-Table VM {
+Table Instance {
   id String [pk]
   account_id BigInt [not null]
   network_id String [unique, not null]
@@ -33,7 +33,8 @@ Table VM {
 
 Table Network {
   id String [pk]
-  private_ip String [not null, note: '@unique']
+  name String [not null]
+  private_ip String [not null]
   created_at DateTime [default: `now()`, not null]
 }
 
@@ -49,8 +50,38 @@ Table Arch {
   created_at DateTime [default: `now()`, not null]
 }
 
-Enum PaymentType {
-  VNPay
+Table OSImage {
+  id String [pk]
+  name String [not null]
+  os_id String [not null]
+  arch_id String [not null]
+  created_at DateTime [default: `now()`, not null]
+}
+
+Table PaymentItem {
+  id BigInt [pk, increment]
+  payment_id BigInt [not null]
+  name String [not null]
+  price BigInt [not null]
+}
+
+Table Payment {
+  id BigInt [pk, increment]
+  account_id BigInt [not null]
+  method PaymentMethod [not null]
+  status Status [not null]
+  total BigInt [not null]
+  date_created DateTime [default: `now()`, not null]
+}
+
+Table PaymentVnpay {
+  id BigInt [pk]
+  vnp_TxnRef String [not null]
+  vnp_OrderInfo String [not null]
+  vnp_TransactionNo String [not null]
+  vnp_TransactionDate String [not null]
+  vnp_CreateDate String [not null]
+  vnp_IpAddr String [not null]
 }
 
 Enum Role {
@@ -58,12 +89,34 @@ Enum Role {
   USER
 }
 
+Enum PaymentMethod {
+  VNPAY
+  MOMO
+}
+
+Enum Status {
+  PENDING
+  SUCCESS
+  CANCELED
+  FAILED
+}
+
 Ref: AccountUser.id - AccountBase.id
 
-Ref: VM.account_id > AccountUser.id
+Ref: Instance.account_id > AccountUser.id
 
-Ref: VM.network_id > Network.id
+Ref: Instance.network_id - Network.id
 
-Ref: VM.os_id > OS.id
+Ref: Instance.os_id > OS.id
 
-Ref: VM.arch_id > Arch.id
+Ref: Instance.arch_id > Arch.id
+
+Ref: OSImage.os_id > OS.id
+
+Ref: OSImage.arch_id > Arch.id
+
+Ref: PaymentItem.payment_id > Payment.id [delete: Cascade]
+
+Ref: Payment.account_id > AccountBase.id [delete: Cascade]
+
+Ref: PaymentVnpay.id - Payment.id [delete: Cascade]

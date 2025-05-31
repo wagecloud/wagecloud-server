@@ -1,6 +1,7 @@
 package accountecho
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -82,6 +83,7 @@ func (h *EchoHandler) RegisterUser(c echo.Context) error {
 		Email: req.Email,
 	})
 	if err != nil {
+		fmt.Println("Error registering user:", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to register user")
 	}
 
