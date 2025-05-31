@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -19,7 +20,7 @@ type CreateCloudinitParams struct {
 	NetworkConfig NetworkConfig
 }
 
-func (s *ClientImpl) CreateCloudinit(params CreateCloudinitParams) error {
+func (s *ClientImpl) CreateCloudinit(ctx context.Context, params CreateCloudinitParams) error {
 	cloudinitFile, err := os.Create(params.Filepath)
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file: %s", err)
@@ -48,7 +49,7 @@ func (s *ClientImpl) CreateCloudinit(params CreateCloudinitParams) error {
 	}
 	networkConfigReader := bytes.NewReader(networkConfigYaml)
 
-	if err = s.WriteCloudinit(userdataReader, metadataReader, networkConfigReader, cloudinitFile); err != nil {
+	if err = s.WriteCloudinit(ctx, userdataReader, metadataReader, networkConfigReader, cloudinitFile); err != nil {
 		return fmt.Errorf("failed to write cloudinit ISO: %s", err)
 	}
 
@@ -62,20 +63,20 @@ type CreateCloudinitByReaderParams struct {
 	NetworkConfig io.Reader
 }
 
-func (s *ClientImpl) CreateCloudinitByReader(params CreateCloudinitByReaderParams) error {
+func (s *ClientImpl) CreateCloudinitByReader(ctx context.Context, params CreateCloudinitByReaderParams) error {
 	cloudinitFile, err := os.Create(params.Filepath)
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file: %s", err)
 	}
 
-	if err = s.WriteCloudinit(params.Userdata, params.Metadata, params.NetworkConfig, cloudinitFile); err != nil {
+	if err = s.WriteCloudinit(ctx, params.Userdata, params.Metadata, params.NetworkConfig, cloudinitFile); err != nil {
 		return fmt.Errorf("failed to write cloudinit ISO: %s", err)
 	}
 
 	return nil
 }
 
-func (s *ClientImpl) WriteCloudinit(userdata io.Reader, metadata io.Reader, networkConfig io.Reader, cloudinitFile io.Writer) error {
+func (s *ClientImpl) WriteCloudinit(ctx context.Context, userdata io.Reader, metadata io.Reader, networkConfig io.Reader, cloudinitFile io.Writer) error {
 	writer, err := iso9660.NewWriter()
 	if err != nil {
 		return fmt.Errorf("failed to create writer: %s", err)

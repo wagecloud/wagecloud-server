@@ -1,41 +1,40 @@
 package libvirt
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	libvirtxml "github.com/libvirt/libvirt-go-xml"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
-	"github.com/wagecloud/wagecloud-server/internal/utils/file"
-	"github.com/wagecloud/wagecloud-server/internal/utils/transaction"
+	"github.com/wagecloud/wagecloud-server/internal/utils/saga"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
 type ClientImpl struct {
 	connect *libvirt.Connect
-	tx      *transaction.Transaction
+	saga    *saga.Saga
 }
 
 type Client interface {
 	// CLOUDINIT
-	CreateCloudinit(params CreateCloudinitParams) error
-	CreateCloudinitByReader(params CreateCloudinitByReaderParams) error
-	WriteCloudinit(userdata io.Reader, metadata io.Reader, networkConfig io.Reader, cloudinitFile io.Writer) error
+	CreateCloudinit(ctx context.Context, params CreateCloudinitParams) error
+	CreateCloudinitByReader(ctx context.Context, params CreateCloudinitByReaderParams) error
+	WriteCloudinit(ctx context.Context, userdata io.Reader, metadata io.Reader, networkConfig io.Reader, cloudinitFile io.Writer) error
 
 	// DOMAIN
-	GetDomain(domainID string) (Domain, error)
-	ListDomains(params ListDomainsParams) ([]Domain, error)
-	CreateDomain(domain Domain) error
-	UpdateDomain(domainID string, params UpdateDomainParams) error
-	DeleteDomain(domainID string) error
-	StartDomain(domainID string) error
-	StopDomain(domainID string) error
+	GetDomain(ctx context.Context, domainID string) (Domain, error)
+	ListDomains(ctx context.Context, params ListDomainsParams) ([]Domain, error)
+	CreateDomain(ctx context.Context, domain Domain) error
+	UpdateDomain(ctx context.Context, domainID string, params UpdateDomainParams) error
+	DeleteDomain(ctx context.Context, domainID string) error
+	StartDomain(ctx context.Context, domainID string) error
+	StopDomain(ctx context.Context, domainID string) error
 
 	// QEMU
-	CreateImage(params CreateImageParams) error
+	CreateImage(ctx context.Context, params CreateImageParams) error
 }
 
 const (
@@ -46,10 +45,10 @@ var (
 	ErrDomainNotFound = errors.New("domain not found")
 )
 
-func NewClient() *ClientImpl {
+func NewClient() Client {
 	return &ClientImpl{
 		connect: nil,
-		tx:      nil,
+		saga:    saga.New(),
 	}
 }
 
@@ -78,7 +77,7 @@ func (s *ClientImpl) getDomain(domainID string) (*libvirt.Domain, error) {
 	return domain, nil
 }
 
-func (s *ClientImpl) GetDomain(domainID string) (Domain, error) {
+func (s *ClientImpl) GetDomain(ctx context.Context, domainID string) (Domain, error) {
 	conn, err := s.getConnect()
 	if err != nil {
 		return Domain{}, err
@@ -96,7 +95,7 @@ type ListDomainsParams struct {
 	Flags libvirt.ConnectListAllDomainsFlags
 }
 
-func (s *ClientImpl) ListDomains(params ListDomainsParams) ([]Domain, error) {
+func (s *ClientImpl) ListDomains(ctx context.Context, params ListDomainsParams) ([]Domain, error) {
 	conn, err := s.getConnect()
 	if err != nil {
 		return nil, err
@@ -124,18 +123,14 @@ func (s *ClientImpl) ListDomains(params ListDomainsParams) ([]Domain, error) {
 // CreateDomain creates a new domain in libvirt
 //
 // Supports rollback operation, safe to use in anywhere, anytime
-func (s *ClientImpl) CreateDomain(domain Domain) error {
+func (s *ClientImpl) CreateDomain(ctx context.Context, domain Domain) error {
 	conn, err := s.getConnect()
 	if err != nil {
 		return err
 	}
 
-	tx := transaction.NewTransaction(false)
-	svcTx := s.WithTx(tx)
-	defer tx.Rollback()
-
 	// Create new qcow2 image from base image
-	if err = svcTx.CreateImage(CreateImageParams{
+	if err = s.CreateImage(ctx, CreateImageParams{
 		BaseImagePath:  domain.BaseImagePath(),
 		CloneImagePath: domain.VMImagePath(),
 		Size:           domain.Storage,
@@ -158,8 +153,6 @@ func (s *ClientImpl) CreateDomain(domain Domain) error {
 		return fmt.Errorf("failed to define domain: %v", err)
 	}
 
-	tx.Commit()
-
 	return nil
 }
 
@@ -170,7 +163,7 @@ type UpdateDomainParams struct {
 	Storage *uint
 }
 
-func (s *ClientImpl) UpdateDomain(domainID string, params UpdateDomainParams) error {
+func (s *ClientImpl) UpdateDomain(ctx context.Context, domainID string, params UpdateDomainParams) error {
 	conn, err := s.getConnect()
 	if err != nil {
 		return err
@@ -230,7 +223,7 @@ func (s *ClientImpl) UpdateDomain(domainID string, params UpdateDomainParams) er
 // DeleteDomain removes the domain from libvirt
 //
 // Does not support rollback operation so it should done last
-func (s *ClientImpl) DeleteDomain(domainID string) error {
+func (s *ClientImpl) DeleteDomain(ctx context.Context, domainID string) error {
 	libDomain, err := s.getDomain(domainID)
 	if err != nil {
 		return err
@@ -268,7 +261,7 @@ func (s *ClientImpl) DeleteDomain(domainID string) error {
 	return nil
 }
 
-func (s *ClientImpl) StartDomain(domainID string) error {
+func (s *ClientImpl) StartDomain(ctx context.Context, domainID string) error {
 	domain, err := s.getDomain(domainID)
 	if err != nil {
 		return err
@@ -277,127 +270,11 @@ func (s *ClientImpl) StartDomain(domainID string) error {
 	return domain.Create()
 }
 
-func (s *ClientImpl) StopDomain(domainID string) error {
+func (s *ClientImpl) StopDomain(ctx context.Context, domainID string) error {
 	domain, err := s.getDomain(domainID)
 	if err != nil {
 		return err
 	}
 
 	return domain.Shutdown()
-}
-
-func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
-	vmImagePath := domain.VMImagePath()
-	cloudinitPath := domain.CloudinitPath()
-
-	if !file.Exists(vmImagePath) || !file.Exists(cloudinitPath) {
-		return nil, fmt.Errorf("image or cloudinit file not found")
-	}
-
-	domainXML := &libvirtxml.Domain{
-		Type: "kvm",
-		Name: domain.ID,
-		UUID: domain.ID,
-		Memory: &libvirtxml.DomainMemory{
-			Value: domain.Memory.Value,
-			Unit:  string(domain.Memory.Unit),
-		},
-		CurrentMemory: &libvirtxml.DomainCurrentMemory{
-			Value: domain.Memory.Value,
-			Unit:  string(domain.Memory.Unit),
-		},
-		VCPU: &libvirtxml.DomainVCPU{
-			Placement: "static",
-			Value:     domain.Cpu.Value,
-		},
-		OS: &libvirtxml.DomainOS{
-			Type: &libvirtxml.DomainOSType{
-				Arch:    domain.OS.Arch, // x86_64
-				Machine: "pc-q35-6.2",
-				Type:    domain.OS.Type, // hvm
-			},
-		},
-		CPU: &libvirtxml.DomainCPU{
-			Mode:       "host-passthrough",
-			Check:      "none",
-			Migratable: "on",
-		},
-		Clock: &libvirtxml.DomainClock{
-			Offset: "utc",
-		},
-		OnPoweroff: "destroy",
-		OnReboot:   "destroy",
-		OnCrash:    "destroy",
-		Devices: &libvirtxml.DomainDeviceList{
-			Disks: []libvirtxml.DomainDisk{
-				{
-					Device: "disk",
-					Driver: &libvirtxml.DomainDiskDriver{
-						Name:    "qemu",
-						Type:    "qcow2",
-						Discard: "unmap",
-					},
-					Source: &libvirtxml.DomainDiskSource{
-						File: &libvirtxml.DomainDiskSourceFile{
-							File: vmImagePath,
-						},
-					},
-					Target: &libvirtxml.DomainDiskTarget{
-						Dev: "vda",
-						Bus: "virtio",
-					},
-				},
-				{
-					Device: "cdrom",
-					Driver: &libvirtxml.DomainDiskDriver{
-						Name: "qemu",
-						Type: "raw",
-					},
-					Source: &libvirtxml.DomainDiskSource{
-						File: &libvirtxml.DomainDiskSourceFile{
-							File: cloudinitPath,
-						},
-					},
-					Target: &libvirtxml.DomainDiskTarget{
-						Dev: "sdb",
-						Bus: "sata",
-					},
-					ReadOnly: &libvirtxml.DomainDiskReadOnly{},
-				},
-			},
-			Interfaces: []libvirtxml.DomainInterface{
-				{
-					MAC: &libvirtxml.DomainInterfaceMAC{
-						Address: "52:54:00:b7:a5:c2",
-					},
-					Source: &libvirtxml.DomainInterfaceSource{
-						Bridge: &libvirtxml.DomainInterfaceSourceBridge{
-							Bridge: "virbr0",
-						},
-					},
-					Model: &libvirtxml.DomainInterfaceModel{
-						Type: "virtio",
-					},
-				},
-			},
-			Graphics: []libvirtxml.DomainGraphic{
-				{
-					VNC: &libvirtxml.DomainGraphicVNC{
-						Port:   -1,
-						Listen: "0.0.0.0",
-					},
-				},
-			},
-			Consoles: []libvirtxml.DomainConsole{
-				{
-					TTY: "pty",
-					Target: &libvirtxml.DomainConsoleTarget{
-						Type: "serial",
-					},
-				},
-			},
-		},
-	}
-
-	return domainXML, nil
 }

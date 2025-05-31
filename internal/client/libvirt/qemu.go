@@ -1,10 +1,10 @@
 package libvirt
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 
 	"github.com/wagecloud/wagecloud-server/config"
 	"github.com/wagecloud/wagecloud-server/internal/utils/file"
@@ -16,7 +16,7 @@ type CreateImageParams struct {
 	Size           uint
 }
 
-func (s *ClientImpl) CreateImage(params CreateImageParams) error {
+func (s *ClientImpl) CreateImage(ctx context.Context, params CreateImageParams) error {
 	if config.GetConfig().App.BaseImageDir == "" {
 		return fmt.Errorf("base image dir not set")
 	}
@@ -25,34 +25,33 @@ func (s *ClientImpl) CreateImage(params CreateImageParams) error {
 		return fmt.Errorf("base image not found")
 	}
 
-	cloneImgPath := path.Join(
-		config.GetConfig().App.VMImageDir,
-		params.CloneImagePath,
-	)
+	// cloneImgPath := path.Join(
+	// 	config.GetConfig().App.VMImageDir,
+	// 	params.CloneImagePath,
+	// )
 
 	sizeStr := fmt.Sprintf("%dG", params.Size)
 
-	if err := s.tx.Do(func() error {
-		// Eg: qemu-img create -b ubuntu_amd64.img -f qcow2 -F qcow2 ubuntu_amd64_mod.img 10G
-		// set permissions to 777
-		cmd := exec.Command("qemu-img",
-			"create", "-b",
-			params.BaseImagePath,
-			"-f",
-			"qcow2",
-			"-F",
-			"qcow2",
-			params.CloneImagePath,
-			sizeStr, // G for GB
-		)
-		return cmd.Run()
-	}, func() error {
-		return os.Remove(cloneImgPath)
-	}); err != nil {
-		return err
+	cmd := exec.Command("qemu-img",
+		"create", "-b",
+		params.BaseImagePath,
+		"-f",
+		"qcow2",
+		"-F",
+		"qcow2",
+		params.CloneImagePath,
+		sizeStr, // G for GB
+	)
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to create image: %w", err)
 	}
 
 	return nil
+}
+
+func (s *ClientImpl) RemoveImage(ctx context.Context, imgPath string) error {
+	return os.Remove(imgPath)
 }
 
 // func (s *ClientImpl) Convert(imgPath string, format string, destPath string) error {
