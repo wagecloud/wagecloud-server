@@ -1,0 +1,27 @@
+version: v2
+clean: true
+managed:
+  enabled: true
+  disable:
+    # Don't modify any files in buf.build/googleapis/googleapis, (we we use google proto as deps in buf.yaml)
+    - module: buf.build/googleapis/googleapis
+  override:
+    - file_option: go_package_prefix
+      value: github.com/wagecloud/wagecloud-server/gen/pb
+
+plugins:
+  - local: protoc-gen-go
+    out: gen/pb
+    opt: paths=source_relative
+
+  - local: protoc-gen-connect-go
+    out: gen/pb
+    opt: paths=source_relative
+
+# build:
+#   includes:
+#     - internal/modules/account/proto/**
+#     - internal/modules/instance/proto/**
+#     - internal/modules/os/proto/**
+#     - internal/modules/payment/proto/**
+#     - internal/shared/proto/**

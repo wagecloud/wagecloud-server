@@ -28,3 +28,27 @@ type PaginateResult[T any] struct {
 	NextPage   *int32  `json:"next_page,omitempty"`
 	NextCursor *string `json:"next_cursor,omitempty"`
 }
+
+func (p PaginateResult[T]) GetData() []T {
+	return p.Data
+}
+
+func (p PaginateResult[T]) GetLimit() int32 {
+	return p.Limit
+}
+
+func (p PaginateResult[T]) GetPage() int32 {
+	return p.Page
+}
+
+func (p PaginateResult[T]) GetTotal() int64 {
+	return p.Total
+}
+
+func (p PaginateResult[T]) GetNextPage() *int32 {
+	return p.NextPage
+}
+
+func (p PaginateResult[T]) GetNextCursor() *string {
+	return p.NextCursor
+}

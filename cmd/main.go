@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -23,9 +24,11 @@ import (
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
 	osstorage "github.com/wagecloud/wagecloud-server/internal/modules/os/storage"
 	osecho "github.com/wagecloud/wagecloud-server/internal/modules/os/transport/echo"
-	echovalidator "github.com/wagecloud/wagecloud-server/internal/shared/echo/validator"
+	echovalidator "github.com/wagecloud/wagecloud-server/internal/shared/http/validator"
 	"go.uber.org/zap"
 )
+
+var targetService = flag.String("service", "", "Which service to run")
 
 const defaultConfigFile = "config/config.dev.yml"
 const productionConfigFile = "config/config.production.yml"

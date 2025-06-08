@@ -6,87 +6,88 @@ import (
 	"github.com/labstack/echo/v4"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
 	instancesvc "github.com/wagecloud/wagecloud-server/internal/modules/instance/service"
+	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 )
 
 type EchoHandler struct {
-	instanceSvc instancesvc.Service
+	service instancesvc.Service
 }
 
-func NewEchoHandler(instanceSvc instancesvc.Service) *EchoHandler {
-	return &EchoHandler{
-		instanceSvc: instanceSvc,
-	}
+func NewEchoHandler(service instancesvc.Service) *EchoHandler {
+	return &EchoHandler{service: service}
+}
+
+type GetInstanceRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) GetInstance(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
-
+	var req GetInstanceRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	Instance, err := h.instanceSvc.GetInstance(c.Request().Context(), instancesvc.GetInstanceParams{
+	instance, err := h.service.GetInstance(c.Request().Context(), instancesvc.GetInstanceParams{
 		Role:      claims.Role,
 		AccountID: claims.AccountID,
 		ID:        req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, Instance)
+	return response.FromDTO(c.Response().Writer, http.StatusOK, instance)
+}
+
+type ListInstancesRequest struct {
+	Page          int32   `query:"page" validate:"min=1"`
+	Limit         int32   `query:"limit" validate:"min=5,max=100"`
+	NetworkID     *string `query:"network_id"`
+	OsID          *string `query:"os_id"`
+	ArchID        *string `query:"arch_id"`
+	Name          *string `query:"name"`
+	CpuFrom       *int64  `query:"cpu_from"`
+	CpuTo         *int64  `query:"cpu_to"`
+	RamFrom       *int64  `query:"ram_from"`
+	RamTo         *int64  `query:"ram_to"`
+	StorageFrom   *int64  `query:"storage_from"`
+	StorageTo     *int64  `query:"storage_to"`
+	CreatedAtFrom *int64  `query:"created_at_from"`
+	CreatedAtTo   *int64  `query:"created_at_to"`
 }
 
 func (h *EchoHandler) ListInstances(c echo.Context) error {
-	var req struct {
-		Page          int32   `query:"page" validate:"required,min=1"`
-		Limit         int32   `query:"limit" validate:"required,min=5,max=100"`
-		NetworkID     *string `query:"network_id"`
-		OsID          *string `query:"os_id"`
-		ArchID        *string `query:"arch_id"`
-		Name          *string `query:"name"`
-		CpuFrom       *int64  `query:"cpu_from"`
-		CpuTo         *int64  `query:"cpu_to"`
-		RamFrom       *int64  `query:"ram_from"`
-		RamTo         *int64  `query:"ram_to"`
-		StorageFrom   *int64  `query:"storage_from"`
-		StorageTo     *int64  `query:"storage_to"`
-		CreatedAtFrom *int64  `query:"created_at_from"`
-		CreatedAtTo   *int64  `query:"created_at_to"`
-	}
-
+	var req ListInstancesRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	Instances, err := h.instanceSvc.ListInstances(c.Request().Context(), instancesvc.ListInstancesParams{
+	instances, err := h.service.ListInstances(c.Request().Context(), instancesvc.ListInstancesParams{
 		PaginationParams: pagination.PaginationParams{
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
-		AccountID:     claims.AccountID,
 		Role:          claims.Role,
+		AccountID:     claims.AccountID,
 		OsID:          req.OsID,
 		ArchID:        req.ArchID,
 		Name:          req.Name,
@@ -100,45 +101,46 @@ func (h *EchoHandler) ListInstances(c echo.Context) error {
 		CreatedAtTo:   req.CreatedAtTo,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, Instances)
+	return response.FromPaginate(c.Response().Writer, instances)
+}
+
+type CreateInstanceRequest struct {
+	Userdata struct {
+		Name              string   `json:"name" validate:"required,min=1,max=255"`
+		SSHAuthorizedKeys []string `json:"ssh-authorized-keys" validate:"omitempty,dive,min=20,max=5000"`
+		Password          string   `json:"password" validate:"required,min=8,max=72"`
+	} `json:"userdata" validate:"required"`
+	Metadata struct {
+		LocalHostname string `json:"local-hostname" validate:"required,hostname"`
+	} `json:"metadata" validate:"required"`
+	Spec struct {
+		OsID    string `json:"os_id" validate:"required,min=1,max=255"`
+		ArchID  string `json:"arch_id" validate:"required,min=1,max=255"`
+		Memory  int    `json:"memory" validate:"required,min=512,max=262144"`
+		Cpu     int    `json:"cpu" validate:"required,min=1,max=64"`
+		Storage int    `json:"storage" validate:"required,min=10,max=2048"`
+	} `json:"spec" validate:"required"`
 }
 
 func (h *EchoHandler) CreateInstance(c echo.Context) error {
-	var req struct {
-		Userdata struct {
-			Name              string   `json:"name" validate:"required,min=1,max=255"`
-			SSHAuthorizedKeys []string `json:"ssh-authorized-keys" validate:"omitempty,dive,min=20,max=5000"`
-			Password          string   `json:"password" validate:"required,min=8,max=72"`
-		} `json:"userdata" validate:"required"`
-		Metadata struct {
-			LocalHostname string `json:"local-hostname" validate:"required,hostname"`
-		} `json:"metadata" validate:"required"`
-		Spec struct {
-			OsID    string `json:"os_id" validate:"required,min=1,max=255"`
-			ArchID  string `json:"arch_id" validate:"required,min=1,max=255"`
-			Memory  int    `json:"memory" validate:"required,min=512,max=262144"`
-			Cpu     int    `json:"cpu" validate:"required,min=1,max=64"`
-			Storage int    `json:"storage" validate:"required,min=10,max=2048"`
-		} `json:"spec" validate:"required"`
-	}
-
+	var req CreateInstanceRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	Instance, err := h.instanceSvc.CreateInstance(c.Request().Context(), instancesvc.CreateInstanceParams{
+	instance, err := h.service.CreateInstance(c.Request().Context(), instancesvc.CreateInstanceParams{
 		AccountID:         claims.AccountID,
 		Name:              req.Userdata.Name,
 		SSHAuthorizedKeys: req.Userdata.SSHAuthorizedKeys,
@@ -151,38 +153,39 @@ func (h *EchoHandler) CreateInstance(c echo.Context) error {
 		Storage:           req.Spec.Storage,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, Instance)
+	return response.FromDTO(c.Response().Writer, http.StatusCreated, instance)
+}
+
+type UpdateInstanceRequest struct {
+	ID        string  `param:"id" validate:"required,min=1,max=255"`
+	NetworkID *string `json:"network_id"`
+	OsID      *string `json:"os_id"`
+	ArchID    *string `json:"arch_id"`
+	Name      *string `json:"name"`
+	Cpu       *int64  `json:"cpu"`
+	Ram       *int64  `json:"ram"`
+	Storage   *int64  `json:"storage"`
 }
 
 func (h *EchoHandler) UpdateInstance(c echo.Context) error {
-	var req struct {
-		ID        string  `param:"id" validate:"required,min=1,max=255"`
-		NetworkID *string `json:"network_id"`
-		OsID      *string `json:"os_id"`
-		ArchID    *string `json:"arch_id"`
-		Name      *string `json:"name"`
-		Cpu       *int64  `json:"cpu"`
-		Ram       *int64  `json:"ram"`
-		Storage   *int64  `json:"storage"`
-	}
-
+	var req UpdateInstanceRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	Instance, err := h.instanceSvc.UpdateInstance(c.Request().Context(), instancesvc.UpdateInstanceParams{
+	instance, err := h.service.UpdateInstance(c.Request().Context(), instancesvc.UpdateInstanceParams{
 		Role:      claims.Role,
 		AccountID: claims.AccountID,
 		ID:        req.ID,
@@ -195,98 +198,101 @@ func (h *EchoHandler) UpdateInstance(c echo.Context) error {
 		Storage:   req.Storage,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, Instance)
+	return response.FromDTO(c.Response().Writer, http.StatusOK, instance)
+}
+
+type DeleteInstanceRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) DeleteInstance(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
-
+	var req DeleteInstanceRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	err = h.instanceSvc.DeleteInstance(c.Request().Context(), instancesvc.DeleteInstanceParams{
+	err = h.service.DeleteInstance(c.Request().Context(), instancesvc.DeleteInstanceParams{
 		Role:      claims.Role,
 		AccountID: claims.AccountID,
 		ID:        req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return response.FromMessage(c.Response().Writer, http.StatusOK, "Instance deleted successfully")
+}
+
+type StartInstanceRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) StartInstance(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
-
+	var req StartInstanceRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	err = h.instanceSvc.StartInstance(c.Request().Context(), instancesvc.StartInstanceParams{
+	err = h.service.StartInstance(c.Request().Context(), instancesvc.StartInstanceParams{
 		AccountID: claims.AccountID,
 		Role:      claims.Role,
 		ID:        req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return response.FromMessage(c.Response().Writer, http.StatusOK, "Instance started successfully")
+}
+
+type StopInstanceRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) StopInstance(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
-
+	var req StopInstanceRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	claims, err := accountsvc.GetClaims(c.Request())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	err = h.instanceSvc.StopInstance(c.Request().Context(), instancesvc.StopInstanceParams{
+	err = h.service.StopInstance(c.Request().Context(), instancesvc.StopInstanceParams{
 		AccountID: claims.AccountID,
 		Role:      claims.Role,
 		ID:        req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return response.FromMessage(c.Response().Writer, http.StatusOK, "Instance stopped successfully")
 }

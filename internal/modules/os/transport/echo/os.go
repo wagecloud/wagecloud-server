@@ -5,60 +5,61 @@ import (
 
 	"github.com/labstack/echo/v4"
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
+	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 )
 
 type EchoHandler struct {
-	osSvc ossvc.Service
+	service ossvc.Service
 }
 
-func NewEchoHandler(osSvc ossvc.Service) *EchoHandler {
-	return &EchoHandler{
-		osSvc: osSvc,
-	}
+func NewEchoHandler(service ossvc.Service) *EchoHandler {
+	return &EchoHandler{service: service}
+}
+
+type GetOSRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) GetOS(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
-
+	var req GetOSRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	os, err := h.osSvc.GetOS(c.Request().Context(), ossvc.GetOSParams{
+	os, err := h.service.GetOS(c.Request().Context(), ossvc.GetOSParams{
 		ID: req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, os)
+	return response.FromDTO(c.Response().Writer, http.StatusOK, os)
+}
+
+type ListOSsRequest struct {
+	Page          int32   `query:"page" validate:"min=1"`
+	Limit         int32   `query:"limit" validate:"min=5,max=100"`
+	Name          *string `query:"name"`
+	CreatedAtFrom *int64  `query:"created_at_from"`
+	CreatedAtTo   *int64  `query:"created_at_to"`
 }
 
 func (h *EchoHandler) ListOSs(c echo.Context) error {
-	var req struct {
-		Page          int32   `query:"page" validate:"min=1"`
-		Limit         int32   `query:"limit" validate:"min=5,max=100"`
-		Name          *string `query:"name"`
-		CreatedAtFrom *int64  `query:"created_at_from"`
-		CreatedAtTo   *int64  `query:"created_at_to"`
-	}
-
+	var req ListOSsRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	osList, err := h.osSvc.ListOSs(c.Request().Context(), ossvc.ListOSsParams{
+	osList, err := h.service.ListOSs(c.Request().Context(), ossvc.ListOSsParams{
 		PaginationParams: pagination.PaginationParams{
 			Page:  req.Page,
 			Limit: req.Limit,
@@ -68,83 +69,86 @@ func (h *EchoHandler) ListOSs(c echo.Context) error {
 		CreatedAtTo:   req.CreatedAtTo,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, osList)
+	return response.FromPaginate(c.Response().Writer, osList)
+}
+
+type CreateOSRequest struct {
+	ID   string `json:"id" validate:"required,min=1,max=255"`
+	Name string `json:"name" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) CreateOS(c echo.Context) error {
-	var req struct {
-		ID   string `json:"id" validate:"required,min=1,max=255"`
-		Name string `json:"name" validate:"required,min=1,max=255"`
-	}
-
+	var req CreateOSRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	os, err := h.osSvc.CreateOS(c.Request().Context(), ossvc.CreateOSParams{
+	os, err := h.service.CreateOS(c.Request().Context(), ossvc.CreateOSParams{
 		ID:   req.ID,
 		Name: req.Name,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, os)
+	return response.FromDTO(c.Response().Writer, http.StatusCreated, os)
+}
+
+type UpdateOSRequest struct {
+	ID    string  `param:"id" validate:"required,min=1,max=255"`
+	NewID *string `json:"new_id"`
+	Name  *string `json:"name"`
 }
 
 func (h *EchoHandler) UpdateOS(c echo.Context) error {
-	var req struct {
-		ID    string  `param:"id" validate:"required,min=1,max=255"`
-		NewID *string `json:"new_id"`
-		Name  *string `json:"name"`
-	}
-
+	var req UpdateOSRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	os, err := h.osSvc.UpdateOS(c.Request().Context(), ossvc.UpdateOSParams{
+	os, err := h.service.UpdateOS(c.Request().Context(), ossvc.UpdateOSParams{
 		ID:    req.ID,
 		NewID: req.NewID,
 		Name:  req.Name,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, os)
+	return response.FromDTO(c.Response().Writer, http.StatusOK, os)
+}
+
+type DeleteOSRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) DeleteOS(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
-
+	var req DeleteOSRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	err := h.osSvc.DeleteOS(c.Request().Context(), ossvc.DeleteOSParams{
+	err := h.service.DeleteOS(c.Request().Context(), ossvc.DeleteOSParams{
 		ID: req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return response.FromMessage(c.Response().Writer, http.StatusOK, "OS deleted successfully")
 }

@@ -5,51 +5,54 @@ import (
 
 	"github.com/labstack/echo/v4"
 	instancesvc "github.com/wagecloud/wagecloud-server/internal/modules/instance/service"
+	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 )
 
-func (h *EchoHandler) GetNetwork(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
+type GetNetworkRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
+}
 
+func (h *EchoHandler) GetNetwork(c echo.Context) error {
+	var req GetNetworkRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	network, err := h.instanceSvc.GetNetwork(c.Request().Context(), instancesvc.GetNetworkParams{
+	network, err := h.service.GetNetwork(c.Request().Context(), instancesvc.GetNetworkParams{
 		ID: req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, network)
+	return response.FromDTO(c.Response().Writer, http.StatusOK, network)
+}
+
+type ListNetworksRequest struct {
+	Page          int32   `query:"page" validate:"min=1"`
+	Limit         int32   `query:"limit" validate:"min=5,max=100"`
+	ID            *string `query:"id"`
+	PrivateIP     *string `query:"private_ip"`
+	CreatedAtFrom *int64  `query:"created_at_from"`
+	CreatedAtTo   *int64  `query:"created_at_to"`
 }
 
 func (h *EchoHandler) ListNetworks(c echo.Context) error {
-	var req struct {
-		Page          int32   `query:"page" validate:"required,min=1"`
-		Limit         int32   `query:"limit" validate:"required,min=5,max=100"`
-		ID            *string `query:"id"`
-		PrivateIP     *string `query:"private_ip"`
-		CreatedAtFrom *int64  `query:"created_at_from"`
-		CreatedAtTo   *int64  `query:"created_at_to"`
-	}
-
+	var req ListNetworksRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	networks, err := h.instanceSvc.ListNetworks(c.Request().Context(), instancesvc.ListNetworksParams{
+	networks, err := h.service.ListNetworks(c.Request().Context(), instancesvc.ListNetworksParams{
 		PaginationParams: pagination.PaginationParams{
 			Page:  req.Page,
 			Limit: req.Limit,
@@ -60,83 +63,86 @@ func (h *EchoHandler) ListNetworks(c echo.Context) error {
 		CreatedAtTo:   req.CreatedAtTo,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, networks)
+	return response.FromPaginate(c.Response().Writer, networks)
+}
+
+type CreateNetworkRequest struct {
+	ID        string `json:"id" validate:"required,min=1,max=255"`
+	PrivateIP string `json:"private_ip" validate:"required,ip"`
 }
 
 func (h *EchoHandler) CreateNetwork(c echo.Context) error {
-	var req struct {
-		ID        string `json:"id" validate:"required,min=1,max=255"`
-		PrivateIP string `json:"private_ip" validate:"required,ip"`
-	}
-
+	var req CreateNetworkRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	network, err := h.instanceSvc.CreateNetwork(c.Request().Context(), instancesvc.CreateNetworkParams{
+	network, err := h.service.CreateNetwork(c.Request().Context(), instancesvc.CreateNetworkParams{
 		ID:        req.ID,
 		PrivateIP: req.PrivateIP,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, network)
+	return response.FromDTO(c.Response().Writer, http.StatusCreated, network)
+}
+
+type UpdateNetworkRequest struct {
+	ID        string  `param:"id" validate:"required,min=1,max=255"`
+	NewID     *string `json:"new_id"`
+	PrivateIP *string `json:"private_ip"`
 }
 
 func (h *EchoHandler) UpdateNetwork(c echo.Context) error {
-	var req struct {
-		ID        string  `param:"id" validate:"required,min=1,max=255"`
-		NewID     *string `json:"new_id"`
-		PrivateIP *string `json:"private_ip"`
-	}
-
+	var req UpdateNetworkRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	network, err := h.instanceSvc.UpdateNetwork(c.Request().Context(), instancesvc.UpdateNetworkParams{
+	network, err := h.service.UpdateNetwork(c.Request().Context(), instancesvc.UpdateNetworkParams{
 		ID:        req.ID,
 		NewID:     req.NewID,
 		PrivateIP: req.PrivateIP,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, network)
+	return response.FromDTO(c.Response().Writer, http.StatusOK, network)
+}
+
+type DeleteNetworkRequest struct {
+	ID string `param:"id" validate:"required,min=1,max=255"`
 }
 
 func (h *EchoHandler) DeleteNetwork(c echo.Context) error {
-	var req struct {
-		ID string `param:"id" validate:"required,min=1,max=255"`
-	}
-
+	var req DeleteNetworkRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request")
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	err := h.instanceSvc.DeleteNetwork(c.Request().Context(), instancesvc.DeleteNetworkParams{
+	err := h.service.DeleteNetwork(c.Request().Context(), instancesvc.DeleteNetworkParams{
 		ID: req.ID,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return response.FromMessage(c.Response().Writer, http.StatusOK, "Network deleted successfully")
 }
