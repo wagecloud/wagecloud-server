@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package instance.v1;
+
+import "instance/v1/instance.proto";
+import "instance/v1/network.proto";
+
+// Instance service definition
+service InstanceService {
+  // Get instance by ID
+  rpc GetInstance(GetInstanceRequest) returns (Instance) {}
+
+  // List instances
+  rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse) {}
+
+  // Create instance
+  rpc CreateInstance(CreateInstanceRequest) returns (Instance) {}
+
+  // Update instance
+  rpc UpdateInstance(UpdateInstanceRequest) returns (Instance) {}
+
+  // Delete instance
+  rpc DeleteInstance(DeleteInstanceRequest) returns (DeleteInstanceResponse) {}
+
+  // Start instance
+  rpc StartInstance(StartInstanceRequest) returns (StartInstanceResponse) {}
+
+  // Stop instance
+  rpc StopInstance(StopInstanceRequest) returns (StopInstanceResponse) {}
+
+  // Get network by ID
+  rpc GetNetwork(GetNetworkRequest) returns (Network) {}
+
+  // List networks
+  rpc ListNetworks(ListNetworksRequest) returns (ListNetworksResponse) {}
+
+  // Create network
+  rpc CreateNetwork(CreateNetworkRequest) returns (Network) {}
+
+  // Update network
+  rpc UpdateNetwork(UpdateNetworkRequest) returns (Network) {}
+
+  // Delete network
+  rpc DeleteNetwork(DeleteNetworkRequest) returns (DeleteNetworkResponse) {}
+}

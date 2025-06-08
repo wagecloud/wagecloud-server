@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package common.v1;
+
+// Pagination parameters
+message PaginationParams {
+  int32 page = 1;
+  int32 limit = 2;
+}
+
+// Paginated response
+message PaginatedResponse {
+  int64 total = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int32 total_pages = 4;
+}
+
+// Error response
+message ErrorResponse {
+  string message = 1;
+  int32 code = 2;
+}
+
+// Empty response
+message Empty {}

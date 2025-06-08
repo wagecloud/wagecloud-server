@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package os.v1;
+
+import "common/v1/common.proto";
+
+// Get architecture request
+message GetArchitectureRequest {
+  string id = 1;
+}
+
+// Architecture message
+message GetArchitectureResponse {
+  string id = 1;
+  string name = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+}
+
+// List architectures request
+message ListArchitecturesRequest {
+  common.v1.PaginationParams pagination = 1;
+  optional string id = 2;
+  optional string name = 3;
+  optional int64 created_at_from = 4;
+  optional int64 created_at_to = 5;
+}
+
+// List architectures response
+message ListArchitecturesResponse {
+  repeated GetArchitectureResponse architectures = 1;
+  common.v1.PaginatedResponse pagination = 2;
+}
+
+// Create architecture request
+message CreateArchitectureRequest {
+  string id = 1;
+  string name = 2;
+}
+
+// Create architecture response
+message CreateArchitectureResponse {
+  GetArchitectureResponse architecture = 1;
+}
+
+// Update architecture request
+message UpdateArchitectureRequest {
+  string id = 1;
+  optional string new_id = 2;
+  optional string name = 3;
+}
+
+// Update architecture response
+message UpdateArchitectureResponse {
+  GetArchitectureResponse architecture = 1;
+}
+
+// Delete architecture request
+message DeleteArchitectureRequest {
+  string id = 1;
+}
+
+// Delete architecture response
+message DeleteArchitectureResponse {}

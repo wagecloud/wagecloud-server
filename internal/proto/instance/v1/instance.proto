@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package instance.v1;
+
+import "common/v1/common.proto";
+
+// Instance message
+message Instance {
+  string id = 1;
+  string name = 2;
+  string network_id = 3;
+  string os_id = 4;
+  string arch_id = 5;
+  int64 cpu = 6;
+  int64 ram = 7;
+  int64 storage = 8;
+  int64 created_at = 9;
+  int64 updated_at = 10;
+}
+
+// Get instance request
+message GetInstanceRequest {
+  string id = 1;
+}
+
+// List instances request
+message ListInstancesRequest {
+  common.v1.PaginationParams pagination = 1;
+  optional string network_id = 2;
+  optional string os_id = 3;
+  optional string arch_id = 4;
+  optional string name = 5;
+  optional int64 cpu_from = 6;
+  optional int64 cpu_to = 7;
+  optional int64 ram_from = 8;
+  optional int64 ram_to = 9;
+  optional int64 storage_from = 10;
+  optional int64 storage_to = 11;
+  optional int64 created_at_from = 12;
+  optional int64 created_at_to = 13;
+}
+
+// List instances response
+message ListInstancesResponse {
+  repeated Instance instances = 1;
+  common.v1.PaginatedResponse pagination = 2;
+}
+
+// Create instance request
+message CreateInstanceRequest {
+  message Userdata {
+    string name = 1;
+    repeated string ssh_authorized_keys = 2;
+    string password = 3;
+  }
+  message Metadata {
+    string local_hostname = 1;
+  }
+  message Spec {
+    string os_id = 1;
+    string arch_id = 2;
+    int32 memory = 3;
+    int32 cpu = 4;
+    int32 storage = 5;
+  }
+  Userdata userdata = 1;
+  Metadata metadata = 2;
+  Spec spec = 3;
+}
+
+// Update instance request
+message UpdateInstanceRequest {
+  string id = 1;
+  optional string network_id = 2;
+  optional string os_id = 3;
+  optional string arch_id = 4;
+  optional string name = 5;
+  optional int64 cpu = 6;
+  optional int64 ram = 7;
+  optional int64 storage = 8;
+}
+
+// Update instance response
+message UpdateInstanceResponse {
+  Instance instance = 1;
+}
+
+// Delete instance request
+message DeleteInstanceRequest {
+  string id = 1;
+}
+
+// Delete instance response
+message DeleteInstanceResponse {}
+
+// Start instance request
+message StartInstanceRequest {
+  string id = 1;
+}
+
+// Start instance response
+message StartInstanceResponse {}
+
+// Stop instance request
+message StopInstanceRequest {
+  string id = 1;
+}
+
+// Stop instance response
+message StopInstanceResponse {}

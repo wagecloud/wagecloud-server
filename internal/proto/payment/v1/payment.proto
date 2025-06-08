@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package payment.v1;
+
+import "common/v1/common.proto";
+
+// Payment method enum
+enum PaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  PAYMENT_METHOD_VNPAY = 1;
+  PAYMENT_METHOD_MOMO = 2;
+  PAYMENT_METHOD_BANK_TRANSFER = 3;
+}
+
+// Payment status enum
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING = 1;
+  PAYMENT_STATUS_COMPLETED = 2;
+  PAYMENT_STATUS_FAILED = 3;
+  PAYMENT_STATUS_CANCELLED = 4;
+}
+
+// Payment message
+message Payment {
+  int64 id = 1;
+  int64 account_id = 2;
+  PaymentMethod method = 3;
+  PaymentStatus status = 4;
+  double total = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}
+
+// Get payment request
+message GetPaymentRequest {
+  int64 id = 1;
+}
+
+// List payments request
+message ListPaymentsRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  optional string id = 3;
+  optional int64 account_id = 4;
+  optional PaymentMethod method = 5;
+  optional PaymentStatus status = 6;
+  optional int64 date_created_from = 7;
+  optional int64 date_created_to = 8;
+}
+
+// List payments response
+message ListPaymentsResponse {
+  repeated Payment payments = 1;
+  common.v1.PaginatedResponse pagination = 2;
+}
+
+// Create payment request
+message CreatePaymentRequest {
+  PaymentMethod method = 1;
+  double total = 2;
+}
+
+// Update payment request
+message UpdatePaymentRequest {
+  int64 id = 1;
+  optional PaymentMethod method = 2;
+  optional PaymentStatus status = 3;
+  optional double total = 4;
+}
+
+// Delete payment request
+message DeletePaymentRequest {
+  int64 id = 1;
+}
+
+// Delete payment response
+message DeletePaymentResponse {}
+
+// Payment item message
+message PaymentItem {
+  int64 id = 1;
+  int64 payment_id = 2;
+  string name = 3;
+  int64 price = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+// Create payment item request
+message CreatePaymentItemRequest {
+  int64 payment_id = 1;
+  string name = 2;
+  int64 price = 3;
+}
+
+// VNPAY payment message
+message VNPAYPayment {
+  int64 id = 1;
+  string vnp_txn_ref = 2;
+  string vnp_order_info = 3;
+  string vnp_transaction_no = 4;
+  string vnp_transaction_date = 5;
+  string vnp_create_date = 6;
+  string vnp_ip_addr = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+// Create VNPAY payment request
+message CreateVNPAYPaymentRequest {
+  int64 id = 1;
+  string vnp_txn_ref = 2;
+  string vnp_order_info = 3;
+  string vnp_transaction_no = 4;
+  string vnp_transaction_date = 5;
+  string vnp_create_date = 6;
+  string vnp_ip_addr = 7;
+}
+
+// Payment service definition
+service PaymentService {
+  // Get payment by ID
+  rpc GetPayment(GetPaymentRequest) returns (Payment) {}
+
+  // List payments
+  rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse) {}
+
+  // Create payment
+  rpc CreatePayment(CreatePaymentRequest) returns (Payment) {}
+
+  // Update payment
+  rpc UpdatePayment(UpdatePaymentRequest) returns (Payment) {}
+
+  // Delete payment
+  rpc DeletePayment(DeletePaymentRequest) returns (DeletePaymentResponse) {}
+
+  // Create payment item
+  rpc CreatePaymentItem(CreatePaymentItemRequest) returns (PaymentItem) {}
+
+  // Create VNPAY payment
+  rpc CreateVNPAYPayment(CreateVNPAYPaymentRequest) returns (VNPAYPayment) {}
+}
