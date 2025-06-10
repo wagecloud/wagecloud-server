@@ -2,8 +2,7 @@
 SELECT instance.*
 FROM "instance"."base" instance
 WHERE (
-  id = $1 AND
-  (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL)
+  id = $1
 );
 
 -- name: CountInstances :one
@@ -63,14 +62,12 @@ SET
   ram = COALESCE(sqlc.narg('ram'), ram),
   storage = COALESCE(sqlc.narg('storage'), storage)
 WHERE (
-  id = $1 AND
-  (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL)
+  id = $1
 )
 RETURNING *;
 
 -- name: DeleteInstance :exec
 DELETE FROM "instance"."base"
 WHERE (
-  id = $1 AND
-  (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL)
+  id = $1
 );

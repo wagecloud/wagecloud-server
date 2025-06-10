@@ -24,7 +24,7 @@ import (
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
 	osstorage "github.com/wagecloud/wagecloud-server/internal/modules/os/storage"
 	osecho "github.com/wagecloud/wagecloud-server/internal/modules/os/transport/echo"
-	echovalidator "github.com/wagecloud/wagecloud-server/internal/shared/http/validator"
+	echovalidator "github.com/wagecloud/wagecloud-server/internal/shared/transport/http/validator"
 	"go.uber.org/zap"
 )
 
@@ -114,7 +114,7 @@ func setupModules() {
 
 	// Account
 	account := v1.Group("/account")
-	account.GET("/", accountHandler.GetAccount)
+	account.GET("/", accountHandler.GetUser)
 	account.POST("/login", accountHandler.LoginUser)
 	account.POST("/register", accountHandler.RegisterUser)
 

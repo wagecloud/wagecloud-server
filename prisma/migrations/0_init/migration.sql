@@ -11,7 +11,7 @@ CREATE SCHEMA IF NOT EXISTS "os";
 CREATE SCHEMA IF NOT EXISTS "payment";
 
 -- CreateEnum
-CREATE TYPE "account"."role" AS ENUM ('ADMIN', 'USER');
+CREATE TYPE "account"."role" AS ENUM ('ROLE_ADMIN', 'ROLE_USER');
 
 -- CreateEnum
 CREATE TYPE "payment"."method" AS ENUM ('VNPAY', 'MOMO');
