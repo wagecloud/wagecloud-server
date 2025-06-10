@@ -24,3 +24,11 @@ func Diff[T comparable](a, b []T) (added, removed []T) {
 
 	return added, removed
 }
+
+func Map[T, U any](slice []T, transform func(T) U) []U {
+	result := make([]U, len(slice))
+	for i, v := range slice {
+		result[i] = transform(v)
+	}
+	return result
+}
