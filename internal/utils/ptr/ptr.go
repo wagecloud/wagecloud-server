@@ -56,3 +56,23 @@ func BrandedToStringPtr[T ~string](b *T) *string {
 	str := string(*b)
 	return &str
 }
+
+// Convert transforms a pointer to type Source into a pointer to type Target
+// using the provided transformation function. If the input pointer is nil,
+// it returns nil without calling the transformation function.
+//
+// Example:
+//
+//	intPtr := &42
+//	strPtr := Convert(intPtr, strconv.Itoa)  // *string("42")
+//
+//	var nilInt *int
+//	nilStr := Convert(nilInt, strconv.Itoa)  // nil
+func Convert[Source any, Target any](ptr *Source, transform func(Source) Target) *Target {
+	if ptr == nil {
+		return nil
+	}
+
+	result := transform(*ptr)
+	return &result
+}
