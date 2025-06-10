@@ -51,8 +51,16 @@ func (s *ServiceImpl) ListArchs(ctx context.Context, params ListArchsParams) (re
 	}, nil
 }
 
-func (s *ServiceImpl) CreateArch(ctx context.Context, arch osmodel.Arch) (osmodel.Arch, error) {
-	return s.storage.CreateArch(ctx, arch)
+type CreateArchParams struct {
+	ID   string
+	Name string
+}
+
+func (s *ServiceImpl) CreateArch(ctx context.Context, params CreateArchParams) (osmodel.Arch, error) {
+	return s.storage.CreateArch(ctx, osmodel.Arch{
+		ID:   params.ID,
+		Name: params.Name,
+	})
 }
 
 type UpdateArchParams struct {

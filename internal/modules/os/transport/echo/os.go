@@ -5,8 +5,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
-	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
+	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
 
 type EchoHandler struct {

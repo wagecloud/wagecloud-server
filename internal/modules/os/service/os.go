@@ -23,7 +23,7 @@ type Service interface {
 	// Arch
 	GetArch(ctx context.Context, id string) (osmodel.Arch, error)
 	ListArchs(ctx context.Context, params ListArchsParams) (pagination.PaginateResult[osmodel.Arch], error)
-	CreateArch(ctx context.Context, arch osmodel.Arch) (osmodel.Arch, error)
+	CreateArch(ctx context.Context, arch CreateArchParams) (osmodel.Arch, error)
 	UpdateArch(ctx context.Context, params UpdateArchParams) (osmodel.Arch, error)
 	DeleteArch(ctx context.Context, id string) error
 }

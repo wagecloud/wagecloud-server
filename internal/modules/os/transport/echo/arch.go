@@ -4,10 +4,9 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	osmodel "github.com/wagecloud/wagecloud-server/internal/modules/os/model"
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
-	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
+	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
 
 type GetArchRequest struct {
@@ -83,7 +82,7 @@ func (h *EchoHandler) CreateArch(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	arch, err := h.service.CreateArch(c.Request().Context(), osmodel.Arch{
+	arch, err := h.service.CreateArch(c.Request().Context(), ossvc.CreateArchParams{
 		ID:   req.ID,
 		Name: req.Name,
 	})
