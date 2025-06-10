@@ -4,9 +4,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	accountmodel "github.com/wagecloud/wagecloud-server/internal/modules/account/model"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
-	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
+	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
 
 type EchoHandler struct {
@@ -17,12 +16,12 @@ func NewEchoHandler(service accountsvc.Service) *EchoHandler {
 	return &EchoHandler{service: service}
 }
 
-type GetAccountRequest struct {
+type GetUserRequest struct {
 	ID *int64 `param:"id" validate:"omitempty"`
 }
 
-func (h *EchoHandler) GetAccount(c echo.Context) error {
-	var req GetAccountRequest
+func (h *EchoHandler) GetUser(c echo.Context) error {
+	var req GetUserRequest
 	if err := c.Bind(&req); err != nil {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
@@ -36,7 +35,7 @@ func (h *EchoHandler) GetAccount(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	account, err := h.service.GetAccount(c.Request().Context(), accountsvc.GetAccountParams{
+	account, err := h.service.GetUser(c.Request().Context(), accountsvc.GetUserParams{
 		ID: &claims.AccountID,
 	})
 	if err != nil {
@@ -93,13 +92,11 @@ func (h *EchoHandler) RegisterUser(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	result, err := h.service.RegisterUser(c.Request().Context(), accountmodel.AccountUser{
-		AccountBase: accountmodel.AccountBase{
-			Username: req.Username,
-			Name:     req.Name,
-			Password: req.Password,
-		},
-		Email: req.Email,
+	result, err := h.service.RegisterUser(c.Request().Context(), accountsvc.RegisterUserParams{
+		Name:     req.Name,
+		Email:    req.Email,
+		Username: req.Username,
+		Password: req.Password,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)

@@ -5,9 +5,9 @@ import "github.com/golang-jwt/jwt/v5"
 type Role string
 
 const (
-	RoleAdmin Role = "ADMIN"
-	RoleStaff Role = "STAFF"
-	RoleUser  Role = "USER"
+	RoleAdmin Role = "ROLE_ADMIN"
+	RoleStaff Role = "ROLE_STAFF"
+	RoleUser  Role = "ROLE_USER"
 )
 
 type Account interface {
@@ -33,8 +33,20 @@ type AccountUser struct {
 	Email string `json:"email"` /* unique */
 }
 
+type AuthenticatedAccount struct {
+	AccountID int64 `json:"account_id"`
+	Role      Role  `json:"role"`
+}
+
 type Claims struct {
 	AccountID int64
 	Role      Role
 	jwt.RegisteredClaims
+}
+
+func (c *Claims) ToAuthenticatedAccount() AuthenticatedAccount {
+	return AuthenticatedAccount{
+		AccountID: c.AccountID,
+		Role:      c.Role,
+	}
 }

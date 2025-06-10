@@ -32,9 +32,9 @@ type ServiceImpl struct {
 }
 
 type Service interface {
-	GetAccount(ctx context.Context, params GetAccountParams) (accountmodel.AccountUser, error)
+	GetUser(ctx context.Context, params GetUserParams) (accountmodel.AccountUser, error)
 	LoginUser(ctx context.Context, params LoginUserParams) (LoginUserResult, error)
-	RegisterUser(ctx context.Context, account accountmodel.AccountUser) (RegisterUserResult, error)
+	RegisterUser(ctx context.Context, params RegisterUserParams) (RegisterUserResult, error)
 }
 
 func NewService(storage *accountstorage.Storage) Service {
@@ -43,14 +43,15 @@ func NewService(storage *accountstorage.Storage) Service {
 	}
 }
 
-type GetAccountParams struct {
+type GetUserParams struct {
+	Account  accountmodel.AuthenticatedAccount
 	ID       *int64
 	Username *string
 	Email    *string
 }
 
-func (s *ServiceImpl) GetAccount(ctx context.Context, params GetAccountParams) (accountmodel.AccountUser, error) {
-	account, err := s.storage.GetAccount(ctx, accountstorage.GetAccountParams{
+func (s *ServiceImpl) GetUser(ctx context.Context, params GetUserParams) (accountmodel.AccountUser, error) {
+	user, err := s.storage.GetUser(ctx, accountstorage.GetUserParams{
 		ID:       params.ID,
 		Username: params.Username,
 		Email:    params.Email,
@@ -59,9 +60,14 @@ func (s *ServiceImpl) GetAccount(ctx context.Context, params GetAccountParams) (
 		return accountmodel.AccountUser{}, err
 	}
 
-	return accountmodel.AccountUser{
-		AccountBase: account,
-	}, nil
+	if err := s.canAccess(ctx, canAccessParams{
+		Account:   params.Account,
+		AccountID: user.ID,
+	}); err != nil {
+		return accountmodel.AccountUser{}, err
+	}
+
+	return user, nil
 }
 
 type LoginUserParams struct {
@@ -105,36 +111,43 @@ func (s *ServiceImpl) LoginUser(ctx context.Context, params LoginUserParams) (Lo
 	}, nil
 }
 
+type RegisterUserParams struct {
+	Name     string
+	Email    string
+	Username string
+	Password string
+}
+
 type RegisterUserResult struct {
 	Token   string
 	Account accountmodel.AccountUser
 }
 
-func (s *ServiceImpl) RegisterUser(ctx context.Context, account accountmodel.AccountUser) (res RegisterUserResult, err error) {
+func (s *ServiceImpl) RegisterUser(ctx context.Context, params RegisterUserParams) (res RegisterUserResult, err error) {
 	txStorage, err := s.storage.BeginTx(ctx)
 	if err != nil {
 		return res, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer txStorage.Rollback(ctx)
 
-	// Role must set to USER
-	account.Role = accountmodel.RoleUser
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return res, fmt.Errorf("failed to hash password: %w", err)
 	}
-	// Set the hashed password in the account
-	account.Password = string(hashedPassword)
 
-	createdAccount, err := txStorage.CreateAccount(ctx, account.Base())
+	createdAccount, err := txStorage.CreateAccount(ctx, accountmodel.AccountBase{
+		Role:     accountmodel.RoleUser,
+		Name:     params.Name,
+		Username: params.Username,
+		Password: string(hashedPassword),
+	})
 	if err != nil {
 		return res, fmt.Errorf("failed to create account: %w", err)
 	}
 
 	createdUser, err := txStorage.CreateUser(ctx, accountmodel.AccountUser{
 		AccountBase: createdAccount,
-		Email:       account.Email,
+		Email:       params.Email,
 	})
 	if err != nil {
 		return res, fmt.Errorf("failed to create user: %w", err)
@@ -223,4 +236,21 @@ func GetClaims(r *http.Request) (claims accountmodel.Claims, err error) {
 
 	claimsCache.Set(token, claims, 5*60*time.Second)
 	return claims, nil
+}
+
+type canAccessParams struct {
+	Account   accountmodel.AuthenticatedAccount
+	AccountID int64
+}
+
+func (s *ServiceImpl) canAccess(_ context.Context, params canAccessParams) error {
+	if params.Account.Role == accountmodel.RoleAdmin {
+		return nil
+	}
+
+	if params.Account.AccountID == params.AccountID {
+		return nil
+	}
+
+	return fmt.Errorf("access denied: account %d cannot access account %d", params.Account.AccountID, params.AccountID)
 }
