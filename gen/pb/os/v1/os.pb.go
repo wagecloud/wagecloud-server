@@ -22,8 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// OS message
-type GetOSResponse struct {
+type OS struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
@@ -33,9 +32,75 @@ type GetOSResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *OS) Reset() {
+	*x = OS{}
+	mi := &file_os_v1_os_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OS) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OS) ProtoMessage() {}
+
+func (x *OS) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_os_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OS.ProtoReflect.Descriptor instead.
+func (*OS) Descriptor() ([]byte, []int) {
+	return file_os_v1_os_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *OS) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OS) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *OS) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *OS) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+// OS message
+type GetOSResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Os            *OS                    `protobuf:"bytes,1,opt,name=os,proto3" json:"os,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
 func (x *GetOSResponse) Reset() {
 	*x = GetOSResponse{}
-	mi := &file_os_v1_os_proto_msgTypes[0]
+	mi := &file_os_v1_os_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -47,7 +112,7 @@ func (x *GetOSResponse) String() string {
 func (*GetOSResponse) ProtoMessage() {}
 
 func (x *GetOSResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[0]
+	mi := &file_os_v1_os_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,35 +125,14 @@ func (x *GetOSResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOSResponse.ProtoReflect.Descriptor instead.
 func (*GetOSResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{0}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetOSResponse) GetId() string {
+func (x *GetOSResponse) GetOs() *OS {
 	if x != nil {
-		return x.Id
+		return x.Os
 	}
-	return ""
-}
-
-func (x *GetOSResponse) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *GetOSResponse) GetCreatedAt() int64 {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return 0
-}
-
-func (x *GetOSResponse) GetUpdatedAt() int64 {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return 0
+	return nil
 }
 
 // Get OS request
@@ -101,7 +145,7 @@ type GetOSRequest struct {
 
 func (x *GetOSRequest) Reset() {
 	*x = GetOSRequest{}
-	mi := &file_os_v1_os_proto_msgTypes[1]
+	mi := &file_os_v1_os_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -113,7 +157,7 @@ func (x *GetOSRequest) String() string {
 func (*GetOSRequest) ProtoMessage() {}
 
 func (x *GetOSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[1]
+	mi := &file_os_v1_os_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -126,7 +170,7 @@ func (x *GetOSRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOSRequest.ProtoReflect.Descriptor instead.
 func (*GetOSRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{1}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetOSRequest) GetId() string {
@@ -149,7 +193,7 @@ type ListOSsRequest struct {
 
 func (x *ListOSsRequest) Reset() {
 	*x = ListOSsRequest{}
-	mi := &file_os_v1_os_proto_msgTypes[2]
+	mi := &file_os_v1_os_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -161,7 +205,7 @@ func (x *ListOSsRequest) String() string {
 func (*ListOSsRequest) ProtoMessage() {}
 
 func (x *ListOSsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[2]
+	mi := &file_os_v1_os_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,7 +218,7 @@ func (x *ListOSsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOSsRequest.ProtoReflect.Descriptor instead.
 func (*ListOSsRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{2}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ListOSsRequest) GetPagination() *v1.PaginationParams {
@@ -208,15 +252,15 @@ func (x *ListOSsRequest) GetCreatedAtTo() int64 {
 // List OSs response
 type ListOSsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Oss           []*GetOSResponse       `protobuf:"bytes,1,rep,name=oss,proto3" json:"oss,omitempty"`
-	Pagination    *v1.PaginatedResponse  `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Oss           []*OS                  `protobuf:"bytes,1,rep,name=oss,proto3" json:"oss,omitempty"`
+	Pagination    *v1.PaginateResult     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListOSsResponse) Reset() {
 	*x = ListOSsResponse{}
-	mi := &file_os_v1_os_proto_msgTypes[3]
+	mi := &file_os_v1_os_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -228,7 +272,7 @@ func (x *ListOSsResponse) String() string {
 func (*ListOSsResponse) ProtoMessage() {}
 
 func (x *ListOSsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[3]
+	mi := &file_os_v1_os_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -241,17 +285,17 @@ func (x *ListOSsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOSsResponse.ProtoReflect.Descriptor instead.
 func (*ListOSsResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{3}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ListOSsResponse) GetOss() []*GetOSResponse {
+func (x *ListOSsResponse) GetOss() []*OS {
 	if x != nil {
 		return x.Oss
 	}
 	return nil
 }
 
-func (x *ListOSsResponse) GetPagination() *v1.PaginatedResponse {
+func (x *ListOSsResponse) GetPagination() *v1.PaginateResult {
 	if x != nil {
 		return x.Pagination
 	}
@@ -269,7 +313,7 @@ type CreateOSRequest struct {
 
 func (x *CreateOSRequest) Reset() {
 	*x = CreateOSRequest{}
-	mi := &file_os_v1_os_proto_msgTypes[4]
+	mi := &file_os_v1_os_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +325,7 @@ func (x *CreateOSRequest) String() string {
 func (*CreateOSRequest) ProtoMessage() {}
 
 func (x *CreateOSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[4]
+	mi := &file_os_v1_os_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +338,7 @@ func (x *CreateOSRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOSRequest.ProtoReflect.Descriptor instead.
 func (*CreateOSRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{4}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateOSRequest) GetId() string {
@@ -314,14 +358,14 @@ func (x *CreateOSRequest) GetName() string {
 // Create OS response
 type CreateOSResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Os            *GetOSResponse         `protobuf:"bytes,1,opt,name=os,proto3" json:"os,omitempty"`
+	Os            *OS                    `protobuf:"bytes,1,opt,name=os,proto3" json:"os,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOSResponse) Reset() {
 	*x = CreateOSResponse{}
-	mi := &file_os_v1_os_proto_msgTypes[5]
+	mi := &file_os_v1_os_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -333,7 +377,7 @@ func (x *CreateOSResponse) String() string {
 func (*CreateOSResponse) ProtoMessage() {}
 
 func (x *CreateOSResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[5]
+	mi := &file_os_v1_os_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -346,10 +390,10 @@ func (x *CreateOSResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOSResponse.ProtoReflect.Descriptor instead.
 func (*CreateOSResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{5}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *CreateOSResponse) GetOs() *GetOSResponse {
+func (x *CreateOSResponse) GetOs() *OS {
 	if x != nil {
 		return x.Os
 	}
@@ -368,7 +412,7 @@ type UpdateOSRequest struct {
 
 func (x *UpdateOSRequest) Reset() {
 	*x = UpdateOSRequest{}
-	mi := &file_os_v1_os_proto_msgTypes[6]
+	mi := &file_os_v1_os_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -380,7 +424,7 @@ func (x *UpdateOSRequest) String() string {
 func (*UpdateOSRequest) ProtoMessage() {}
 
 func (x *UpdateOSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[6]
+	mi := &file_os_v1_os_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -393,7 +437,7 @@ func (x *UpdateOSRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOSRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOSRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{6}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateOSRequest) GetId() string {
@@ -420,14 +464,14 @@ func (x *UpdateOSRequest) GetName() string {
 // Update OS response
 type UpdateOSResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Os            *GetOSResponse         `protobuf:"bytes,1,opt,name=os,proto3" json:"os,omitempty"`
+	Os            *OS                    `protobuf:"bytes,1,opt,name=os,proto3" json:"os,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateOSResponse) Reset() {
 	*x = UpdateOSResponse{}
-	mi := &file_os_v1_os_proto_msgTypes[7]
+	mi := &file_os_v1_os_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -439,7 +483,7 @@ func (x *UpdateOSResponse) String() string {
 func (*UpdateOSResponse) ProtoMessage() {}
 
 func (x *UpdateOSResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[7]
+	mi := &file_os_v1_os_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -452,10 +496,10 @@ func (x *UpdateOSResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOSResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOSResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{7}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *UpdateOSResponse) GetOs() *GetOSResponse {
+func (x *UpdateOSResponse) GetOs() *OS {
 	if x != nil {
 		return x.Os
 	}
@@ -472,7 +516,7 @@ type DeleteOSRequest struct {
 
 func (x *DeleteOSRequest) Reset() {
 	*x = DeleteOSRequest{}
-	mi := &file_os_v1_os_proto_msgTypes[8]
+	mi := &file_os_v1_os_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -484,7 +528,7 @@ func (x *DeleteOSRequest) String() string {
 func (*DeleteOSRequest) ProtoMessage() {}
 
 func (x *DeleteOSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[8]
+	mi := &file_os_v1_os_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -497,7 +541,7 @@ func (x *DeleteOSRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOSRequest.ProtoReflect.Descriptor instead.
 func (*DeleteOSRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{8}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteOSRequest) GetId() string {
@@ -516,7 +560,7 @@ type DeleteOSResponse struct {
 
 func (x *DeleteOSResponse) Reset() {
 	*x = DeleteOSResponse{}
-	mi := &file_os_v1_os_proto_msgTypes[9]
+	mi := &file_os_v1_os_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -528,7 +572,7 @@ func (x *DeleteOSResponse) String() string {
 func (*DeleteOSResponse) ProtoMessage() {}
 
 func (x *DeleteOSResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_os_proto_msgTypes[9]
+	mi := &file_os_v1_os_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -541,21 +585,23 @@ func (x *DeleteOSResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOSResponse.ProtoReflect.Descriptor instead.
 func (*DeleteOSResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_os_proto_rawDescGZIP(), []int{9}
+	return file_os_v1_os_proto_rawDescGZIP(), []int{10}
 }
 
 var File_os_v1_os_proto protoreflect.FileDescriptor
 
 const file_os_v1_os_proto_rawDesc = "" +
 	"\n" +
-	"\x0eos/v1/os.proto\x12\x05os.v1\x1a\x16common/v1/common.proto\"q\n" +
-	"\rGetOSResponse\x12\x0e\n" +
+	"\x0eos/v1/os.proto\x12\x05os.v1\x1a\x16common/v1/common.proto\"f\n" +
+	"\x02OS\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x03 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"\x1e\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"*\n" +
+	"\rGetOSResponse\x12\x19\n" +
+	"\x02os\x18\x01 \x01(\v2\t.os.v1.OSR\x02os\"\x1e\n" +
 	"\fGetOSRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\xeb\x01\n" +
 	"\x0eListOSsRequest\x12;\n" +
@@ -567,25 +613,25 @@ const file_os_v1_os_proto_rawDesc = "" +
 	"\rcreated_at_to\x18\x04 \x01(\x03H\x02R\vcreatedAtTo\x88\x01\x01B\a\n" +
 	"\x05_nameB\x12\n" +
 	"\x10_created_at_fromB\x10\n" +
-	"\x0e_created_at_to\"w\n" +
-	"\x0fListOSsResponse\x12&\n" +
-	"\x03oss\x18\x01 \x03(\v2\x14.os.v1.GetOSResponseR\x03oss\x12<\n" +
+	"\x0e_created_at_to\"i\n" +
+	"\x0fListOSsResponse\x12\x1b\n" +
+	"\x03oss\x18\x01 \x03(\v2\t.os.v1.OSR\x03oss\x129\n" +
 	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1c.common.v1.PaginatedResponseR\n" +
+	"pagination\x18\x02 \x01(\v2\x19.common.v1.PaginateResultR\n" +
 	"pagination\"5\n" +
 	"\x0fCreateOSRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"8\n" +
-	"\x10CreateOSResponse\x12$\n" +
-	"\x02os\x18\x01 \x01(\v2\x14.os.v1.GetOSResponseR\x02os\"j\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"-\n" +
+	"\x10CreateOSResponse\x12\x19\n" +
+	"\x02os\x18\x01 \x01(\v2\t.os.v1.OSR\x02os\"j\n" +
 	"\x0fUpdateOSRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\x06new_id\x18\x02 \x01(\tH\x00R\x05newId\x88\x01\x01\x12\x17\n" +
 	"\x04name\x18\x03 \x01(\tH\x01R\x04name\x88\x01\x01B\t\n" +
 	"\a_new_idB\a\n" +
-	"\x05_name\"8\n" +
-	"\x10UpdateOSResponse\x12$\n" +
-	"\x02os\x18\x01 \x01(\v2\x14.os.v1.GetOSResponseR\x02os\"!\n" +
+	"\x05_name\"-\n" +
+	"\x10UpdateOSResponse\x12\x19\n" +
+	"\x02os\x18\x01 \x01(\v2\t.os.v1.OSR\x02os\"!\n" +
 	"\x0fDeleteOSRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x12\n" +
 	"\x10DeleteOSResponseB\x82\x01\n" +
@@ -603,32 +649,34 @@ func file_os_v1_os_proto_rawDescGZIP() []byte {
 	return file_os_v1_os_proto_rawDescData
 }
 
-var file_os_v1_os_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_os_v1_os_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_os_v1_os_proto_goTypes = []any{
-	(*GetOSResponse)(nil),        // 0: os.v1.GetOSResponse
-	(*GetOSRequest)(nil),         // 1: os.v1.GetOSRequest
-	(*ListOSsRequest)(nil),       // 2: os.v1.ListOSsRequest
-	(*ListOSsResponse)(nil),      // 3: os.v1.ListOSsResponse
-	(*CreateOSRequest)(nil),      // 4: os.v1.CreateOSRequest
-	(*CreateOSResponse)(nil),     // 5: os.v1.CreateOSResponse
-	(*UpdateOSRequest)(nil),      // 6: os.v1.UpdateOSRequest
-	(*UpdateOSResponse)(nil),     // 7: os.v1.UpdateOSResponse
-	(*DeleteOSRequest)(nil),      // 8: os.v1.DeleteOSRequest
-	(*DeleteOSResponse)(nil),     // 9: os.v1.DeleteOSResponse
-	(*v1.PaginationParams)(nil),  // 10: common.v1.PaginationParams
-	(*v1.PaginatedResponse)(nil), // 11: common.v1.PaginatedResponse
+	(*OS)(nil),                  // 0: os.v1.OS
+	(*GetOSResponse)(nil),       // 1: os.v1.GetOSResponse
+	(*GetOSRequest)(nil),        // 2: os.v1.GetOSRequest
+	(*ListOSsRequest)(nil),      // 3: os.v1.ListOSsRequest
+	(*ListOSsResponse)(nil),     // 4: os.v1.ListOSsResponse
+	(*CreateOSRequest)(nil),     // 5: os.v1.CreateOSRequest
+	(*CreateOSResponse)(nil),    // 6: os.v1.CreateOSResponse
+	(*UpdateOSRequest)(nil),     // 7: os.v1.UpdateOSRequest
+	(*UpdateOSResponse)(nil),    // 8: os.v1.UpdateOSResponse
+	(*DeleteOSRequest)(nil),     // 9: os.v1.DeleteOSRequest
+	(*DeleteOSResponse)(nil),    // 10: os.v1.DeleteOSResponse
+	(*v1.PaginationParams)(nil), // 11: common.v1.PaginationParams
+	(*v1.PaginateResult)(nil),   // 12: common.v1.PaginateResult
 }
 var file_os_v1_os_proto_depIdxs = []int32{
-	10, // 0: os.v1.ListOSsRequest.pagination:type_name -> common.v1.PaginationParams
-	0,  // 1: os.v1.ListOSsResponse.oss:type_name -> os.v1.GetOSResponse
-	11, // 2: os.v1.ListOSsResponse.pagination:type_name -> common.v1.PaginatedResponse
-	0,  // 3: os.v1.CreateOSResponse.os:type_name -> os.v1.GetOSResponse
-	0,  // 4: os.v1.UpdateOSResponse.os:type_name -> os.v1.GetOSResponse
-	5,  // [5:5] is the sub-list for method output_type
-	5,  // [5:5] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	0,  // 0: os.v1.GetOSResponse.os:type_name -> os.v1.OS
+	11, // 1: os.v1.ListOSsRequest.pagination:type_name -> common.v1.PaginationParams
+	0,  // 2: os.v1.ListOSsResponse.oss:type_name -> os.v1.OS
+	12, // 3: os.v1.ListOSsResponse.pagination:type_name -> common.v1.PaginateResult
+	0,  // 4: os.v1.CreateOSResponse.os:type_name -> os.v1.OS
+	0,  // 5: os.v1.UpdateOSResponse.os:type_name -> os.v1.OS
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_os_v1_os_proto_init() }
@@ -636,15 +684,15 @@ func file_os_v1_os_proto_init() {
 	if File_os_v1_os_proto != nil {
 		return
 	}
-	file_os_v1_os_proto_msgTypes[2].OneofWrappers = []any{}
-	file_os_v1_os_proto_msgTypes[6].OneofWrappers = []any{}
+	file_os_v1_os_proto_msgTypes[3].OneofWrappers = []any{}
+	file_os_v1_os_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_os_v1_os_proto_rawDesc), len(file_os_v1_os_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

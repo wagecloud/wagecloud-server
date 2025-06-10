@@ -24,41 +24,44 @@ var File_os_v1_service_proto protoreflect.FileDescriptor
 
 const file_os_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x13os/v1/service.proto\x12\x05os.v1\x1a\x0eos/v1/os.proto\x1a\x10os/v1/arch.proto2\xff\x05\n" +
+	"\x13os/v1/service.proto\x12\x05os.v1\x1a\x0eos/v1/os.proto\x1a\x10os/v1/arch.proto2\x87\x05\n" +
 	"\tOSService\x124\n" +
 	"\x05GetOS\x12\x13.os.v1.GetOSRequest\x1a\x14.os.v1.GetOSResponse\"\x00\x12:\n" +
 	"\aListOSs\x12\x15.os.v1.ListOSsRequest\x1a\x16.os.v1.ListOSsResponse\"\x00\x12=\n" +
 	"\bCreateOS\x12\x16.os.v1.CreateOSRequest\x1a\x17.os.v1.CreateOSResponse\"\x00\x12=\n" +
 	"\bUpdateOS\x12\x16.os.v1.UpdateOSRequest\x1a\x17.os.v1.UpdateOSResponse\"\x00\x12=\n" +
-	"\bDeleteOS\x12\x16.os.v1.DeleteOSRequest\x1a\x17.os.v1.DeleteOSResponse\"\x00\x12R\n" +
-	"\x0fGetArchitecture\x12\x1d.os.v1.GetArchitectureRequest\x1a\x1e.os.v1.GetArchitectureResponse\"\x00\x12X\n" +
-	"\x11ListArchitectures\x12\x1f.os.v1.ListArchitecturesRequest\x1a .os.v1.ListArchitecturesResponse\"\x00\x12[\n" +
-	"\x12CreateArchitecture\x12 .os.v1.CreateArchitectureRequest\x1a!.os.v1.CreateArchitectureResponse\"\x00\x12[\n" +
-	"\x12UpdateArchitecture\x12 .os.v1.UpdateArchitectureRequest\x1a!.os.v1.UpdateArchitectureResponse\"\x00\x12[\n" +
-	"\x12DeleteArchitecture\x12 .os.v1.DeleteArchitectureRequest\x1a!.os.v1.DeleteArchitectureResponse\"\x00B\x87\x01\n" +
+	"\bDeleteOS\x12\x16.os.v1.DeleteOSRequest\x1a\x17.os.v1.DeleteOSResponse\"\x00\x12:\n" +
+	"\aGetArch\x12\x15.os.v1.GetArchRequest\x1a\x16.os.v1.GetArchResponse\"\x00\x12@\n" +
+	"\tListArchs\x12\x17.os.v1.ListArchsRequest\x1a\x18.os.v1.ListArchsResponse\"\x00\x12C\n" +
+	"\n" +
+	"CreateArch\x12\x18.os.v1.CreateArchRequest\x1a\x19.os.v1.CreateArchResponse\"\x00\x12C\n" +
+	"\n" +
+	"UpdateArch\x12\x18.os.v1.UpdateArchRequest\x1a\x19.os.v1.UpdateArchResponse\"\x00\x12C\n" +
+	"\n" +
+	"DeleteArch\x12\x18.os.v1.DeleteArchRequest\x1a\x19.os.v1.DeleteArchResponse\"\x00B\x87\x01\n" +
 	"\tcom.os.v1B\fServiceProtoP\x01Z7github.com/wagecloud/wagecloud-server/gen/pb/os/v1;osv1\xa2\x02\x03OXX\xaa\x02\x05Os.V1\xca\x02\x05Os\\V1\xe2\x02\x11Os\\V1\\GPBMetadata\xea\x02\x06Os::V1b\x06proto3"
 
 var file_os_v1_service_proto_goTypes = []any{
-	(*GetOSRequest)(nil),               // 0: os.v1.GetOSRequest
-	(*ListOSsRequest)(nil),             // 1: os.v1.ListOSsRequest
-	(*CreateOSRequest)(nil),            // 2: os.v1.CreateOSRequest
-	(*UpdateOSRequest)(nil),            // 3: os.v1.UpdateOSRequest
-	(*DeleteOSRequest)(nil),            // 4: os.v1.DeleteOSRequest
-	(*GetArchitectureRequest)(nil),     // 5: os.v1.GetArchitectureRequest
-	(*ListArchitecturesRequest)(nil),   // 6: os.v1.ListArchitecturesRequest
-	(*CreateArchitectureRequest)(nil),  // 7: os.v1.CreateArchitectureRequest
-	(*UpdateArchitectureRequest)(nil),  // 8: os.v1.UpdateArchitectureRequest
-	(*DeleteArchitectureRequest)(nil),  // 9: os.v1.DeleteArchitectureRequest
-	(*GetOSResponse)(nil),              // 10: os.v1.GetOSResponse
-	(*ListOSsResponse)(nil),            // 11: os.v1.ListOSsResponse
-	(*CreateOSResponse)(nil),           // 12: os.v1.CreateOSResponse
-	(*UpdateOSResponse)(nil),           // 13: os.v1.UpdateOSResponse
-	(*DeleteOSResponse)(nil),           // 14: os.v1.DeleteOSResponse
-	(*GetArchitectureResponse)(nil),    // 15: os.v1.GetArchitectureResponse
-	(*ListArchitecturesResponse)(nil),  // 16: os.v1.ListArchitecturesResponse
-	(*CreateArchitectureResponse)(nil), // 17: os.v1.CreateArchitectureResponse
-	(*UpdateArchitectureResponse)(nil), // 18: os.v1.UpdateArchitectureResponse
-	(*DeleteArchitectureResponse)(nil), // 19: os.v1.DeleteArchitectureResponse
+	(*GetOSRequest)(nil),       // 0: os.v1.GetOSRequest
+	(*ListOSsRequest)(nil),     // 1: os.v1.ListOSsRequest
+	(*CreateOSRequest)(nil),    // 2: os.v1.CreateOSRequest
+	(*UpdateOSRequest)(nil),    // 3: os.v1.UpdateOSRequest
+	(*DeleteOSRequest)(nil),    // 4: os.v1.DeleteOSRequest
+	(*GetArchRequest)(nil),     // 5: os.v1.GetArchRequest
+	(*ListArchsRequest)(nil),   // 6: os.v1.ListArchsRequest
+	(*CreateArchRequest)(nil),  // 7: os.v1.CreateArchRequest
+	(*UpdateArchRequest)(nil),  // 8: os.v1.UpdateArchRequest
+	(*DeleteArchRequest)(nil),  // 9: os.v1.DeleteArchRequest
+	(*GetOSResponse)(nil),      // 10: os.v1.GetOSResponse
+	(*ListOSsResponse)(nil),    // 11: os.v1.ListOSsResponse
+	(*CreateOSResponse)(nil),   // 12: os.v1.CreateOSResponse
+	(*UpdateOSResponse)(nil),   // 13: os.v1.UpdateOSResponse
+	(*DeleteOSResponse)(nil),   // 14: os.v1.DeleteOSResponse
+	(*GetArchResponse)(nil),    // 15: os.v1.GetArchResponse
+	(*ListArchsResponse)(nil),  // 16: os.v1.ListArchsResponse
+	(*CreateArchResponse)(nil), // 17: os.v1.CreateArchResponse
+	(*UpdateArchResponse)(nil), // 18: os.v1.UpdateArchResponse
+	(*DeleteArchResponse)(nil), // 19: os.v1.DeleteArchResponse
 }
 var file_os_v1_service_proto_depIdxs = []int32{
 	0,  // 0: os.v1.OSService.GetOS:input_type -> os.v1.GetOSRequest
@@ -66,21 +69,21 @@ var file_os_v1_service_proto_depIdxs = []int32{
 	2,  // 2: os.v1.OSService.CreateOS:input_type -> os.v1.CreateOSRequest
 	3,  // 3: os.v1.OSService.UpdateOS:input_type -> os.v1.UpdateOSRequest
 	4,  // 4: os.v1.OSService.DeleteOS:input_type -> os.v1.DeleteOSRequest
-	5,  // 5: os.v1.OSService.GetArchitecture:input_type -> os.v1.GetArchitectureRequest
-	6,  // 6: os.v1.OSService.ListArchitectures:input_type -> os.v1.ListArchitecturesRequest
-	7,  // 7: os.v1.OSService.CreateArchitecture:input_type -> os.v1.CreateArchitectureRequest
-	8,  // 8: os.v1.OSService.UpdateArchitecture:input_type -> os.v1.UpdateArchitectureRequest
-	9,  // 9: os.v1.OSService.DeleteArchitecture:input_type -> os.v1.DeleteArchitectureRequest
+	5,  // 5: os.v1.OSService.GetArch:input_type -> os.v1.GetArchRequest
+	6,  // 6: os.v1.OSService.ListArchs:input_type -> os.v1.ListArchsRequest
+	7,  // 7: os.v1.OSService.CreateArch:input_type -> os.v1.CreateArchRequest
+	8,  // 8: os.v1.OSService.UpdateArch:input_type -> os.v1.UpdateArchRequest
+	9,  // 9: os.v1.OSService.DeleteArch:input_type -> os.v1.DeleteArchRequest
 	10, // 10: os.v1.OSService.GetOS:output_type -> os.v1.GetOSResponse
 	11, // 11: os.v1.OSService.ListOSs:output_type -> os.v1.ListOSsResponse
 	12, // 12: os.v1.OSService.CreateOS:output_type -> os.v1.CreateOSResponse
 	13, // 13: os.v1.OSService.UpdateOS:output_type -> os.v1.UpdateOSResponse
 	14, // 14: os.v1.OSService.DeleteOS:output_type -> os.v1.DeleteOSResponse
-	15, // 15: os.v1.OSService.GetArchitecture:output_type -> os.v1.GetArchitectureResponse
-	16, // 16: os.v1.OSService.ListArchitectures:output_type -> os.v1.ListArchitecturesResponse
-	17, // 17: os.v1.OSService.CreateArchitecture:output_type -> os.v1.CreateArchitectureResponse
-	18, // 18: os.v1.OSService.UpdateArchitecture:output_type -> os.v1.UpdateArchitectureResponse
-	19, // 19: os.v1.OSService.DeleteArchitecture:output_type -> os.v1.DeleteArchitectureResponse
+	15, // 15: os.v1.OSService.GetArch:output_type -> os.v1.GetArchResponse
+	16, // 16: os.v1.OSService.ListArchs:output_type -> os.v1.ListArchsResponse
+	17, // 17: os.v1.OSService.CreateArch:output_type -> os.v1.CreateArchResponse
+	18, // 18: os.v1.OSService.UpdateArch:output_type -> os.v1.UpdateArchResponse
+	19, // 19: os.v1.OSService.DeleteArch:output_type -> os.v1.DeleteArchResponse
 	10, // [10:20] is the sub-list for method output_type
 	0,  // [0:10] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name

@@ -59,19 +59,19 @@ const (
 // PaymentServiceClient is a client for the payment.v1.PaymentService service.
 type PaymentServiceClient interface {
 	// Get payment by ID
-	GetPayment(context.Context, *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.Payment], error)
+	GetPayment(context.Context, *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.GetPaymentResponse], error)
 	// List payments
 	ListPayments(context.Context, *connect.Request[v1.ListPaymentsRequest]) (*connect.Response[v1.ListPaymentsResponse], error)
 	// Create payment
-	CreatePayment(context.Context, *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.Payment], error)
+	CreatePayment(context.Context, *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.CreatePaymentResponse], error)
 	// Update payment
-	UpdatePayment(context.Context, *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.Payment], error)
+	UpdatePayment(context.Context, *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.UpdatePaymentResponse], error)
 	// Delete payment
 	DeletePayment(context.Context, *connect.Request[v1.DeletePaymentRequest]) (*connect.Response[v1.DeletePaymentResponse], error)
 	// Create payment item
-	CreatePaymentItem(context.Context, *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.PaymentItem], error)
+	CreatePaymentItem(context.Context, *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.CreatePaymentItemResponse], error)
 	// Create VNPAY payment
-	CreateVNPAYPayment(context.Context, *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.VNPAYPayment], error)
+	CreateVNPAYPayment(context.Context, *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.CreateVNPAYPaymentResponse], error)
 }
 
 // NewPaymentServiceClient constructs a client for the payment.v1.PaymentService service. By
@@ -85,7 +85,7 @@ func NewPaymentServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 	baseURL = strings.TrimRight(baseURL, "/")
 	paymentServiceMethods := v1.File_payment_v1_payment_proto.Services().ByName("PaymentService").Methods()
 	return &paymentServiceClient{
-		getPayment: connect.NewClient[v1.GetPaymentRequest, v1.Payment](
+		getPayment: connect.NewClient[v1.GetPaymentRequest, v1.GetPaymentResponse](
 			httpClient,
 			baseURL+PaymentServiceGetPaymentProcedure,
 			connect.WithSchema(paymentServiceMethods.ByName("GetPayment")),
@@ -97,13 +97,13 @@ func NewPaymentServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(paymentServiceMethods.ByName("ListPayments")),
 			connect.WithClientOptions(opts...),
 		),
-		createPayment: connect.NewClient[v1.CreatePaymentRequest, v1.Payment](
+		createPayment: connect.NewClient[v1.CreatePaymentRequest, v1.CreatePaymentResponse](
 			httpClient,
 			baseURL+PaymentServiceCreatePaymentProcedure,
 			connect.WithSchema(paymentServiceMethods.ByName("CreatePayment")),
 			connect.WithClientOptions(opts...),
 		),
-		updatePayment: connect.NewClient[v1.UpdatePaymentRequest, v1.Payment](
+		updatePayment: connect.NewClient[v1.UpdatePaymentRequest, v1.UpdatePaymentResponse](
 			httpClient,
 			baseURL+PaymentServiceUpdatePaymentProcedure,
 			connect.WithSchema(paymentServiceMethods.ByName("UpdatePayment")),
@@ -115,13 +115,13 @@ func NewPaymentServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(paymentServiceMethods.ByName("DeletePayment")),
 			connect.WithClientOptions(opts...),
 		),
-		createPaymentItem: connect.NewClient[v1.CreatePaymentItemRequest, v1.PaymentItem](
+		createPaymentItem: connect.NewClient[v1.CreatePaymentItemRequest, v1.CreatePaymentItemResponse](
 			httpClient,
 			baseURL+PaymentServiceCreatePaymentItemProcedure,
 			connect.WithSchema(paymentServiceMethods.ByName("CreatePaymentItem")),
 			connect.WithClientOptions(opts...),
 		),
-		createVNPAYPayment: connect.NewClient[v1.CreateVNPAYPaymentRequest, v1.VNPAYPayment](
+		createVNPAYPayment: connect.NewClient[v1.CreateVNPAYPaymentRequest, v1.CreateVNPAYPaymentResponse](
 			httpClient,
 			baseURL+PaymentServiceCreateVNPAYPaymentProcedure,
 			connect.WithSchema(paymentServiceMethods.ByName("CreateVNPAYPayment")),
@@ -132,17 +132,17 @@ func NewPaymentServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // paymentServiceClient implements PaymentServiceClient.
 type paymentServiceClient struct {
-	getPayment         *connect.Client[v1.GetPaymentRequest, v1.Payment]
+	getPayment         *connect.Client[v1.GetPaymentRequest, v1.GetPaymentResponse]
 	listPayments       *connect.Client[v1.ListPaymentsRequest, v1.ListPaymentsResponse]
-	createPayment      *connect.Client[v1.CreatePaymentRequest, v1.Payment]
-	updatePayment      *connect.Client[v1.UpdatePaymentRequest, v1.Payment]
+	createPayment      *connect.Client[v1.CreatePaymentRequest, v1.CreatePaymentResponse]
+	updatePayment      *connect.Client[v1.UpdatePaymentRequest, v1.UpdatePaymentResponse]
 	deletePayment      *connect.Client[v1.DeletePaymentRequest, v1.DeletePaymentResponse]
-	createPaymentItem  *connect.Client[v1.CreatePaymentItemRequest, v1.PaymentItem]
-	createVNPAYPayment *connect.Client[v1.CreateVNPAYPaymentRequest, v1.VNPAYPayment]
+	createPaymentItem  *connect.Client[v1.CreatePaymentItemRequest, v1.CreatePaymentItemResponse]
+	createVNPAYPayment *connect.Client[v1.CreateVNPAYPaymentRequest, v1.CreateVNPAYPaymentResponse]
 }
 
 // GetPayment calls payment.v1.PaymentService.GetPayment.
-func (c *paymentServiceClient) GetPayment(ctx context.Context, req *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.Payment], error) {
+func (c *paymentServiceClient) GetPayment(ctx context.Context, req *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.GetPaymentResponse], error) {
 	return c.getPayment.CallUnary(ctx, req)
 }
 
@@ -152,12 +152,12 @@ func (c *paymentServiceClient) ListPayments(ctx context.Context, req *connect.Re
 }
 
 // CreatePayment calls payment.v1.PaymentService.CreatePayment.
-func (c *paymentServiceClient) CreatePayment(ctx context.Context, req *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.Payment], error) {
+func (c *paymentServiceClient) CreatePayment(ctx context.Context, req *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.CreatePaymentResponse], error) {
 	return c.createPayment.CallUnary(ctx, req)
 }
 
 // UpdatePayment calls payment.v1.PaymentService.UpdatePayment.
-func (c *paymentServiceClient) UpdatePayment(ctx context.Context, req *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.Payment], error) {
+func (c *paymentServiceClient) UpdatePayment(ctx context.Context, req *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.UpdatePaymentResponse], error) {
 	return c.updatePayment.CallUnary(ctx, req)
 }
 
@@ -167,31 +167,31 @@ func (c *paymentServiceClient) DeletePayment(ctx context.Context, req *connect.R
 }
 
 // CreatePaymentItem calls payment.v1.PaymentService.CreatePaymentItem.
-func (c *paymentServiceClient) CreatePaymentItem(ctx context.Context, req *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.PaymentItem], error) {
+func (c *paymentServiceClient) CreatePaymentItem(ctx context.Context, req *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.CreatePaymentItemResponse], error) {
 	return c.createPaymentItem.CallUnary(ctx, req)
 }
 
 // CreateVNPAYPayment calls payment.v1.PaymentService.CreateVNPAYPayment.
-func (c *paymentServiceClient) CreateVNPAYPayment(ctx context.Context, req *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.VNPAYPayment], error) {
+func (c *paymentServiceClient) CreateVNPAYPayment(ctx context.Context, req *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.CreateVNPAYPaymentResponse], error) {
 	return c.createVNPAYPayment.CallUnary(ctx, req)
 }
 
 // PaymentServiceHandler is an implementation of the payment.v1.PaymentService service.
 type PaymentServiceHandler interface {
 	// Get payment by ID
-	GetPayment(context.Context, *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.Payment], error)
+	GetPayment(context.Context, *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.GetPaymentResponse], error)
 	// List payments
 	ListPayments(context.Context, *connect.Request[v1.ListPaymentsRequest]) (*connect.Response[v1.ListPaymentsResponse], error)
 	// Create payment
-	CreatePayment(context.Context, *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.Payment], error)
+	CreatePayment(context.Context, *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.CreatePaymentResponse], error)
 	// Update payment
-	UpdatePayment(context.Context, *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.Payment], error)
+	UpdatePayment(context.Context, *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.UpdatePaymentResponse], error)
 	// Delete payment
 	DeletePayment(context.Context, *connect.Request[v1.DeletePaymentRequest]) (*connect.Response[v1.DeletePaymentResponse], error)
 	// Create payment item
-	CreatePaymentItem(context.Context, *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.PaymentItem], error)
+	CreatePaymentItem(context.Context, *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.CreatePaymentItemResponse], error)
 	// Create VNPAY payment
-	CreateVNPAYPayment(context.Context, *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.VNPAYPayment], error)
+	CreateVNPAYPayment(context.Context, *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.CreateVNPAYPaymentResponse], error)
 }
 
 // NewPaymentServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -268,7 +268,7 @@ func NewPaymentServiceHandler(svc PaymentServiceHandler, opts ...connect.Handler
 // UnimplementedPaymentServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedPaymentServiceHandler struct{}
 
-func (UnimplementedPaymentServiceHandler) GetPayment(context.Context, *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.Payment], error) {
+func (UnimplementedPaymentServiceHandler) GetPayment(context.Context, *connect.Request[v1.GetPaymentRequest]) (*connect.Response[v1.GetPaymentResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("payment.v1.PaymentService.GetPayment is not implemented"))
 }
 
@@ -276,11 +276,11 @@ func (UnimplementedPaymentServiceHandler) ListPayments(context.Context, *connect
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("payment.v1.PaymentService.ListPayments is not implemented"))
 }
 
-func (UnimplementedPaymentServiceHandler) CreatePayment(context.Context, *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.Payment], error) {
+func (UnimplementedPaymentServiceHandler) CreatePayment(context.Context, *connect.Request[v1.CreatePaymentRequest]) (*connect.Response[v1.CreatePaymentResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("payment.v1.PaymentService.CreatePayment is not implemented"))
 }
 
-func (UnimplementedPaymentServiceHandler) UpdatePayment(context.Context, *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.Payment], error) {
+func (UnimplementedPaymentServiceHandler) UpdatePayment(context.Context, *connect.Request[v1.UpdatePaymentRequest]) (*connect.Response[v1.UpdatePaymentResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("payment.v1.PaymentService.UpdatePayment is not implemented"))
 }
 
@@ -288,10 +288,10 @@ func (UnimplementedPaymentServiceHandler) DeletePayment(context.Context, *connec
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("payment.v1.PaymentService.DeletePayment is not implemented"))
 }
 
-func (UnimplementedPaymentServiceHandler) CreatePaymentItem(context.Context, *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.PaymentItem], error) {
+func (UnimplementedPaymentServiceHandler) CreatePaymentItem(context.Context, *connect.Request[v1.CreatePaymentItemRequest]) (*connect.Response[v1.CreatePaymentItemResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("payment.v1.PaymentService.CreatePaymentItem is not implemented"))
 }
 
-func (UnimplementedPaymentServiceHandler) CreateVNPAYPayment(context.Context, *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.VNPAYPayment], error) {
+func (UnimplementedPaymentServiceHandler) CreateVNPAYPayment(context.Context, *connect.Request[v1.CreateVNPAYPaymentRequest]) (*connect.Response[v1.CreateVNPAYPaymentResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("payment.v1.PaymentService.CreateVNPAYPayment is not implemented"))
 }

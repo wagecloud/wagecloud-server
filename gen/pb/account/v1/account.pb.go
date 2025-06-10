@@ -21,83 +21,34 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Account role enum
-type Role int32
-
-const (
-	Role_ROLE_UNSPECIFIED Role = 0
-	Role_ROLE_USER        Role = 1
-	Role_ROLE_ADMIN       Role = 2
-)
-
-// Enum value maps for Role.
-var (
-	Role_name = map[int32]string{
-		0: "ROLE_UNSPECIFIED",
-		1: "ROLE_USER",
-		2: "ROLE_ADMIN",
-	}
-	Role_value = map[string]int32{
-		"ROLE_UNSPECIFIED": 0,
-		"ROLE_USER":        1,
-		"ROLE_ADMIN":       2,
-	}
-)
-
-func (x Role) Enum() *Role {
-	p := new(Role)
-	*p = x
-	return p
-}
-
-func (x Role) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Role) Descriptor() protoreflect.EnumDescriptor {
-	return file_account_v1_account_proto_enumTypes[0].Descriptor()
-}
-
-func (Role) Type() protoreflect.EnumType {
-	return &file_account_v1_account_proto_enumTypes[0]
-}
-
-func (x Role) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Role.Descriptor instead.
-func (Role) EnumDescriptor() ([]byte, []int) {
-	return file_account_v1_account_proto_rawDescGZIP(), []int{0}
-}
-
 // Account user message
-type GetAccountResponse struct {
+type Account struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	Role          Role                   `protobuf:"varint,4,opt,name=role,proto3,enum=account.v1.Role" json:"role,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	Role          Role                   `protobuf:"varint,5,opt,name=role,proto3,enum=account.v1.Role" json:"role,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetAccountResponse) Reset() {
-	*x = GetAccountResponse{}
+func (x *Account) Reset() {
+	*x = Account{}
 	mi := &file_account_v1_account_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetAccountResponse) String() string {
+func (x *Account) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetAccountResponse) ProtoMessage() {}
+func (*Account) ProtoMessage() {}
 
-func (x *GetAccountResponse) ProtoReflect() protoreflect.Message {
+func (x *Account) ProtoReflect() protoreflect.Message {
 	mi := &file_account_v1_account_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -109,47 +60,54 @@ func (x *GetAccountResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetAccountResponse.ProtoReflect.Descriptor instead.
-func (*GetAccountResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use Account.ProtoReflect.Descriptor instead.
+func (*Account) Descriptor() ([]byte, []int) {
 	return file_account_v1_account_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetAccountResponse) GetId() int64 {
+func (x *Account) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
 	return 0
 }
 
-func (x *GetAccountResponse) GetUsername() string {
+func (x *Account) GetUsername() string {
 	if x != nil {
 		return x.Username
 	}
 	return ""
 }
 
-func (x *GetAccountResponse) GetEmail() string {
+func (x *Account) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Account) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
 	return ""
 }
 
-func (x *GetAccountResponse) GetRole() Role {
+func (x *Account) GetRole() Role {
 	if x != nil {
 		return x.Role
 	}
 	return Role_ROLE_UNSPECIFIED
 }
 
-func (x *GetAccountResponse) GetCreatedAt() int64 {
+func (x *Account) GetCreatedAt() int64 {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return 0
 }
 
-func (x *GetAccountResponse) GetUpdatedAt() int64 {
+func (x *Account) GetUpdatedAt() int64 {
 	if x != nil {
 		return x.UpdatedAt
 	}
@@ -157,7 +115,7 @@ func (x *GetAccountResponse) GetUpdatedAt() int64 {
 }
 
 // Get account request
-type GetAccountRequest struct {
+type GetUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            *int64                 `protobuf:"varint,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
 	Username      *string                `protobuf:"bytes,2,opt,name=username,proto3,oneof" json:"username,omitempty"`
@@ -166,20 +124,20 @@ type GetAccountRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetAccountRequest) Reset() {
-	*x = GetAccountRequest{}
+func (x *GetUserRequest) Reset() {
+	*x = GetUserRequest{}
 	mi := &file_account_v1_account_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetAccountRequest) String() string {
+func (x *GetUserRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetAccountRequest) ProtoMessage() {}
+func (*GetUserRequest) ProtoMessage() {}
 
-func (x *GetAccountRequest) ProtoReflect() protoreflect.Message {
+func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_account_v1_account_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -191,30 +149,75 @@ func (x *GetAccountRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetAccountRequest.ProtoReflect.Descriptor instead.
-func (*GetAccountRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
+func (*GetUserRequest) Descriptor() ([]byte, []int) {
 	return file_account_v1_account_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetAccountRequest) GetId() int64 {
+func (x *GetUserRequest) GetId() int64 {
 	if x != nil && x.Id != nil {
 		return *x.Id
 	}
 	return 0
 }
 
-func (x *GetAccountRequest) GetUsername() string {
+func (x *GetUserRequest) GetUsername() string {
 	if x != nil && x.Username != nil {
 		return *x.Username
 	}
 	return ""
 }
 
-func (x *GetAccountRequest) GetEmail() string {
+func (x *GetUserRequest) GetEmail() string {
 	if x != nil && x.Email != nil {
 		return *x.Email
 	}
 	return ""
+}
+
+// Account response message
+type GetUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Account       *Account               `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserResponse) Reset() {
+	*x = GetUserResponse{}
+	mi := &file_account_v1_account_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserResponse) ProtoMessage() {}
+
+func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_account_v1_account_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
+func (*GetUserResponse) Descriptor() ([]byte, []int) {
+	return file_account_v1_account_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetUserResponse) GetAccount() *Account {
+	if x != nil {
+		return x.Account
+	}
+	return nil
 }
 
 // Login request
@@ -230,7 +233,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_account_v1_account_proto_msgTypes[2]
+	mi := &file_account_v1_account_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -242,7 +245,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_account_v1_account_proto_msgTypes[2]
+	mi := &file_account_v1_account_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +258,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_account_v1_account_proto_rawDescGZIP(), []int{2}
+	return file_account_v1_account_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *LoginRequest) GetId() int64 {
@@ -290,14 +293,14 @@ func (x *LoginRequest) GetPassword() string {
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	Account       *GetAccountResponse    `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	Account       *Account               `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_account_v1_account_proto_msgTypes[3]
+	mi := &file_account_v1_account_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -309,7 +312,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_account_v1_account_proto_msgTypes[3]
+	mi := &file_account_v1_account_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -322,7 +325,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_account_v1_account_proto_rawDescGZIP(), []int{3}
+	return file_account_v1_account_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *LoginResponse) GetToken() string {
@@ -332,7 +335,7 @@ func (x *LoginResponse) GetToken() string {
 	return ""
 }
 
-func (x *LoginResponse) GetAccount() *GetAccountResponse {
+func (x *LoginResponse) GetAccount() *Account {
 	if x != nil {
 		return x.Account
 	}
@@ -345,13 +348,14 @@ type RegisterRequest struct {
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterRequest) Reset() {
 	*x = RegisterRequest{}
-	mi := &file_account_v1_account_proto_msgTypes[4]
+	mi := &file_account_v1_account_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +367,7 @@ func (x *RegisterRequest) String() string {
 func (*RegisterRequest) ProtoMessage() {}
 
 func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_account_v1_account_proto_msgTypes[4]
+	mi := &file_account_v1_account_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,7 +380,7 @@ func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
 func (*RegisterRequest) Descriptor() ([]byte, []int) {
-	return file_account_v1_account_proto_rawDescGZIP(), []int{4}
+	return file_account_v1_account_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RegisterRequest) GetUsername() string {
@@ -400,18 +404,25 @@ func (x *RegisterRequest) GetEmail() string {
 	return ""
 }
 
+func (x *RegisterRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 // Register response
 type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	Account       *GetAccountResponse    `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	Account       *Account               `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterResponse) Reset() {
 	*x = RegisterResponse{}
-	mi := &file_account_v1_account_proto_msgTypes[5]
+	mi := &file_account_v1_account_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -423,7 +434,7 @@ func (x *RegisterResponse) String() string {
 func (*RegisterResponse) ProtoMessage() {}
 
 func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_account_v1_account_proto_msgTypes[5]
+	mi := &file_account_v1_account_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -436,7 +447,7 @@ func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
 func (*RegisterResponse) Descriptor() ([]byte, []int) {
-	return file_account_v1_account_proto_rawDescGZIP(), []int{5}
+	return file_account_v1_account_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RegisterResponse) GetToken() string {
@@ -446,7 +457,7 @@ func (x *RegisterResponse) GetToken() string {
 	return ""
 }
 
-func (x *RegisterResponse) GetAccount() *GetAccountResponse {
+func (x *RegisterResponse) GetAccount() *Account {
 	if x != nil {
 		return x.Account
 	}
@@ -458,23 +469,26 @@ var File_account_v1_account_proto protoreflect.FileDescriptor
 const file_account_v1_account_proto_rawDesc = "" +
 	"\n" +
 	"\x18account/v1/account.proto\x12\n" +
-	"account.v1\"\xba\x01\n" +
-	"\x12GetAccountResponse\x12\x0e\n" +
+	"account.v1\x1a\x17account/v1/common.proto\"\xc3\x01\n" +
+	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x12$\n" +
-	"\x04role\x18\x04 \x01(\x0e2\x10.account.v1.RoleR\x04role\x12\x1d\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12$\n" +
+	"\x04role\x18\x05 \x01(\x0e2\x10.account.v1.RoleR\x04role\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\x03R\tupdatedAt\"\x82\x01\n" +
-	"\x11GetAccountRequest\x12\x13\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\x7f\n" +
+	"\x0eGetUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\x03H\x00R\x02id\x88\x01\x01\x12\x1f\n" +
 	"\busername\x18\x02 \x01(\tH\x01R\busername\x88\x01\x01\x12\x19\n" +
 	"\x05email\x18\x03 \x01(\tH\x02R\x05email\x88\x01\x01B\x05\n" +
 	"\x03_idB\v\n" +
 	"\t_usernameB\b\n" +
-	"\x06_email\"\x99\x01\n" +
+	"\x06_email\"@\n" +
+	"\x0fGetUserResponse\x12-\n" +
+	"\aaccount\x18\x01 \x01(\v2\x13.account.v1.AccountR\aaccount\"\x99\x01\n" +
 	"\fLoginRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\x03H\x00R\x02id\x88\x01\x01\x12\x1f\n" +
 	"\busername\x18\x02 \x01(\tH\x01R\busername\x88\x01\x01\x12\x19\n" +
@@ -482,25 +496,20 @@ const file_account_v1_account_proto_rawDesc = "" +
 	"\bpassword\x18\x04 \x01(\tR\bpasswordB\x05\n" +
 	"\x03_idB\v\n" +
 	"\t_usernameB\b\n" +
-	"\x06_email\"_\n" +
+	"\x06_email\"T\n" +
 	"\rLoginResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\x128\n" +
-	"\aaccount\x18\x02 \x01(\v2\x1e.account.v1.GetAccountResponseR\aaccount\"_\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12-\n" +
+	"\aaccount\x18\x02 \x01(\v2\x13.account.v1.AccountR\aaccount\"s\n" +
 	"\x0fRegisterRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\"b\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\"W\n" +
 	"\x10RegisterResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\x128\n" +
-	"\aaccount\x18\x02 \x01(\v2\x1e.account.v1.GetAccountResponseR\aaccount*;\n" +
-	"\x04Role\x12\x14\n" +
-	"\x10ROLE_UNSPECIFIED\x10\x00\x12\r\n" +
-	"\tROLE_USER\x10\x01\x12\x0e\n" +
-	"\n" +
-	"ROLE_ADMIN\x10\x022\xe8\x01\n" +
-	"\x0eAccountService\x12M\n" +
-	"\n" +
-	"GetAccount\x12\x1d.account.v1.GetAccountRequest\x1a\x1e.account.v1.GetAccountResponse\"\x00\x12>\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12-\n" +
+	"\aaccount\x18\x02 \x01(\v2\x13.account.v1.AccountR\aaccount2\xdf\x01\n" +
+	"\x0eAccountService\x12D\n" +
+	"\aGetUser\x12\x1a.account.v1.GetUserRequest\x1a\x1b.account.v1.GetUserResponse\"\x00\x12>\n" +
 	"\x05Login\x12\x18.account.v1.LoginRequest\x1a\x19.account.v1.LoginResponse\"\x00\x12G\n" +
 	"\bRegister\x12\x1b.account.v1.RegisterRequest\x1a\x1c.account.v1.RegisterResponse\"\x00B\xaa\x01\n" +
 	"\x0ecom.account.v1B\fAccountProtoP\x01ZAgithub.com/wagecloud/wagecloud-server/gen/pb/account/v1;accountv1\xa2\x02\x03AXX\xaa\x02\n" +
@@ -519,32 +528,33 @@ func file_account_v1_account_proto_rawDescGZIP() []byte {
 	return file_account_v1_account_proto_rawDescData
 }
 
-var file_account_v1_account_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_account_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_account_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_account_v1_account_proto_goTypes = []any{
-	(Role)(0),                  // 0: account.v1.Role
-	(*GetAccountResponse)(nil), // 1: account.v1.GetAccountResponse
-	(*GetAccountRequest)(nil),  // 2: account.v1.GetAccountRequest
-	(*LoginRequest)(nil),       // 3: account.v1.LoginRequest
-	(*LoginResponse)(nil),      // 4: account.v1.LoginResponse
-	(*RegisterRequest)(nil),    // 5: account.v1.RegisterRequest
-	(*RegisterResponse)(nil),   // 6: account.v1.RegisterResponse
+	(*Account)(nil),          // 0: account.v1.Account
+	(*GetUserRequest)(nil),   // 1: account.v1.GetUserRequest
+	(*GetUserResponse)(nil),  // 2: account.v1.GetUserResponse
+	(*LoginRequest)(nil),     // 3: account.v1.LoginRequest
+	(*LoginResponse)(nil),    // 4: account.v1.LoginResponse
+	(*RegisterRequest)(nil),  // 5: account.v1.RegisterRequest
+	(*RegisterResponse)(nil), // 6: account.v1.RegisterResponse
+	(Role)(0),                // 7: account.v1.Role
 }
 var file_account_v1_account_proto_depIdxs = []int32{
-	0, // 0: account.v1.GetAccountResponse.role:type_name -> account.v1.Role
-	1, // 1: account.v1.LoginResponse.account:type_name -> account.v1.GetAccountResponse
-	1, // 2: account.v1.RegisterResponse.account:type_name -> account.v1.GetAccountResponse
-	2, // 3: account.v1.AccountService.GetAccount:input_type -> account.v1.GetAccountRequest
-	3, // 4: account.v1.AccountService.Login:input_type -> account.v1.LoginRequest
-	5, // 5: account.v1.AccountService.Register:input_type -> account.v1.RegisterRequest
-	1, // 6: account.v1.AccountService.GetAccount:output_type -> account.v1.GetAccountResponse
-	4, // 7: account.v1.AccountService.Login:output_type -> account.v1.LoginResponse
-	6, // 8: account.v1.AccountService.Register:output_type -> account.v1.RegisterResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	7, // 0: account.v1.Account.role:type_name -> account.v1.Role
+	0, // 1: account.v1.GetUserResponse.account:type_name -> account.v1.Account
+	0, // 2: account.v1.LoginResponse.account:type_name -> account.v1.Account
+	0, // 3: account.v1.RegisterResponse.account:type_name -> account.v1.Account
+	1, // 4: account.v1.AccountService.GetUser:input_type -> account.v1.GetUserRequest
+	3, // 5: account.v1.AccountService.Login:input_type -> account.v1.LoginRequest
+	5, // 6: account.v1.AccountService.Register:input_type -> account.v1.RegisterRequest
+	2, // 7: account.v1.AccountService.GetUser:output_type -> account.v1.GetUserResponse
+	4, // 8: account.v1.AccountService.Login:output_type -> account.v1.LoginResponse
+	6, // 9: account.v1.AccountService.Register:output_type -> account.v1.RegisterResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_account_v1_account_proto_init() }
@@ -552,21 +562,21 @@ func file_account_v1_account_proto_init() {
 	if File_account_v1_account_proto != nil {
 		return
 	}
+	file_account_v1_common_proto_init()
 	file_account_v1_account_proto_msgTypes[1].OneofWrappers = []any{}
-	file_account_v1_account_proto_msgTypes[2].OneofWrappers = []any{}
+	file_account_v1_account_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_account_v1_account_proto_rawDesc), len(file_account_v1_account_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   6,
+			NumEnums:      0,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_account_v1_account_proto_goTypes,
 		DependencyIndexes: file_account_v1_account_proto_depIdxs,
-		EnumInfos:         file_account_v1_account_proto_enumTypes,
 		MessageInfos:      file_account_v1_account_proto_msgTypes,
 	}.Build()
 	File_account_v1_account_proto = out.File

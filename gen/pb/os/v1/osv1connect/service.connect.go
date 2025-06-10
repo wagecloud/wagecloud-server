@@ -43,21 +43,16 @@ const (
 	OSServiceUpdateOSProcedure = "/os.v1.OSService/UpdateOS"
 	// OSServiceDeleteOSProcedure is the fully-qualified name of the OSService's DeleteOS RPC.
 	OSServiceDeleteOSProcedure = "/os.v1.OSService/DeleteOS"
-	// OSServiceGetArchitectureProcedure is the fully-qualified name of the OSService's GetArchitecture
-	// RPC.
-	OSServiceGetArchitectureProcedure = "/os.v1.OSService/GetArchitecture"
-	// OSServiceListArchitecturesProcedure is the fully-qualified name of the OSService's
-	// ListArchitectures RPC.
-	OSServiceListArchitecturesProcedure = "/os.v1.OSService/ListArchitectures"
-	// OSServiceCreateArchitectureProcedure is the fully-qualified name of the OSService's
-	// CreateArchitecture RPC.
-	OSServiceCreateArchitectureProcedure = "/os.v1.OSService/CreateArchitecture"
-	// OSServiceUpdateArchitectureProcedure is the fully-qualified name of the OSService's
-	// UpdateArchitecture RPC.
-	OSServiceUpdateArchitectureProcedure = "/os.v1.OSService/UpdateArchitecture"
-	// OSServiceDeleteArchitectureProcedure is the fully-qualified name of the OSService's
-	// DeleteArchitecture RPC.
-	OSServiceDeleteArchitectureProcedure = "/os.v1.OSService/DeleteArchitecture"
+	// OSServiceGetArchProcedure is the fully-qualified name of the OSService's GetArch RPC.
+	OSServiceGetArchProcedure = "/os.v1.OSService/GetArch"
+	// OSServiceListArchsProcedure is the fully-qualified name of the OSService's ListArchs RPC.
+	OSServiceListArchsProcedure = "/os.v1.OSService/ListArchs"
+	// OSServiceCreateArchProcedure is the fully-qualified name of the OSService's CreateArch RPC.
+	OSServiceCreateArchProcedure = "/os.v1.OSService/CreateArch"
+	// OSServiceUpdateArchProcedure is the fully-qualified name of the OSService's UpdateArch RPC.
+	OSServiceUpdateArchProcedure = "/os.v1.OSService/UpdateArch"
+	// OSServiceDeleteArchProcedure is the fully-qualified name of the OSService's DeleteArch RPC.
+	OSServiceDeleteArchProcedure = "/os.v1.OSService/DeleteArch"
 )
 
 // OSServiceClient is a client for the os.v1.OSService service.
@@ -72,16 +67,16 @@ type OSServiceClient interface {
 	UpdateOS(context.Context, *connect.Request[v1.UpdateOSRequest]) (*connect.Response[v1.UpdateOSResponse], error)
 	// Delete OS
 	DeleteOS(context.Context, *connect.Request[v1.DeleteOSRequest]) (*connect.Response[v1.DeleteOSResponse], error)
-	// Get architecture by ID
-	GetArchitecture(context.Context, *connect.Request[v1.GetArchitectureRequest]) (*connect.Response[v1.GetArchitectureResponse], error)
-	// List architectures
-	ListArchitectures(context.Context, *connect.Request[v1.ListArchitecturesRequest]) (*connect.Response[v1.ListArchitecturesResponse], error)
-	// Create architecture
-	CreateArchitecture(context.Context, *connect.Request[v1.CreateArchitectureRequest]) (*connect.Response[v1.CreateArchitectureResponse], error)
-	// Update architecture
-	UpdateArchitecture(context.Context, *connect.Request[v1.UpdateArchitectureRequest]) (*connect.Response[v1.UpdateArchitectureResponse], error)
-	// Delete architecture
-	DeleteArchitecture(context.Context, *connect.Request[v1.DeleteArchitectureRequest]) (*connect.Response[v1.DeleteArchitectureResponse], error)
+	// Get Arch by ID
+	GetArch(context.Context, *connect.Request[v1.GetArchRequest]) (*connect.Response[v1.GetArchResponse], error)
+	// List Archs
+	ListArchs(context.Context, *connect.Request[v1.ListArchsRequest]) (*connect.Response[v1.ListArchsResponse], error)
+	// Create Arch
+	CreateArch(context.Context, *connect.Request[v1.CreateArchRequest]) (*connect.Response[v1.CreateArchResponse], error)
+	// Update Arch
+	UpdateArch(context.Context, *connect.Request[v1.UpdateArchRequest]) (*connect.Response[v1.UpdateArchResponse], error)
+	// Delete Arch
+	DeleteArch(context.Context, *connect.Request[v1.DeleteArchRequest]) (*connect.Response[v1.DeleteArchResponse], error)
 }
 
 // NewOSServiceClient constructs a client for the os.v1.OSService service. By default, it uses the
@@ -125,34 +120,34 @@ func NewOSServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...c
 			connect.WithSchema(oSServiceMethods.ByName("DeleteOS")),
 			connect.WithClientOptions(opts...),
 		),
-		getArchitecture: connect.NewClient[v1.GetArchitectureRequest, v1.GetArchitectureResponse](
+		getArch: connect.NewClient[v1.GetArchRequest, v1.GetArchResponse](
 			httpClient,
-			baseURL+OSServiceGetArchitectureProcedure,
-			connect.WithSchema(oSServiceMethods.ByName("GetArchitecture")),
+			baseURL+OSServiceGetArchProcedure,
+			connect.WithSchema(oSServiceMethods.ByName("GetArch")),
 			connect.WithClientOptions(opts...),
 		),
-		listArchitectures: connect.NewClient[v1.ListArchitecturesRequest, v1.ListArchitecturesResponse](
+		listArchs: connect.NewClient[v1.ListArchsRequest, v1.ListArchsResponse](
 			httpClient,
-			baseURL+OSServiceListArchitecturesProcedure,
-			connect.WithSchema(oSServiceMethods.ByName("ListArchitectures")),
+			baseURL+OSServiceListArchsProcedure,
+			connect.WithSchema(oSServiceMethods.ByName("ListArchs")),
 			connect.WithClientOptions(opts...),
 		),
-		createArchitecture: connect.NewClient[v1.CreateArchitectureRequest, v1.CreateArchitectureResponse](
+		createArch: connect.NewClient[v1.CreateArchRequest, v1.CreateArchResponse](
 			httpClient,
-			baseURL+OSServiceCreateArchitectureProcedure,
-			connect.WithSchema(oSServiceMethods.ByName("CreateArchitecture")),
+			baseURL+OSServiceCreateArchProcedure,
+			connect.WithSchema(oSServiceMethods.ByName("CreateArch")),
 			connect.WithClientOptions(opts...),
 		),
-		updateArchitecture: connect.NewClient[v1.UpdateArchitectureRequest, v1.UpdateArchitectureResponse](
+		updateArch: connect.NewClient[v1.UpdateArchRequest, v1.UpdateArchResponse](
 			httpClient,
-			baseURL+OSServiceUpdateArchitectureProcedure,
-			connect.WithSchema(oSServiceMethods.ByName("UpdateArchitecture")),
+			baseURL+OSServiceUpdateArchProcedure,
+			connect.WithSchema(oSServiceMethods.ByName("UpdateArch")),
 			connect.WithClientOptions(opts...),
 		),
-		deleteArchitecture: connect.NewClient[v1.DeleteArchitectureRequest, v1.DeleteArchitectureResponse](
+		deleteArch: connect.NewClient[v1.DeleteArchRequest, v1.DeleteArchResponse](
 			httpClient,
-			baseURL+OSServiceDeleteArchitectureProcedure,
-			connect.WithSchema(oSServiceMethods.ByName("DeleteArchitecture")),
+			baseURL+OSServiceDeleteArchProcedure,
+			connect.WithSchema(oSServiceMethods.ByName("DeleteArch")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -160,16 +155,16 @@ func NewOSServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...c
 
 // oSServiceClient implements OSServiceClient.
 type oSServiceClient struct {
-	getOS              *connect.Client[v1.GetOSRequest, v1.GetOSResponse]
-	listOSs            *connect.Client[v1.ListOSsRequest, v1.ListOSsResponse]
-	createOS           *connect.Client[v1.CreateOSRequest, v1.CreateOSResponse]
-	updateOS           *connect.Client[v1.UpdateOSRequest, v1.UpdateOSResponse]
-	deleteOS           *connect.Client[v1.DeleteOSRequest, v1.DeleteOSResponse]
-	getArchitecture    *connect.Client[v1.GetArchitectureRequest, v1.GetArchitectureResponse]
-	listArchitectures  *connect.Client[v1.ListArchitecturesRequest, v1.ListArchitecturesResponse]
-	createArchitecture *connect.Client[v1.CreateArchitectureRequest, v1.CreateArchitectureResponse]
-	updateArchitecture *connect.Client[v1.UpdateArchitectureRequest, v1.UpdateArchitectureResponse]
-	deleteArchitecture *connect.Client[v1.DeleteArchitectureRequest, v1.DeleteArchitectureResponse]
+	getOS      *connect.Client[v1.GetOSRequest, v1.GetOSResponse]
+	listOSs    *connect.Client[v1.ListOSsRequest, v1.ListOSsResponse]
+	createOS   *connect.Client[v1.CreateOSRequest, v1.CreateOSResponse]
+	updateOS   *connect.Client[v1.UpdateOSRequest, v1.UpdateOSResponse]
+	deleteOS   *connect.Client[v1.DeleteOSRequest, v1.DeleteOSResponse]
+	getArch    *connect.Client[v1.GetArchRequest, v1.GetArchResponse]
+	listArchs  *connect.Client[v1.ListArchsRequest, v1.ListArchsResponse]
+	createArch *connect.Client[v1.CreateArchRequest, v1.CreateArchResponse]
+	updateArch *connect.Client[v1.UpdateArchRequest, v1.UpdateArchResponse]
+	deleteArch *connect.Client[v1.DeleteArchRequest, v1.DeleteArchResponse]
 }
 
 // GetOS calls os.v1.OSService.GetOS.
@@ -197,29 +192,29 @@ func (c *oSServiceClient) DeleteOS(ctx context.Context, req *connect.Request[v1.
 	return c.deleteOS.CallUnary(ctx, req)
 }
 
-// GetArchitecture calls os.v1.OSService.GetArchitecture.
-func (c *oSServiceClient) GetArchitecture(ctx context.Context, req *connect.Request[v1.GetArchitectureRequest]) (*connect.Response[v1.GetArchitectureResponse], error) {
-	return c.getArchitecture.CallUnary(ctx, req)
+// GetArch calls os.v1.OSService.GetArch.
+func (c *oSServiceClient) GetArch(ctx context.Context, req *connect.Request[v1.GetArchRequest]) (*connect.Response[v1.GetArchResponse], error) {
+	return c.getArch.CallUnary(ctx, req)
 }
 
-// ListArchitectures calls os.v1.OSService.ListArchitectures.
-func (c *oSServiceClient) ListArchitectures(ctx context.Context, req *connect.Request[v1.ListArchitecturesRequest]) (*connect.Response[v1.ListArchitecturesResponse], error) {
-	return c.listArchitectures.CallUnary(ctx, req)
+// ListArchs calls os.v1.OSService.ListArchs.
+func (c *oSServiceClient) ListArchs(ctx context.Context, req *connect.Request[v1.ListArchsRequest]) (*connect.Response[v1.ListArchsResponse], error) {
+	return c.listArchs.CallUnary(ctx, req)
 }
 
-// CreateArchitecture calls os.v1.OSService.CreateArchitecture.
-func (c *oSServiceClient) CreateArchitecture(ctx context.Context, req *connect.Request[v1.CreateArchitectureRequest]) (*connect.Response[v1.CreateArchitectureResponse], error) {
-	return c.createArchitecture.CallUnary(ctx, req)
+// CreateArch calls os.v1.OSService.CreateArch.
+func (c *oSServiceClient) CreateArch(ctx context.Context, req *connect.Request[v1.CreateArchRequest]) (*connect.Response[v1.CreateArchResponse], error) {
+	return c.createArch.CallUnary(ctx, req)
 }
 
-// UpdateArchitecture calls os.v1.OSService.UpdateArchitecture.
-func (c *oSServiceClient) UpdateArchitecture(ctx context.Context, req *connect.Request[v1.UpdateArchitectureRequest]) (*connect.Response[v1.UpdateArchitectureResponse], error) {
-	return c.updateArchitecture.CallUnary(ctx, req)
+// UpdateArch calls os.v1.OSService.UpdateArch.
+func (c *oSServiceClient) UpdateArch(ctx context.Context, req *connect.Request[v1.UpdateArchRequest]) (*connect.Response[v1.UpdateArchResponse], error) {
+	return c.updateArch.CallUnary(ctx, req)
 }
 
-// DeleteArchitecture calls os.v1.OSService.DeleteArchitecture.
-func (c *oSServiceClient) DeleteArchitecture(ctx context.Context, req *connect.Request[v1.DeleteArchitectureRequest]) (*connect.Response[v1.DeleteArchitectureResponse], error) {
-	return c.deleteArchitecture.CallUnary(ctx, req)
+// DeleteArch calls os.v1.OSService.DeleteArch.
+func (c *oSServiceClient) DeleteArch(ctx context.Context, req *connect.Request[v1.DeleteArchRequest]) (*connect.Response[v1.DeleteArchResponse], error) {
+	return c.deleteArch.CallUnary(ctx, req)
 }
 
 // OSServiceHandler is an implementation of the os.v1.OSService service.
@@ -234,16 +229,16 @@ type OSServiceHandler interface {
 	UpdateOS(context.Context, *connect.Request[v1.UpdateOSRequest]) (*connect.Response[v1.UpdateOSResponse], error)
 	// Delete OS
 	DeleteOS(context.Context, *connect.Request[v1.DeleteOSRequest]) (*connect.Response[v1.DeleteOSResponse], error)
-	// Get architecture by ID
-	GetArchitecture(context.Context, *connect.Request[v1.GetArchitectureRequest]) (*connect.Response[v1.GetArchitectureResponse], error)
-	// List architectures
-	ListArchitectures(context.Context, *connect.Request[v1.ListArchitecturesRequest]) (*connect.Response[v1.ListArchitecturesResponse], error)
-	// Create architecture
-	CreateArchitecture(context.Context, *connect.Request[v1.CreateArchitectureRequest]) (*connect.Response[v1.CreateArchitectureResponse], error)
-	// Update architecture
-	UpdateArchitecture(context.Context, *connect.Request[v1.UpdateArchitectureRequest]) (*connect.Response[v1.UpdateArchitectureResponse], error)
-	// Delete architecture
-	DeleteArchitecture(context.Context, *connect.Request[v1.DeleteArchitectureRequest]) (*connect.Response[v1.DeleteArchitectureResponse], error)
+	// Get Arch by ID
+	GetArch(context.Context, *connect.Request[v1.GetArchRequest]) (*connect.Response[v1.GetArchResponse], error)
+	// List Archs
+	ListArchs(context.Context, *connect.Request[v1.ListArchsRequest]) (*connect.Response[v1.ListArchsResponse], error)
+	// Create Arch
+	CreateArch(context.Context, *connect.Request[v1.CreateArchRequest]) (*connect.Response[v1.CreateArchResponse], error)
+	// Update Arch
+	UpdateArch(context.Context, *connect.Request[v1.UpdateArchRequest]) (*connect.Response[v1.UpdateArchResponse], error)
+	// Delete Arch
+	DeleteArch(context.Context, *connect.Request[v1.DeleteArchRequest]) (*connect.Response[v1.DeleteArchResponse], error)
 }
 
 // NewOSServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -283,34 +278,34 @@ func NewOSServiceHandler(svc OSServiceHandler, opts ...connect.HandlerOption) (s
 		connect.WithSchema(oSServiceMethods.ByName("DeleteOS")),
 		connect.WithHandlerOptions(opts...),
 	)
-	oSServiceGetArchitectureHandler := connect.NewUnaryHandler(
-		OSServiceGetArchitectureProcedure,
-		svc.GetArchitecture,
-		connect.WithSchema(oSServiceMethods.ByName("GetArchitecture")),
+	oSServiceGetArchHandler := connect.NewUnaryHandler(
+		OSServiceGetArchProcedure,
+		svc.GetArch,
+		connect.WithSchema(oSServiceMethods.ByName("GetArch")),
 		connect.WithHandlerOptions(opts...),
 	)
-	oSServiceListArchitecturesHandler := connect.NewUnaryHandler(
-		OSServiceListArchitecturesProcedure,
-		svc.ListArchitectures,
-		connect.WithSchema(oSServiceMethods.ByName("ListArchitectures")),
+	oSServiceListArchsHandler := connect.NewUnaryHandler(
+		OSServiceListArchsProcedure,
+		svc.ListArchs,
+		connect.WithSchema(oSServiceMethods.ByName("ListArchs")),
 		connect.WithHandlerOptions(opts...),
 	)
-	oSServiceCreateArchitectureHandler := connect.NewUnaryHandler(
-		OSServiceCreateArchitectureProcedure,
-		svc.CreateArchitecture,
-		connect.WithSchema(oSServiceMethods.ByName("CreateArchitecture")),
+	oSServiceCreateArchHandler := connect.NewUnaryHandler(
+		OSServiceCreateArchProcedure,
+		svc.CreateArch,
+		connect.WithSchema(oSServiceMethods.ByName("CreateArch")),
 		connect.WithHandlerOptions(opts...),
 	)
-	oSServiceUpdateArchitectureHandler := connect.NewUnaryHandler(
-		OSServiceUpdateArchitectureProcedure,
-		svc.UpdateArchitecture,
-		connect.WithSchema(oSServiceMethods.ByName("UpdateArchitecture")),
+	oSServiceUpdateArchHandler := connect.NewUnaryHandler(
+		OSServiceUpdateArchProcedure,
+		svc.UpdateArch,
+		connect.WithSchema(oSServiceMethods.ByName("UpdateArch")),
 		connect.WithHandlerOptions(opts...),
 	)
-	oSServiceDeleteArchitectureHandler := connect.NewUnaryHandler(
-		OSServiceDeleteArchitectureProcedure,
-		svc.DeleteArchitecture,
-		connect.WithSchema(oSServiceMethods.ByName("DeleteArchitecture")),
+	oSServiceDeleteArchHandler := connect.NewUnaryHandler(
+		OSServiceDeleteArchProcedure,
+		svc.DeleteArch,
+		connect.WithSchema(oSServiceMethods.ByName("DeleteArch")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/os.v1.OSService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -325,16 +320,16 @@ func NewOSServiceHandler(svc OSServiceHandler, opts ...connect.HandlerOption) (s
 			oSServiceUpdateOSHandler.ServeHTTP(w, r)
 		case OSServiceDeleteOSProcedure:
 			oSServiceDeleteOSHandler.ServeHTTP(w, r)
-		case OSServiceGetArchitectureProcedure:
-			oSServiceGetArchitectureHandler.ServeHTTP(w, r)
-		case OSServiceListArchitecturesProcedure:
-			oSServiceListArchitecturesHandler.ServeHTTP(w, r)
-		case OSServiceCreateArchitectureProcedure:
-			oSServiceCreateArchitectureHandler.ServeHTTP(w, r)
-		case OSServiceUpdateArchitectureProcedure:
-			oSServiceUpdateArchitectureHandler.ServeHTTP(w, r)
-		case OSServiceDeleteArchitectureProcedure:
-			oSServiceDeleteArchitectureHandler.ServeHTTP(w, r)
+		case OSServiceGetArchProcedure:
+			oSServiceGetArchHandler.ServeHTTP(w, r)
+		case OSServiceListArchsProcedure:
+			oSServiceListArchsHandler.ServeHTTP(w, r)
+		case OSServiceCreateArchProcedure:
+			oSServiceCreateArchHandler.ServeHTTP(w, r)
+		case OSServiceUpdateArchProcedure:
+			oSServiceUpdateArchHandler.ServeHTTP(w, r)
+		case OSServiceDeleteArchProcedure:
+			oSServiceDeleteArchHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -364,22 +359,22 @@ func (UnimplementedOSServiceHandler) DeleteOS(context.Context, *connect.Request[
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.DeleteOS is not implemented"))
 }
 
-func (UnimplementedOSServiceHandler) GetArchitecture(context.Context, *connect.Request[v1.GetArchitectureRequest]) (*connect.Response[v1.GetArchitectureResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.GetArchitecture is not implemented"))
+func (UnimplementedOSServiceHandler) GetArch(context.Context, *connect.Request[v1.GetArchRequest]) (*connect.Response[v1.GetArchResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.GetArch is not implemented"))
 }
 
-func (UnimplementedOSServiceHandler) ListArchitectures(context.Context, *connect.Request[v1.ListArchitecturesRequest]) (*connect.Response[v1.ListArchitecturesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.ListArchitectures is not implemented"))
+func (UnimplementedOSServiceHandler) ListArchs(context.Context, *connect.Request[v1.ListArchsRequest]) (*connect.Response[v1.ListArchsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.ListArchs is not implemented"))
 }
 
-func (UnimplementedOSServiceHandler) CreateArchitecture(context.Context, *connect.Request[v1.CreateArchitectureRequest]) (*connect.Response[v1.CreateArchitectureResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.CreateArchitecture is not implemented"))
+func (UnimplementedOSServiceHandler) CreateArch(context.Context, *connect.Request[v1.CreateArchRequest]) (*connect.Response[v1.CreateArchResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.CreateArch is not implemented"))
 }
 
-func (UnimplementedOSServiceHandler) UpdateArchitecture(context.Context, *connect.Request[v1.UpdateArchitectureRequest]) (*connect.Response[v1.UpdateArchitectureResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.UpdateArchitecture is not implemented"))
+func (UnimplementedOSServiceHandler) UpdateArch(context.Context, *connect.Request[v1.UpdateArchRequest]) (*connect.Response[v1.UpdateArchResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.UpdateArch is not implemented"))
 }
 
-func (UnimplementedOSServiceHandler) DeleteArchitecture(context.Context, *connect.Request[v1.DeleteArchitectureRequest]) (*connect.Response[v1.DeleteArchitectureResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.DeleteArchitecture is not implemented"))
+func (UnimplementedOSServiceHandler) DeleteArch(context.Context, *connect.Request[v1.DeleteArchRequest]) (*connect.Response[v1.DeleteArchResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("os.v1.OSService.DeleteArch is not implemented"))
 }

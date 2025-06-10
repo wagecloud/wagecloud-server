@@ -33,9 +33,8 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AccountServiceGetAccountProcedure is the fully-qualified name of the AccountService's GetAccount
-	// RPC.
-	AccountServiceGetAccountProcedure = "/account.v1.AccountService/GetAccount"
+	// AccountServiceGetUserProcedure is the fully-qualified name of the AccountService's GetUser RPC.
+	AccountServiceGetUserProcedure = "/account.v1.AccountService/GetUser"
 	// AccountServiceLoginProcedure is the fully-qualified name of the AccountService's Login RPC.
 	AccountServiceLoginProcedure = "/account.v1.AccountService/Login"
 	// AccountServiceRegisterProcedure is the fully-qualified name of the AccountService's Register RPC.
@@ -45,7 +44,7 @@ const (
 // AccountServiceClient is a client for the account.v1.AccountService service.
 type AccountServiceClient interface {
 	// Get account by ID, username, or email
-	GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error)
+	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
 	// Login user
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
 	// Register new user
@@ -63,10 +62,10 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 	baseURL = strings.TrimRight(baseURL, "/")
 	accountServiceMethods := v1.File_account_v1_account_proto.Services().ByName("AccountService").Methods()
 	return &accountServiceClient{
-		getAccount: connect.NewClient[v1.GetAccountRequest, v1.GetAccountResponse](
+		getUser: connect.NewClient[v1.GetUserRequest, v1.GetUserResponse](
 			httpClient,
-			baseURL+AccountServiceGetAccountProcedure,
-			connect.WithSchema(accountServiceMethods.ByName("GetAccount")),
+			baseURL+AccountServiceGetUserProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("GetUser")),
 			connect.WithClientOptions(opts...),
 		),
 		login: connect.NewClient[v1.LoginRequest, v1.LoginResponse](
@@ -86,14 +85,14 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // accountServiceClient implements AccountServiceClient.
 type accountServiceClient struct {
-	getAccount *connect.Client[v1.GetAccountRequest, v1.GetAccountResponse]
-	login      *connect.Client[v1.LoginRequest, v1.LoginResponse]
-	register   *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
+	getUser  *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
+	login    *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	register *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
 }
 
-// GetAccount calls account.v1.AccountService.GetAccount.
-func (c *accountServiceClient) GetAccount(ctx context.Context, req *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error) {
-	return c.getAccount.CallUnary(ctx, req)
+// GetUser calls account.v1.AccountService.GetUser.
+func (c *accountServiceClient) GetUser(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error) {
+	return c.getUser.CallUnary(ctx, req)
 }
 
 // Login calls account.v1.AccountService.Login.
@@ -109,7 +108,7 @@ func (c *accountServiceClient) Register(ctx context.Context, req *connect.Reques
 // AccountServiceHandler is an implementation of the account.v1.AccountService service.
 type AccountServiceHandler interface {
 	// Get account by ID, username, or email
-	GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error)
+	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
 	// Login user
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
 	// Register new user
@@ -123,10 +122,10 @@ type AccountServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	accountServiceMethods := v1.File_account_v1_account_proto.Services().ByName("AccountService").Methods()
-	accountServiceGetAccountHandler := connect.NewUnaryHandler(
-		AccountServiceGetAccountProcedure,
-		svc.GetAccount,
-		connect.WithSchema(accountServiceMethods.ByName("GetAccount")),
+	accountServiceGetUserHandler := connect.NewUnaryHandler(
+		AccountServiceGetUserProcedure,
+		svc.GetUser,
+		connect.WithSchema(accountServiceMethods.ByName("GetUser")),
 		connect.WithHandlerOptions(opts...),
 	)
 	accountServiceLoginHandler := connect.NewUnaryHandler(
@@ -143,8 +142,8 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 	)
 	return "/account.v1.AccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AccountServiceGetAccountProcedure:
-			accountServiceGetAccountHandler.ServeHTTP(w, r)
+		case AccountServiceGetUserProcedure:
+			accountServiceGetUserHandler.ServeHTTP(w, r)
 		case AccountServiceLoginProcedure:
 			accountServiceLoginHandler.ServeHTTP(w, r)
 		case AccountServiceRegisterProcedure:
@@ -158,8 +157,8 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 // UnimplementedAccountServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAccountServiceHandler struct{}
 
-func (UnimplementedAccountServiceHandler) GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("account.v1.AccountService.GetAccount is not implemented"))
+func (UnimplementedAccountServiceHandler) GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("account.v1.AccountService.GetUser is not implemented"))
 }
 
 func (UnimplementedAccountServiceHandler) Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error) {

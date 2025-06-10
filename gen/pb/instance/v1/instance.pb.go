@@ -7,6 +7,7 @@
 package instancev1
 
 import (
+	v11 "github.com/wagecloud/wagecloud-server/gen/pb/account/v1"
 	v1 "github.com/wagecloud/wagecloud-server/gen/pb/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -30,9 +31,9 @@ type Instance struct {
 	NetworkId     string                 `protobuf:"bytes,3,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
 	OsId          string                 `protobuf:"bytes,4,opt,name=os_id,json=osId,proto3" json:"os_id,omitempty"`
 	ArchId        string                 `protobuf:"bytes,5,opt,name=arch_id,json=archId,proto3" json:"arch_id,omitempty"`
-	Cpu           int64                  `protobuf:"varint,6,opt,name=cpu,proto3" json:"cpu,omitempty"`
-	Ram           int64                  `protobuf:"varint,7,opt,name=ram,proto3" json:"ram,omitempty"`
-	Storage       int64                  `protobuf:"varint,8,opt,name=storage,proto3" json:"storage,omitempty"`
+	Cpu           int32                  `protobuf:"varint,6,opt,name=cpu,proto3" json:"cpu,omitempty"`
+	Ram           int32                  `protobuf:"varint,7,opt,name=ram,proto3" json:"ram,omitempty"`
+	Storage       int32                  `protobuf:"varint,8,opt,name=storage,proto3" json:"storage,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     int64                  `protobuf:"varint,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -104,21 +105,21 @@ func (x *Instance) GetArchId() string {
 	return ""
 }
 
-func (x *Instance) GetCpu() int64 {
+func (x *Instance) GetCpu() int32 {
 	if x != nil {
 		return x.Cpu
 	}
 	return 0
 }
 
-func (x *Instance) GetRam() int64 {
+func (x *Instance) GetRam() int32 {
 	if x != nil {
 		return x.Ram
 	}
 	return 0
 }
 
-func (x *Instance) GetStorage() int64 {
+func (x *Instance) GetStorage() int32 {
 	if x != nil {
 		return x.Storage
 	}
@@ -184,29 +185,75 @@ func (x *GetInstanceRequest) GetId() string {
 	return ""
 }
 
+// Get instance response
+type GetInstanceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Instance      *Instance              `protobuf:"bytes,1,opt,name=instance,proto3" json:"instance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInstanceResponse) Reset() {
+	*x = GetInstanceResponse{}
+	mi := &file_instance_v1_instance_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInstanceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInstanceResponse) ProtoMessage() {}
+
+func (x *GetInstanceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_instance_v1_instance_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInstanceResponse.ProtoReflect.Descriptor instead.
+func (*GetInstanceResponse) Descriptor() ([]byte, []int) {
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetInstanceResponse) GetInstance() *Instance {
+	if x != nil {
+		return x.Instance
+	}
+	return nil
+}
+
 // List instances request
 type ListInstancesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pagination    *v1.PaginationParams   `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	NetworkId     *string                `protobuf:"bytes,2,opt,name=network_id,json=networkId,proto3,oneof" json:"network_id,omitempty"`
-	OsId          *string                `protobuf:"bytes,3,opt,name=os_id,json=osId,proto3,oneof" json:"os_id,omitempty"`
-	ArchId        *string                `protobuf:"bytes,4,opt,name=arch_id,json=archId,proto3,oneof" json:"arch_id,omitempty"`
-	Name          *string                `protobuf:"bytes,5,opt,name=name,proto3,oneof" json:"name,omitempty"`
-	CpuFrom       *int64                 `protobuf:"varint,6,opt,name=cpu_from,json=cpuFrom,proto3,oneof" json:"cpu_from,omitempty"`
-	CpuTo         *int64                 `protobuf:"varint,7,opt,name=cpu_to,json=cpuTo,proto3,oneof" json:"cpu_to,omitempty"`
-	RamFrom       *int64                 `protobuf:"varint,8,opt,name=ram_from,json=ramFrom,proto3,oneof" json:"ram_from,omitempty"`
-	RamTo         *int64                 `protobuf:"varint,9,opt,name=ram_to,json=ramTo,proto3,oneof" json:"ram_to,omitempty"`
-	StorageFrom   *int64                 `protobuf:"varint,10,opt,name=storage_from,json=storageFrom,proto3,oneof" json:"storage_from,omitempty"`
-	StorageTo     *int64                 `protobuf:"varint,11,opt,name=storage_to,json=storageTo,proto3,oneof" json:"storage_to,omitempty"`
-	CreatedAtFrom *int64                 `protobuf:"varint,12,opt,name=created_at_from,json=createdAtFrom,proto3,oneof" json:"created_at_from,omitempty"`
-	CreatedAtTo   *int64                 `protobuf:"varint,13,opt,name=created_at_to,json=createdAtTo,proto3,oneof" json:"created_at_to,omitempty"`
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	Pagination    *v1.PaginationParams      `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Account       *v11.AuthenticatedAccount `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	NetworkId     *string                   `protobuf:"bytes,3,opt,name=network_id,json=networkId,proto3,oneof" json:"network_id,omitempty"`
+	OsId          *string                   `protobuf:"bytes,4,opt,name=os_id,json=osId,proto3,oneof" json:"os_id,omitempty"`
+	ArchId        *string                   `protobuf:"bytes,5,opt,name=arch_id,json=archId,proto3,oneof" json:"arch_id,omitempty"`
+	Name          *string                   `protobuf:"bytes,6,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	CpuFrom       *int64                    `protobuf:"varint,7,opt,name=cpu_from,json=cpuFrom,proto3,oneof" json:"cpu_from,omitempty"`
+	CpuTo         *int64                    `protobuf:"varint,8,opt,name=cpu_to,json=cpuTo,proto3,oneof" json:"cpu_to,omitempty"`
+	RamFrom       *int64                    `protobuf:"varint,9,opt,name=ram_from,json=ramFrom,proto3,oneof" json:"ram_from,omitempty"`
+	RamTo         *int64                    `protobuf:"varint,10,opt,name=ram_to,json=ramTo,proto3,oneof" json:"ram_to,omitempty"`
+	StorageFrom   *int64                    `protobuf:"varint,11,opt,name=storage_from,json=storageFrom,proto3,oneof" json:"storage_from,omitempty"`
+	StorageTo     *int64                    `protobuf:"varint,12,opt,name=storage_to,json=storageTo,proto3,oneof" json:"storage_to,omitempty"`
+	CreatedAtFrom *int64                    `protobuf:"varint,13,opt,name=created_at_from,json=createdAtFrom,proto3,oneof" json:"created_at_from,omitempty"`
+	CreatedAtTo   *int64                    `protobuf:"varint,14,opt,name=created_at_to,json=createdAtTo,proto3,oneof" json:"created_at_to,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListInstancesRequest) Reset() {
 	*x = ListInstancesRequest{}
-	mi := &file_instance_v1_instance_proto_msgTypes[2]
+	mi := &file_instance_v1_instance_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -218,7 +265,7 @@ func (x *ListInstancesRequest) String() string {
 func (*ListInstancesRequest) ProtoMessage() {}
 
 func (x *ListInstancesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[2]
+	mi := &file_instance_v1_instance_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -231,12 +278,19 @@ func (x *ListInstancesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInstancesRequest.ProtoReflect.Descriptor instead.
 func (*ListInstancesRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{2}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ListInstancesRequest) GetPagination() *v1.PaginationParams {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListInstancesRequest) GetAccount() *v11.AuthenticatedAccount {
+	if x != nil {
+		return x.Account
 	}
 	return nil
 }
@@ -329,14 +383,14 @@ func (x *ListInstancesRequest) GetCreatedAtTo() int64 {
 type ListInstancesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Instances     []*Instance            `protobuf:"bytes,1,rep,name=instances,proto3" json:"instances,omitempty"`
-	Pagination    *v1.PaginatedResponse  `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination    *v1.PaginateResult     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListInstancesResponse) Reset() {
 	*x = ListInstancesResponse{}
-	mi := &file_instance_v1_instance_proto_msgTypes[3]
+	mi := &file_instance_v1_instance_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -348,7 +402,7 @@ func (x *ListInstancesResponse) String() string {
 func (*ListInstancesResponse) ProtoMessage() {}
 
 func (x *ListInstancesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[3]
+	mi := &file_instance_v1_instance_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -361,7 +415,7 @@ func (x *ListInstancesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInstancesResponse.ProtoReflect.Descriptor instead.
 func (*ListInstancesResponse) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{3}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListInstancesResponse) GetInstances() []*Instance {
@@ -371,7 +425,7 @@ func (x *ListInstancesResponse) GetInstances() []*Instance {
 	return nil
 }
 
-func (x *ListInstancesResponse) GetPagination() *v1.PaginatedResponse {
+func (x *ListInstancesResponse) GetPagination() *v1.PaginateResult {
 	if x != nil {
 		return x.Pagination
 	}
@@ -380,17 +434,27 @@ func (x *ListInstancesResponse) GetPagination() *v1.PaginatedResponse {
 
 // Create instance request
 type CreateInstanceRequest struct {
-	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Userdata      *CreateInstanceRequest_Userdata `protobuf:"bytes,1,opt,name=userdata,proto3" json:"userdata,omitempty"`
-	Metadata      *CreateInstanceRequest_Metadata `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *CreateInstanceRequest_Spec     `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
+	state   protoimpl.MessageState    `protogen:"open.v1"`
+	Account *v11.AuthenticatedAccount `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	// Userdata fields
+	Name              string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SshAuthorizedKeys []string `protobuf:"bytes,3,rep,name=ssh_authorized_keys,json=sshAuthorizedKeys,proto3" json:"ssh_authorized_keys,omitempty"`
+	Password          string   `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	// Metadata
+	LocalHostname string `protobuf:"bytes,5,opt,name=local_hostname,json=localHostname,proto3" json:"local_hostname,omitempty"`
+	// Spec fields
+	OsId          string `protobuf:"bytes,6,opt,name=os_id,json=osId,proto3" json:"os_id,omitempty"`
+	ArchId        string `protobuf:"bytes,7,opt,name=arch_id,json=archId,proto3" json:"arch_id,omitempty"`
+	Memory        int32  `protobuf:"varint,8,opt,name=memory,proto3" json:"memory,omitempty"`
+	Cpu           int32  `protobuf:"varint,9,opt,name=cpu,proto3" json:"cpu,omitempty"`
+	Storage       int32  `protobuf:"varint,10,opt,name=storage,proto3" json:"storage,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateInstanceRequest) Reset() {
 	*x = CreateInstanceRequest{}
-	mi := &file_instance_v1_instance_proto_msgTypes[4]
+	mi := &file_instance_v1_instance_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -402,7 +466,7 @@ func (x *CreateInstanceRequest) String() string {
 func (*CreateInstanceRequest) ProtoMessage() {}
 
 func (x *CreateInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[4]
+	mi := &file_instance_v1_instance_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -415,26 +479,120 @@ func (x *CreateInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInstanceRequest.ProtoReflect.Descriptor instead.
 func (*CreateInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{4}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *CreateInstanceRequest) GetUserdata() *CreateInstanceRequest_Userdata {
+func (x *CreateInstanceRequest) GetAccount() *v11.AuthenticatedAccount {
 	if x != nil {
-		return x.Userdata
+		return x.Account
 	}
 	return nil
 }
 
-func (x *CreateInstanceRequest) GetMetadata() *CreateInstanceRequest_Metadata {
+func (x *CreateInstanceRequest) GetName() string {
 	if x != nil {
-		return x.Metadata
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateInstanceRequest) GetSshAuthorizedKeys() []string {
+	if x != nil {
+		return x.SshAuthorizedKeys
 	}
 	return nil
 }
 
-func (x *CreateInstanceRequest) GetSpec() *CreateInstanceRequest_Spec {
+func (x *CreateInstanceRequest) GetPassword() string {
 	if x != nil {
-		return x.Spec
+		return x.Password
+	}
+	return ""
+}
+
+func (x *CreateInstanceRequest) GetLocalHostname() string {
+	if x != nil {
+		return x.LocalHostname
+	}
+	return ""
+}
+
+func (x *CreateInstanceRequest) GetOsId() string {
+	if x != nil {
+		return x.OsId
+	}
+	return ""
+}
+
+func (x *CreateInstanceRequest) GetArchId() string {
+	if x != nil {
+		return x.ArchId
+	}
+	return ""
+}
+
+func (x *CreateInstanceRequest) GetMemory() int32 {
+	if x != nil {
+		return x.Memory
+	}
+	return 0
+}
+
+func (x *CreateInstanceRequest) GetCpu() int32 {
+	if x != nil {
+		return x.Cpu
+	}
+	return 0
+}
+
+func (x *CreateInstanceRequest) GetStorage() int32 {
+	if x != nil {
+		return x.Storage
+	}
+	return 0
+}
+
+// Create instance response
+type CreateInstanceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Instance      *Instance              `protobuf:"bytes,1,opt,name=instance,proto3" json:"instance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateInstanceResponse) Reset() {
+	*x = CreateInstanceResponse{}
+	mi := &file_instance_v1_instance_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInstanceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInstanceResponse) ProtoMessage() {}
+
+func (x *CreateInstanceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_instance_v1_instance_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInstanceResponse.ProtoReflect.Descriptor instead.
+func (*CreateInstanceResponse) Descriptor() ([]byte, []int) {
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreateInstanceResponse) GetInstance() *Instance {
+	if x != nil {
+		return x.Instance
 	}
 	return nil
 }
@@ -456,7 +614,7 @@ type UpdateInstanceRequest struct {
 
 func (x *UpdateInstanceRequest) Reset() {
 	*x = UpdateInstanceRequest{}
-	mi := &file_instance_v1_instance_proto_msgTypes[5]
+	mi := &file_instance_v1_instance_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +626,7 @@ func (x *UpdateInstanceRequest) String() string {
 func (*UpdateInstanceRequest) ProtoMessage() {}
 
 func (x *UpdateInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[5]
+	mi := &file_instance_v1_instance_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +639,7 @@ func (x *UpdateInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateInstanceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{5}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateInstanceRequest) GetId() string {
@@ -550,7 +708,7 @@ type UpdateInstanceResponse struct {
 
 func (x *UpdateInstanceResponse) Reset() {
 	*x = UpdateInstanceResponse{}
-	mi := &file_instance_v1_instance_proto_msgTypes[6]
+	mi := &file_instance_v1_instance_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -562,7 +720,7 @@ func (x *UpdateInstanceResponse) String() string {
 func (*UpdateInstanceResponse) ProtoMessage() {}
 
 func (x *UpdateInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[6]
+	mi := &file_instance_v1_instance_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +733,7 @@ func (x *UpdateInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateInstanceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{6}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateInstanceResponse) GetInstance() *Instance {
@@ -595,7 +753,7 @@ type DeleteInstanceRequest struct {
 
 func (x *DeleteInstanceRequest) Reset() {
 	*x = DeleteInstanceRequest{}
-	mi := &file_instance_v1_instance_proto_msgTypes[7]
+	mi := &file_instance_v1_instance_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -607,7 +765,7 @@ func (x *DeleteInstanceRequest) String() string {
 func (*DeleteInstanceRequest) ProtoMessage() {}
 
 func (x *DeleteInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[7]
+	mi := &file_instance_v1_instance_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -620,7 +778,7 @@ func (x *DeleteInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteInstanceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{7}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteInstanceRequest) GetId() string {
@@ -639,7 +797,7 @@ type DeleteInstanceResponse struct {
 
 func (x *DeleteInstanceResponse) Reset() {
 	*x = DeleteInstanceResponse{}
-	mi := &file_instance_v1_instance_proto_msgTypes[8]
+	mi := &file_instance_v1_instance_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -651,7 +809,7 @@ func (x *DeleteInstanceResponse) String() string {
 func (*DeleteInstanceResponse) ProtoMessage() {}
 
 func (x *DeleteInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[8]
+	mi := &file_instance_v1_instance_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -664,7 +822,7 @@ func (x *DeleteInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteInstanceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{8}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{10}
 }
 
 // Start instance request
@@ -677,7 +835,7 @@ type StartInstanceRequest struct {
 
 func (x *StartInstanceRequest) Reset() {
 	*x = StartInstanceRequest{}
-	mi := &file_instance_v1_instance_proto_msgTypes[9]
+	mi := &file_instance_v1_instance_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -689,7 +847,7 @@ func (x *StartInstanceRequest) String() string {
 func (*StartInstanceRequest) ProtoMessage() {}
 
 func (x *StartInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[9]
+	mi := &file_instance_v1_instance_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -702,7 +860,7 @@ func (x *StartInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartInstanceRequest.ProtoReflect.Descriptor instead.
 func (*StartInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{9}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *StartInstanceRequest) GetId() string {
@@ -721,7 +879,7 @@ type StartInstanceResponse struct {
 
 func (x *StartInstanceResponse) Reset() {
 	*x = StartInstanceResponse{}
-	mi := &file_instance_v1_instance_proto_msgTypes[10]
+	mi := &file_instance_v1_instance_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -733,7 +891,7 @@ func (x *StartInstanceResponse) String() string {
 func (*StartInstanceResponse) ProtoMessage() {}
 
 func (x *StartInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[10]
+	mi := &file_instance_v1_instance_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -746,7 +904,7 @@ func (x *StartInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartInstanceResponse.ProtoReflect.Descriptor instead.
 func (*StartInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{10}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{12}
 }
 
 // Stop instance request
@@ -759,7 +917,7 @@ type StopInstanceRequest struct {
 
 func (x *StopInstanceRequest) Reset() {
 	*x = StopInstanceRequest{}
-	mi := &file_instance_v1_instance_proto_msgTypes[11]
+	mi := &file_instance_v1_instance_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -771,7 +929,7 @@ func (x *StopInstanceRequest) String() string {
 func (*StopInstanceRequest) ProtoMessage() {}
 
 func (x *StopInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[11]
+	mi := &file_instance_v1_instance_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -784,7 +942,7 @@ func (x *StopInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopInstanceRequest.ProtoReflect.Descriptor instead.
 func (*StopInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{11}
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *StopInstanceRequest) GetId() string {
@@ -803,7 +961,7 @@ type StopInstanceResponse struct {
 
 func (x *StopInstanceResponse) Reset() {
 	*x = StopInstanceResponse{}
-	mi := &file_instance_v1_instance_proto_msgTypes[12]
+	mi := &file_instance_v1_instance_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -815,7 +973,7 @@ func (x *StopInstanceResponse) String() string {
 func (*StopInstanceResponse) ProtoMessage() {}
 
 func (x *StopInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[12]
+	mi := &file_instance_v1_instance_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -828,194 +986,14 @@ func (x *StopInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopInstanceResponse.ProtoReflect.Descriptor instead.
 func (*StopInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{12}
-}
-
-type CreateInstanceRequest_Userdata struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Name              string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	SshAuthorizedKeys []string               `protobuf:"bytes,2,rep,name=ssh_authorized_keys,json=sshAuthorizedKeys,proto3" json:"ssh_authorized_keys,omitempty"`
-	Password          string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *CreateInstanceRequest_Userdata) Reset() {
-	*x = CreateInstanceRequest_Userdata{}
-	mi := &file_instance_v1_instance_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateInstanceRequest_Userdata) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateInstanceRequest_Userdata) ProtoMessage() {}
-
-func (x *CreateInstanceRequest_Userdata) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateInstanceRequest_Userdata.ProtoReflect.Descriptor instead.
-func (*CreateInstanceRequest_Userdata) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{4, 0}
-}
-
-func (x *CreateInstanceRequest_Userdata) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *CreateInstanceRequest_Userdata) GetSshAuthorizedKeys() []string {
-	if x != nil {
-		return x.SshAuthorizedKeys
-	}
-	return nil
-}
-
-func (x *CreateInstanceRequest_Userdata) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
-type CreateInstanceRequest_Metadata struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocalHostname string                 `protobuf:"bytes,1,opt,name=local_hostname,json=localHostname,proto3" json:"local_hostname,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateInstanceRequest_Metadata) Reset() {
-	*x = CreateInstanceRequest_Metadata{}
-	mi := &file_instance_v1_instance_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateInstanceRequest_Metadata) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateInstanceRequest_Metadata) ProtoMessage() {}
-
-func (x *CreateInstanceRequest_Metadata) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateInstanceRequest_Metadata.ProtoReflect.Descriptor instead.
-func (*CreateInstanceRequest_Metadata) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{4, 1}
-}
-
-func (x *CreateInstanceRequest_Metadata) GetLocalHostname() string {
-	if x != nil {
-		return x.LocalHostname
-	}
-	return ""
-}
-
-type CreateInstanceRequest_Spec struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OsId          string                 `protobuf:"bytes,1,opt,name=os_id,json=osId,proto3" json:"os_id,omitempty"`
-	ArchId        string                 `protobuf:"bytes,2,opt,name=arch_id,json=archId,proto3" json:"arch_id,omitempty"`
-	Memory        int32                  `protobuf:"varint,3,opt,name=memory,proto3" json:"memory,omitempty"`
-	Cpu           int32                  `protobuf:"varint,4,opt,name=cpu,proto3" json:"cpu,omitempty"`
-	Storage       int32                  `protobuf:"varint,5,opt,name=storage,proto3" json:"storage,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateInstanceRequest_Spec) Reset() {
-	*x = CreateInstanceRequest_Spec{}
-	mi := &file_instance_v1_instance_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateInstanceRequest_Spec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateInstanceRequest_Spec) ProtoMessage() {}
-
-func (x *CreateInstanceRequest_Spec) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_instance_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateInstanceRequest_Spec.ProtoReflect.Descriptor instead.
-func (*CreateInstanceRequest_Spec) Descriptor() ([]byte, []int) {
-	return file_instance_v1_instance_proto_rawDescGZIP(), []int{4, 2}
-}
-
-func (x *CreateInstanceRequest_Spec) GetOsId() string {
-	if x != nil {
-		return x.OsId
-	}
-	return ""
-}
-
-func (x *CreateInstanceRequest_Spec) GetArchId() string {
-	if x != nil {
-		return x.ArchId
-	}
-	return ""
-}
-
-func (x *CreateInstanceRequest_Spec) GetMemory() int32 {
-	if x != nil {
-		return x.Memory
-	}
-	return 0
-}
-
-func (x *CreateInstanceRequest_Spec) GetCpu() int32 {
-	if x != nil {
-		return x.Cpu
-	}
-	return 0
-}
-
-func (x *CreateInstanceRequest_Spec) GetStorage() int32 {
-	if x != nil {
-		return x.Storage
-	}
-	return 0
+	return file_instance_v1_instance_proto_rawDescGZIP(), []int{14}
 }
 
 var File_instance_v1_instance_proto protoreflect.FileDescriptor
 
 const file_instance_v1_instance_proto_rawDesc = "" +
 	"\n" +
-	"\x1ainstance/v1/instance.proto\x12\vinstance.v1\x1a\x16common/v1/common.proto\"\xf7\x01\n" +
+	"\x1ainstance/v1/instance.proto\x12\vinstance.v1\x1a\x17account/v1/common.proto\x1a\x16common/v1/common.proto\"\xf7\x01\n" +
 	"\bInstance\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -1023,36 +1001,39 @@ const file_instance_v1_instance_proto_rawDesc = "" +
 	"network_id\x18\x03 \x01(\tR\tnetworkId\x12\x13\n" +
 	"\x05os_id\x18\x04 \x01(\tR\x04osId\x12\x17\n" +
 	"\aarch_id\x18\x05 \x01(\tR\x06archId\x12\x10\n" +
-	"\x03cpu\x18\x06 \x01(\x03R\x03cpu\x12\x10\n" +
-	"\x03ram\x18\a \x01(\x03R\x03ram\x12\x18\n" +
-	"\astorage\x18\b \x01(\x03R\astorage\x12\x1d\n" +
+	"\x03cpu\x18\x06 \x01(\x05R\x03cpu\x12\x10\n" +
+	"\x03ram\x18\a \x01(\x05R\x03ram\x12\x18\n" +
+	"\astorage\x18\b \x01(\x05R\astorage\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\t \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
 	" \x01(\x03R\tupdatedAt\"$\n" +
 	"\x12GetInstanceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x86\x05\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"H\n" +
+	"\x13GetInstanceResponse\x121\n" +
+	"\binstance\x18\x01 \x01(\v2\x15.instance.v1.InstanceR\binstance\"\xc2\x05\n" +
 	"\x14ListInstancesRequest\x12;\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1b.common.v1.PaginationParamsR\n" +
-	"pagination\x12\"\n" +
+	"pagination\x12:\n" +
+	"\aaccount\x18\x02 \x01(\v2 .account.v1.AuthenticatedAccountR\aaccount\x12\"\n" +
 	"\n" +
-	"network_id\x18\x02 \x01(\tH\x00R\tnetworkId\x88\x01\x01\x12\x18\n" +
-	"\x05os_id\x18\x03 \x01(\tH\x01R\x04osId\x88\x01\x01\x12\x1c\n" +
-	"\aarch_id\x18\x04 \x01(\tH\x02R\x06archId\x88\x01\x01\x12\x17\n" +
-	"\x04name\x18\x05 \x01(\tH\x03R\x04name\x88\x01\x01\x12\x1e\n" +
-	"\bcpu_from\x18\x06 \x01(\x03H\x04R\acpuFrom\x88\x01\x01\x12\x1a\n" +
-	"\x06cpu_to\x18\a \x01(\x03H\x05R\x05cpuTo\x88\x01\x01\x12\x1e\n" +
-	"\bram_from\x18\b \x01(\x03H\x06R\aramFrom\x88\x01\x01\x12\x1a\n" +
-	"\x06ram_to\x18\t \x01(\x03H\aR\x05ramTo\x88\x01\x01\x12&\n" +
-	"\fstorage_from\x18\n" +
-	" \x01(\x03H\bR\vstorageFrom\x88\x01\x01\x12\"\n" +
+	"network_id\x18\x03 \x01(\tH\x00R\tnetworkId\x88\x01\x01\x12\x18\n" +
+	"\x05os_id\x18\x04 \x01(\tH\x01R\x04osId\x88\x01\x01\x12\x1c\n" +
+	"\aarch_id\x18\x05 \x01(\tH\x02R\x06archId\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x06 \x01(\tH\x03R\x04name\x88\x01\x01\x12\x1e\n" +
+	"\bcpu_from\x18\a \x01(\x03H\x04R\acpuFrom\x88\x01\x01\x12\x1a\n" +
+	"\x06cpu_to\x18\b \x01(\x03H\x05R\x05cpuTo\x88\x01\x01\x12\x1e\n" +
+	"\bram_from\x18\t \x01(\x03H\x06R\aramFrom\x88\x01\x01\x12\x1a\n" +
+	"\x06ram_to\x18\n" +
+	" \x01(\x03H\aR\x05ramTo\x88\x01\x01\x12&\n" +
+	"\fstorage_from\x18\v \x01(\x03H\bR\vstorageFrom\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"storage_to\x18\v \x01(\x03H\tR\tstorageTo\x88\x01\x01\x12+\n" +
-	"\x0fcreated_at_from\x18\f \x01(\x03H\n" +
+	"storage_to\x18\f \x01(\x03H\tR\tstorageTo\x88\x01\x01\x12+\n" +
+	"\x0fcreated_at_from\x18\r \x01(\x03H\n" +
 	"R\rcreatedAtFrom\x88\x01\x01\x12'\n" +
-	"\rcreated_at_to\x18\r \x01(\x03H\vR\vcreatedAtTo\x88\x01\x01B\r\n" +
+	"\rcreated_at_to\x18\x0e \x01(\x03H\vR\vcreatedAtTo\x88\x01\x01B\r\n" +
 	"\v_network_idB\b\n" +
 	"\x06_os_idB\n" +
 	"\n" +
@@ -1065,28 +1046,26 @@ const file_instance_v1_instance_proto_rawDesc = "" +
 	"\r_storage_fromB\r\n" +
 	"\v_storage_toB\x12\n" +
 	"\x10_created_at_fromB\x10\n" +
-	"\x0e_created_at_to\"\x8a\x01\n" +
+	"\x0e_created_at_to\"\x87\x01\n" +
 	"\x15ListInstancesResponse\x123\n" +
-	"\tinstances\x18\x01 \x03(\v2\x15.instance.v1.InstanceR\tinstances\x12<\n" +
+	"\tinstances\x18\x01 \x03(\v2\x15.instance.v1.InstanceR\tinstances\x129\n" +
 	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1c.common.v1.PaginatedResponseR\n" +
-	"pagination\"\xff\x03\n" +
-	"\x15CreateInstanceRequest\x12G\n" +
-	"\buserdata\x18\x01 \x01(\v2+.instance.v1.CreateInstanceRequest.UserdataR\buserdata\x12G\n" +
-	"\bmetadata\x18\x02 \x01(\v2+.instance.v1.CreateInstanceRequest.MetadataR\bmetadata\x12;\n" +
-	"\x04spec\x18\x03 \x01(\v2'.instance.v1.CreateInstanceRequest.SpecR\x04spec\x1aj\n" +
-	"\bUserdata\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12.\n" +
-	"\x13ssh_authorized_keys\x18\x02 \x03(\tR\x11sshAuthorizedKeys\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\x1a1\n" +
-	"\bMetadata\x12%\n" +
-	"\x0elocal_hostname\x18\x01 \x01(\tR\rlocalHostname\x1ax\n" +
-	"\x04Spec\x12\x13\n" +
-	"\x05os_id\x18\x01 \x01(\tR\x04osId\x12\x17\n" +
-	"\aarch_id\x18\x02 \x01(\tR\x06archId\x12\x16\n" +
-	"\x06memory\x18\x03 \x01(\x05R\x06memory\x12\x10\n" +
-	"\x03cpu\x18\x04 \x01(\x05R\x03cpu\x12\x18\n" +
-	"\astorage\x18\x05 \x01(\x05R\astorage\"\xb3\x02\n" +
+	"pagination\x18\x02 \x01(\v2\x19.common.v1.PaginateResultR\n" +
+	"pagination\"\xcc\x02\n" +
+	"\x15CreateInstanceRequest\x12:\n" +
+	"\aaccount\x18\x01 \x01(\v2 .account.v1.AuthenticatedAccountR\aaccount\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12.\n" +
+	"\x13ssh_authorized_keys\x18\x03 \x03(\tR\x11sshAuthorizedKeys\x12\x1a\n" +
+	"\bpassword\x18\x04 \x01(\tR\bpassword\x12%\n" +
+	"\x0elocal_hostname\x18\x05 \x01(\tR\rlocalHostname\x12\x13\n" +
+	"\x05os_id\x18\x06 \x01(\tR\x04osId\x12\x17\n" +
+	"\aarch_id\x18\a \x01(\tR\x06archId\x12\x16\n" +
+	"\x06memory\x18\b \x01(\x05R\x06memory\x12\x10\n" +
+	"\x03cpu\x18\t \x01(\x05R\x03cpu\x12\x18\n" +
+	"\astorage\x18\n" +
+	" \x01(\x05R\astorage\"K\n" +
+	"\x16CreateInstanceResponse\x121\n" +
+	"\binstance\x18\x01 \x01(\v2\x15.instance.v1.InstanceR\binstance\"\xb3\x02\n" +
 	"\x15UpdateInstanceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\n" +
@@ -1131,40 +1110,41 @@ func file_instance_v1_instance_proto_rawDescGZIP() []byte {
 	return file_instance_v1_instance_proto_rawDescData
 }
 
-var file_instance_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_instance_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_instance_v1_instance_proto_goTypes = []any{
-	(*Instance)(nil),                       // 0: instance.v1.Instance
-	(*GetInstanceRequest)(nil),             // 1: instance.v1.GetInstanceRequest
-	(*ListInstancesRequest)(nil),           // 2: instance.v1.ListInstancesRequest
-	(*ListInstancesResponse)(nil),          // 3: instance.v1.ListInstancesResponse
-	(*CreateInstanceRequest)(nil),          // 4: instance.v1.CreateInstanceRequest
-	(*UpdateInstanceRequest)(nil),          // 5: instance.v1.UpdateInstanceRequest
-	(*UpdateInstanceResponse)(nil),         // 6: instance.v1.UpdateInstanceResponse
-	(*DeleteInstanceRequest)(nil),          // 7: instance.v1.DeleteInstanceRequest
-	(*DeleteInstanceResponse)(nil),         // 8: instance.v1.DeleteInstanceResponse
-	(*StartInstanceRequest)(nil),           // 9: instance.v1.StartInstanceRequest
-	(*StartInstanceResponse)(nil),          // 10: instance.v1.StartInstanceResponse
-	(*StopInstanceRequest)(nil),            // 11: instance.v1.StopInstanceRequest
-	(*StopInstanceResponse)(nil),           // 12: instance.v1.StopInstanceResponse
-	(*CreateInstanceRequest_Userdata)(nil), // 13: instance.v1.CreateInstanceRequest.Userdata
-	(*CreateInstanceRequest_Metadata)(nil), // 14: instance.v1.CreateInstanceRequest.Metadata
-	(*CreateInstanceRequest_Spec)(nil),     // 15: instance.v1.CreateInstanceRequest.Spec
-	(*v1.PaginationParams)(nil),            // 16: common.v1.PaginationParams
-	(*v1.PaginatedResponse)(nil),           // 17: common.v1.PaginatedResponse
+	(*Instance)(nil),                 // 0: instance.v1.Instance
+	(*GetInstanceRequest)(nil),       // 1: instance.v1.GetInstanceRequest
+	(*GetInstanceResponse)(nil),      // 2: instance.v1.GetInstanceResponse
+	(*ListInstancesRequest)(nil),     // 3: instance.v1.ListInstancesRequest
+	(*ListInstancesResponse)(nil),    // 4: instance.v1.ListInstancesResponse
+	(*CreateInstanceRequest)(nil),    // 5: instance.v1.CreateInstanceRequest
+	(*CreateInstanceResponse)(nil),   // 6: instance.v1.CreateInstanceResponse
+	(*UpdateInstanceRequest)(nil),    // 7: instance.v1.UpdateInstanceRequest
+	(*UpdateInstanceResponse)(nil),   // 8: instance.v1.UpdateInstanceResponse
+	(*DeleteInstanceRequest)(nil),    // 9: instance.v1.DeleteInstanceRequest
+	(*DeleteInstanceResponse)(nil),   // 10: instance.v1.DeleteInstanceResponse
+	(*StartInstanceRequest)(nil),     // 11: instance.v1.StartInstanceRequest
+	(*StartInstanceResponse)(nil),    // 12: instance.v1.StartInstanceResponse
+	(*StopInstanceRequest)(nil),      // 13: instance.v1.StopInstanceRequest
+	(*StopInstanceResponse)(nil),     // 14: instance.v1.StopInstanceResponse
+	(*v1.PaginationParams)(nil),      // 15: common.v1.PaginationParams
+	(*v11.AuthenticatedAccount)(nil), // 16: account.v1.AuthenticatedAccount
+	(*v1.PaginateResult)(nil),        // 17: common.v1.PaginateResult
 }
 var file_instance_v1_instance_proto_depIdxs = []int32{
-	16, // 0: instance.v1.ListInstancesRequest.pagination:type_name -> common.v1.PaginationParams
-	0,  // 1: instance.v1.ListInstancesResponse.instances:type_name -> instance.v1.Instance
-	17, // 2: instance.v1.ListInstancesResponse.pagination:type_name -> common.v1.PaginatedResponse
-	13, // 3: instance.v1.CreateInstanceRequest.userdata:type_name -> instance.v1.CreateInstanceRequest.Userdata
-	14, // 4: instance.v1.CreateInstanceRequest.metadata:type_name -> instance.v1.CreateInstanceRequest.Metadata
-	15, // 5: instance.v1.CreateInstanceRequest.spec:type_name -> instance.v1.CreateInstanceRequest.Spec
-	0,  // 6: instance.v1.UpdateInstanceResponse.instance:type_name -> instance.v1.Instance
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	0,  // 0: instance.v1.GetInstanceResponse.instance:type_name -> instance.v1.Instance
+	15, // 1: instance.v1.ListInstancesRequest.pagination:type_name -> common.v1.PaginationParams
+	16, // 2: instance.v1.ListInstancesRequest.account:type_name -> account.v1.AuthenticatedAccount
+	0,  // 3: instance.v1.ListInstancesResponse.instances:type_name -> instance.v1.Instance
+	17, // 4: instance.v1.ListInstancesResponse.pagination:type_name -> common.v1.PaginateResult
+	16, // 5: instance.v1.CreateInstanceRequest.account:type_name -> account.v1.AuthenticatedAccount
+	0,  // 6: instance.v1.CreateInstanceResponse.instance:type_name -> instance.v1.Instance
+	0,  // 7: instance.v1.UpdateInstanceResponse.instance:type_name -> instance.v1.Instance
+	8,  // [8:8] is the sub-list for method output_type
+	8,  // [8:8] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_instance_v1_instance_proto_init() }
@@ -1172,15 +1152,15 @@ func file_instance_v1_instance_proto_init() {
 	if File_instance_v1_instance_proto != nil {
 		return
 	}
-	file_instance_v1_instance_proto_msgTypes[2].OneofWrappers = []any{}
-	file_instance_v1_instance_proto_msgTypes[5].OneofWrappers = []any{}
+	file_instance_v1_instance_proto_msgTypes[3].OneofWrappers = []any{}
+	file_instance_v1_instance_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_instance_v1_instance_proto_rawDesc), len(file_instance_v1_instance_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

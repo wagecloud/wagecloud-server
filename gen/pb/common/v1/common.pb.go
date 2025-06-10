@@ -74,31 +74,32 @@ func (x *PaginationParams) GetLimit() int32 {
 	return 0
 }
 
-// Paginated response
-type PaginatedResponse struct {
+// Paginate result
+type PaginateResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
-	TotalPages    int32                  `protobuf:"varint,4,opt,name=total_pages,json=totalPages,proto3" json:"total_pages,omitempty"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Total         int64                  `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	NextPage      *int32                 `protobuf:"varint,4,opt,name=next_page,json=nextPage,proto3,oneof" json:"next_page,omitempty"`
+	NextCursor    *string                `protobuf:"bytes,5,opt,name=next_cursor,json=nextCursor,proto3,oneof" json:"next_cursor,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PaginatedResponse) Reset() {
-	*x = PaginatedResponse{}
+func (x *PaginateResult) Reset() {
+	*x = PaginateResult{}
 	mi := &file_common_v1_common_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PaginatedResponse) String() string {
+func (x *PaginateResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PaginatedResponse) ProtoMessage() {}
+func (*PaginateResult) ProtoMessage() {}
 
-func (x *PaginatedResponse) ProtoReflect() protoreflect.Message {
+func (x *PaginateResult) ProtoReflect() protoreflect.Message {
 	mi := &file_common_v1_common_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -110,37 +111,44 @@ func (x *PaginatedResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PaginatedResponse.ProtoReflect.Descriptor instead.
-func (*PaginatedResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use PaginateResult.ProtoReflect.Descriptor instead.
+func (*PaginateResult) Descriptor() ([]byte, []int) {
 	return file_common_v1_common_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *PaginatedResponse) GetTotal() int64 {
-	if x != nil {
-		return x.Total
-	}
-	return 0
-}
-
-func (x *PaginatedResponse) GetPage() int32 {
+func (x *PaginateResult) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *PaginatedResponse) GetLimit() int32 {
+func (x *PaginateResult) GetLimit() int32 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-func (x *PaginatedResponse) GetTotalPages() int32 {
+func (x *PaginateResult) GetTotal() int64 {
 	if x != nil {
-		return x.TotalPages
+		return x.Total
 	}
 	return 0
+}
+
+func (x *PaginateResult) GetNextPage() int32 {
+	if x != nil && x.NextPage != nil {
+		return *x.NextPage
+	}
+	return 0
+}
+
+func (x *PaginateResult) GetNextCursor() string {
+	if x != nil && x.NextCursor != nil {
+		return *x.NextCursor
+	}
+	return ""
 }
 
 // Error response
@@ -196,43 +204,6 @@ func (x *ErrorResponse) GetCode() int32 {
 	return 0
 }
 
-// Empty response
-type Empty struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Empty) Reset() {
-	*x = Empty{}
-	mi := &file_common_v1_common_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Empty) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Empty) ProtoMessage() {}
-
-func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Empty.ProtoReflect.Descriptor instead.
-func (*Empty) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{3}
-}
-
 var File_common_v1_common_proto protoreflect.FileDescriptor
 
 const file_common_v1_common_proto_rawDesc = "" +
@@ -240,17 +211,20 @@ const file_common_v1_common_proto_rawDesc = "" +
 	"\x16common/v1/common.proto\x12\tcommon.v1\"<\n" +
 	"\x10PaginationParams\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x14\n" +
-	"\x05limit\x18\x02 \x01(\x05R\x05limit\"t\n" +
-	"\x11PaginatedResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x12\n" +
-	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x1f\n" +
-	"\vtotal_pages\x18\x04 \x01(\x05R\n" +
-	"totalPages\"=\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"\xb6\x01\n" +
+	"\x0ePaginateResult\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x14\n" +
+	"\x05total\x18\x03 \x01(\x03R\x05total\x12 \n" +
+	"\tnext_page\x18\x04 \x01(\x05H\x00R\bnextPage\x88\x01\x01\x12$\n" +
+	"\vnext_cursor\x18\x05 \x01(\tH\x01R\n" +
+	"nextCursor\x88\x01\x01B\f\n" +
+	"\n" +
+	"_next_pageB\x0e\n" +
+	"\f_next_cursor\"=\n" +
 	"\rErrorResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\"\a\n" +
-	"\x05EmptyB\xa2\x01\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04codeB\xa2\x01\n" +
 	"\rcom.common.v1B\vCommonProtoP\x01Z?github.com/wagecloud/wagecloud-server/gen/pb/common/v1;commonv1\xa2\x02\x03CXX\xaa\x02\tCommon.V1\xca\x02\tCommon\\V1\xe2\x02\x15Common\\V1\\GPBMetadata\xea\x02\n" +
 	"Common::V1b\x06proto3"
 
@@ -266,12 +240,11 @@ func file_common_v1_common_proto_rawDescGZIP() []byte {
 	return file_common_v1_common_proto_rawDescData
 }
 
-var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_common_v1_common_proto_goTypes = []any{
-	(*PaginationParams)(nil),  // 0: common.v1.PaginationParams
-	(*PaginatedResponse)(nil), // 1: common.v1.PaginatedResponse
-	(*ErrorResponse)(nil),     // 2: common.v1.ErrorResponse
-	(*Empty)(nil),             // 3: common.v1.Empty
+	(*PaginationParams)(nil), // 0: common.v1.PaginationParams
+	(*PaginateResult)(nil),   // 1: common.v1.PaginateResult
+	(*ErrorResponse)(nil),    // 2: common.v1.ErrorResponse
 }
 var file_common_v1_common_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -286,13 +259,14 @@ func file_common_v1_common_proto_init() {
 	if File_common_v1_common_proto != nil {
 		return
 	}
+	file_common_v1_common_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_v1_common_proto_rawDesc), len(file_common_v1_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

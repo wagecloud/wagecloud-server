@@ -28,7 +28,6 @@ type Network struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	PrivateIp     string                 `protobuf:"bytes,2,opt,name=private_ip,json=privateIp,proto3" json:"private_ip,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -80,13 +79,6 @@ func (x *Network) GetPrivateIp() string {
 func (x *Network) GetCreatedAt() int64 {
 	if x != nil {
 		return x.CreatedAt
-	}
-	return 0
-}
-
-func (x *Network) GetUpdatedAt() int64 {
-	if x != nil {
-		return x.UpdatedAt
 	}
 	return 0
 }
@@ -183,12 +175,11 @@ func (x *GetNetworkResponse) GetNetwork() *Network {
 // List networks request
 type ListNetworksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
-	Id            *string                `protobuf:"bytes,3,opt,name=id,proto3,oneof" json:"id,omitempty"`
-	PrivateIp     *string                `protobuf:"bytes,4,opt,name=private_ip,json=privateIp,proto3,oneof" json:"private_ip,omitempty"`
-	CreatedAtFrom *int64                 `protobuf:"varint,5,opt,name=created_at_from,json=createdAtFrom,proto3,oneof" json:"created_at_from,omitempty"`
-	CreatedAtTo   *int64                 `protobuf:"varint,6,opt,name=created_at_to,json=createdAtTo,proto3,oneof" json:"created_at_to,omitempty"`
+	Pagination    *v1.PaginationParams   `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Id            *string                `protobuf:"bytes,2,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	PrivateIp     *string                `protobuf:"bytes,3,opt,name=private_ip,json=privateIp,proto3,oneof" json:"private_ip,omitempty"`
+	CreatedAtFrom *int64                 `protobuf:"varint,4,opt,name=created_at_from,json=createdAtFrom,proto3,oneof" json:"created_at_from,omitempty"`
+	CreatedAtTo   *int64                 `protobuf:"varint,5,opt,name=created_at_to,json=createdAtTo,proto3,oneof" json:"created_at_to,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -223,18 +214,11 @@ func (*ListNetworksRequest) Descriptor() ([]byte, []int) {
 	return file_instance_v1_network_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ListNetworksRequest) GetPage() int32 {
+func (x *ListNetworksRequest) GetPagination() *v1.PaginationParams {
 	if x != nil {
-		return x.Page
+		return x.Pagination
 	}
-	return 0
-}
-
-func (x *ListNetworksRequest) GetLimit() int32 {
-	if x != nil {
-		return x.Limit
-	}
-	return 0
+	return nil
 }
 
 func (x *ListNetworksRequest) GetId() string {
@@ -269,7 +253,7 @@ func (x *ListNetworksRequest) GetCreatedAtTo() int64 {
 type ListNetworksResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Networks      []*Network             `protobuf:"bytes,1,rep,name=networks,proto3" json:"networks,omitempty"`
-	Pagination    *v1.PaginatedResponse  `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination    *v1.PaginateResult     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -311,7 +295,7 @@ func (x *ListNetworksResponse) GetNetworks() []*Network {
 	return nil
 }
 
-func (x *ListNetworksResponse) GetPagination() *v1.PaginatedResponse {
+func (x *ListNetworksResponse) GetPagination() *v1.PaginateResult {
 	if x != nil {
 		return x.Pagination
 	}
@@ -371,6 +355,51 @@ func (x *CreateNetworkRequest) GetPrivateIp() string {
 	return ""
 }
 
+// Create network response
+type CreateNetworkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Network       *Network               `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateNetworkResponse) Reset() {
+	*x = CreateNetworkResponse{}
+	mi := &file_instance_v1_network_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateNetworkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateNetworkResponse) ProtoMessage() {}
+
+func (x *CreateNetworkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_instance_v1_network_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateNetworkResponse.ProtoReflect.Descriptor instead.
+func (*CreateNetworkResponse) Descriptor() ([]byte, []int) {
+	return file_instance_v1_network_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreateNetworkResponse) GetNetwork() *Network {
+	if x != nil {
+		return x.Network
+	}
+	return nil
+}
+
 // Update network request
 type UpdateNetworkRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -383,7 +412,7 @@ type UpdateNetworkRequest struct {
 
 func (x *UpdateNetworkRequest) Reset() {
 	*x = UpdateNetworkRequest{}
-	mi := &file_instance_v1_network_proto_msgTypes[6]
+	mi := &file_instance_v1_network_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -395,7 +424,7 @@ func (x *UpdateNetworkRequest) String() string {
 func (*UpdateNetworkRequest) ProtoMessage() {}
 
 func (x *UpdateNetworkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_network_proto_msgTypes[6]
+	mi := &file_instance_v1_network_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -408,7 +437,7 @@ func (x *UpdateNetworkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNetworkRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNetworkRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_network_proto_rawDescGZIP(), []int{6}
+	return file_instance_v1_network_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateNetworkRequest) GetId() string {
@@ -432,6 +461,51 @@ func (x *UpdateNetworkRequest) GetPrivateIp() string {
 	return ""
 }
 
+// Update network response
+type UpdateNetworkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Network       *Network               `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateNetworkResponse) Reset() {
+	*x = UpdateNetworkResponse{}
+	mi := &file_instance_v1_network_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNetworkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNetworkResponse) ProtoMessage() {}
+
+func (x *UpdateNetworkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_instance_v1_network_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNetworkResponse.ProtoReflect.Descriptor instead.
+func (*UpdateNetworkResponse) Descriptor() ([]byte, []int) {
+	return file_instance_v1_network_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdateNetworkResponse) GetNetwork() *Network {
+	if x != nil {
+		return x.Network
+	}
+	return nil
+}
+
 // Delete network request
 type DeleteNetworkRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -442,7 +516,7 @@ type DeleteNetworkRequest struct {
 
 func (x *DeleteNetworkRequest) Reset() {
 	*x = DeleteNetworkRequest{}
-	mi := &file_instance_v1_network_proto_msgTypes[7]
+	mi := &file_instance_v1_network_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -454,7 +528,7 @@ func (x *DeleteNetworkRequest) String() string {
 func (*DeleteNetworkRequest) ProtoMessage() {}
 
 func (x *DeleteNetworkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_network_proto_msgTypes[7]
+	mi := &file_instance_v1_network_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -467,7 +541,7 @@ func (x *DeleteNetworkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNetworkRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNetworkRequest) Descriptor() ([]byte, []int) {
-	return file_instance_v1_network_proto_rawDescGZIP(), []int{7}
+	return file_instance_v1_network_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteNetworkRequest) GetId() string {
@@ -486,7 +560,7 @@ type DeleteNetworkResponse struct {
 
 func (x *DeleteNetworkResponse) Reset() {
 	*x = DeleteNetworkResponse{}
-	mi := &file_instance_v1_network_proto_msgTypes[8]
+	mi := &file_instance_v1_network_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -498,7 +572,7 @@ func (x *DeleteNetworkResponse) String() string {
 func (*DeleteNetworkResponse) ProtoMessage() {}
 
 func (x *DeleteNetworkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_instance_v1_network_proto_msgTypes[8]
+	mi := &file_instance_v1_network_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,54 +585,57 @@ func (x *DeleteNetworkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNetworkResponse.ProtoReflect.Descriptor instead.
 func (*DeleteNetworkResponse) Descriptor() ([]byte, []int) {
-	return file_instance_v1_network_proto_rawDescGZIP(), []int{8}
+	return file_instance_v1_network_proto_rawDescGZIP(), []int{10}
 }
 
 var File_instance_v1_network_proto protoreflect.FileDescriptor
 
 const file_instance_v1_network_proto_rawDesc = "" +
 	"\n" +
-	"\x19instance/v1/network.proto\x12\vinstance.v1\x1a\x16common/v1/common.proto\"v\n" +
+	"\x19instance/v1/network.proto\x12\vinstance.v1\x1a\x16common/v1/common.proto\"W\n" +
 	"\aNetwork\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
 	"private_ip\x18\x02 \x01(\tR\tprivateIp\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x03 \x01(\x03R\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"#\n" +
+	"created_at\x18\x03 \x01(\x03R\tcreatedAt\"#\n" +
 	"\x11GetNetworkRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"D\n" +
 	"\x12GetNetworkResponse\x12.\n" +
-	"\anetwork\x18\x01 \x01(\v2\x14.instance.v1.NetworkR\anetwork\"\x8a\x02\n" +
-	"\x13ListNetworksRequest\x12\x12\n" +
-	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x14\n" +
-	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x13\n" +
-	"\x02id\x18\x03 \x01(\tH\x00R\x02id\x88\x01\x01\x12\"\n" +
+	"\anetwork\x18\x01 \x01(\v2\x14.instance.v1.NetworkR\anetwork\"\x9d\x02\n" +
+	"\x13ListNetworksRequest\x12;\n" +
 	"\n" +
-	"private_ip\x18\x04 \x01(\tH\x01R\tprivateIp\x88\x01\x01\x12+\n" +
-	"\x0fcreated_at_from\x18\x05 \x01(\x03H\x02R\rcreatedAtFrom\x88\x01\x01\x12'\n" +
-	"\rcreated_at_to\x18\x06 \x01(\x03H\x03R\vcreatedAtTo\x88\x01\x01B\x05\n" +
+	"pagination\x18\x01 \x01(\v2\x1b.common.v1.PaginationParamsR\n" +
+	"pagination\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tH\x00R\x02id\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"private_ip\x18\x03 \x01(\tH\x01R\tprivateIp\x88\x01\x01\x12+\n" +
+	"\x0fcreated_at_from\x18\x04 \x01(\x03H\x02R\rcreatedAtFrom\x88\x01\x01\x12'\n" +
+	"\rcreated_at_to\x18\x05 \x01(\x03H\x03R\vcreatedAtTo\x88\x01\x01B\x05\n" +
 	"\x03_idB\r\n" +
 	"\v_private_ipB\x12\n" +
 	"\x10_created_at_fromB\x10\n" +
-	"\x0e_created_at_to\"\x86\x01\n" +
+	"\x0e_created_at_to\"\x83\x01\n" +
 	"\x14ListNetworksResponse\x120\n" +
-	"\bnetworks\x18\x01 \x03(\v2\x14.instance.v1.NetworkR\bnetworks\x12<\n" +
+	"\bnetworks\x18\x01 \x03(\v2\x14.instance.v1.NetworkR\bnetworks\x129\n" +
 	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1c.common.v1.PaginatedResponseR\n" +
+	"pagination\x18\x02 \x01(\v2\x19.common.v1.PaginateResultR\n" +
 	"pagination\"E\n" +
 	"\x14CreateNetworkRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
-	"private_ip\x18\x02 \x01(\tR\tprivateIp\"\x80\x01\n" +
+	"private_ip\x18\x02 \x01(\tR\tprivateIp\"G\n" +
+	"\x15CreateNetworkResponse\x12.\n" +
+	"\anetwork\x18\x01 \x01(\v2\x14.instance.v1.NetworkR\anetwork\"\x80\x01\n" +
 	"\x14UpdateNetworkRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\x06new_id\x18\x02 \x01(\tH\x00R\x05newId\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"private_ip\x18\x03 \x01(\tH\x01R\tprivateIp\x88\x01\x01B\t\n" +
 	"\a_new_idB\r\n" +
-	"\v_private_ip\"&\n" +
+	"\v_private_ip\"G\n" +
+	"\x15UpdateNetworkResponse\x12.\n" +
+	"\anetwork\x18\x01 \x01(\v2\x14.instance.v1.NetworkR\anetwork\"&\n" +
 	"\x14DeleteNetworkRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x17\n" +
 	"\x15DeleteNetworkResponseB\xb1\x01\n" +
@@ -576,7 +653,7 @@ func file_instance_v1_network_proto_rawDescGZIP() []byte {
 	return file_instance_v1_network_proto_rawDescData
 }
 
-var file_instance_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_instance_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_instance_v1_network_proto_goTypes = []any{
 	(*Network)(nil),               // 0: instance.v1.Network
 	(*GetNetworkRequest)(nil),     // 1: instance.v1.GetNetworkRequest
@@ -584,20 +661,26 @@ var file_instance_v1_network_proto_goTypes = []any{
 	(*ListNetworksRequest)(nil),   // 3: instance.v1.ListNetworksRequest
 	(*ListNetworksResponse)(nil),  // 4: instance.v1.ListNetworksResponse
 	(*CreateNetworkRequest)(nil),  // 5: instance.v1.CreateNetworkRequest
-	(*UpdateNetworkRequest)(nil),  // 6: instance.v1.UpdateNetworkRequest
-	(*DeleteNetworkRequest)(nil),  // 7: instance.v1.DeleteNetworkRequest
-	(*DeleteNetworkResponse)(nil), // 8: instance.v1.DeleteNetworkResponse
-	(*v1.PaginatedResponse)(nil),  // 9: common.v1.PaginatedResponse
+	(*CreateNetworkResponse)(nil), // 6: instance.v1.CreateNetworkResponse
+	(*UpdateNetworkRequest)(nil),  // 7: instance.v1.UpdateNetworkRequest
+	(*UpdateNetworkResponse)(nil), // 8: instance.v1.UpdateNetworkResponse
+	(*DeleteNetworkRequest)(nil),  // 9: instance.v1.DeleteNetworkRequest
+	(*DeleteNetworkResponse)(nil), // 10: instance.v1.DeleteNetworkResponse
+	(*v1.PaginationParams)(nil),   // 11: common.v1.PaginationParams
+	(*v1.PaginateResult)(nil),     // 12: common.v1.PaginateResult
 }
 var file_instance_v1_network_proto_depIdxs = []int32{
-	0, // 0: instance.v1.GetNetworkResponse.network:type_name -> instance.v1.Network
-	0, // 1: instance.v1.ListNetworksResponse.networks:type_name -> instance.v1.Network
-	9, // 2: instance.v1.ListNetworksResponse.pagination:type_name -> common.v1.PaginatedResponse
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: instance.v1.GetNetworkResponse.network:type_name -> instance.v1.Network
+	11, // 1: instance.v1.ListNetworksRequest.pagination:type_name -> common.v1.PaginationParams
+	0,  // 2: instance.v1.ListNetworksResponse.networks:type_name -> instance.v1.Network
+	12, // 3: instance.v1.ListNetworksResponse.pagination:type_name -> common.v1.PaginateResult
+	0,  // 4: instance.v1.CreateNetworkResponse.network:type_name -> instance.v1.Network
+	0,  // 5: instance.v1.UpdateNetworkResponse.network:type_name -> instance.v1.Network
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_instance_v1_network_proto_init() }
@@ -606,14 +689,14 @@ func file_instance_v1_network_proto_init() {
 		return
 	}
 	file_instance_v1_network_proto_msgTypes[3].OneofWrappers = []any{}
-	file_instance_v1_network_proto_msgTypes[6].OneofWrappers = []any{}
+	file_instance_v1_network_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_instance_v1_network_proto_rawDesc), len(file_instance_v1_network_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

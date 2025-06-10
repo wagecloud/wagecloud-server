@@ -22,53 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Get architecture request
-type GetArchitectureRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetArchitectureRequest) Reset() {
-	*x = GetArchitectureRequest{}
-	mi := &file_os_v1_arch_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetArchitectureRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetArchitectureRequest) ProtoMessage() {}
-
-func (x *GetArchitectureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetArchitectureRequest.ProtoReflect.Descriptor instead.
-func (*GetArchitectureRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *GetArchitectureRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-// Architecture message
-type GetArchitectureResponse struct {
+type Arch struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
@@ -78,20 +32,86 @@ type GetArchitectureResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetArchitectureResponse) Reset() {
-	*x = GetArchitectureResponse{}
+func (x *Arch) Reset() {
+	*x = Arch{}
+	mi := &file_os_v1_arch_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Arch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Arch) ProtoMessage() {}
+
+func (x *Arch) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Arch.ProtoReflect.Descriptor instead.
+func (*Arch) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Arch) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Arch) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Arch) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Arch) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+// Get Arch request
+type GetArchRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetArchRequest) Reset() {
+	*x = GetArchRequest{}
 	mi := &file_os_v1_arch_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetArchitectureResponse) String() string {
+func (x *GetArchRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetArchitectureResponse) ProtoMessage() {}
+func (*GetArchRequest) ProtoMessage() {}
 
-func (x *GetArchitectureResponse) ProtoReflect() protoreflect.Message {
+func (x *GetArchRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_os_v1_arch_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -103,41 +123,65 @@ func (x *GetArchitectureResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetArchitectureResponse.ProtoReflect.Descriptor instead.
-func (*GetArchitectureResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetArchRequest.ProtoReflect.Descriptor instead.
+func (*GetArchRequest) Descriptor() ([]byte, []int) {
 	return file_os_v1_arch_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetArchitectureResponse) GetId() string {
+func (x *GetArchRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *GetArchitectureResponse) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
+// Arch message
+type GetArchResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Arch          *Arch                  `protobuf:"bytes,1,opt,name=arch,proto3" json:"arch,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetArchitectureResponse) GetCreatedAt() int64 {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return 0
+func (x *GetArchResponse) Reset() {
+	*x = GetArchResponse{}
+	mi := &file_os_v1_arch_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetArchitectureResponse) GetUpdatedAt() int64 {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return 0
+func (x *GetArchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
 }
 
-// List architectures request
-type ListArchitecturesRequest struct {
+func (*GetArchResponse) ProtoMessage() {}
+
+func (x *GetArchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetArchResponse.ProtoReflect.Descriptor instead.
+func (*GetArchResponse) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetArchResponse) GetArch() *Arch {
+	if x != nil {
+		return x.Arch
+	}
+	return nil
+}
+
+// List Archs request
+type ListArchsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Pagination    *v1.PaginationParams   `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	Id            *string                `protobuf:"bytes,2,opt,name=id,proto3,oneof" json:"id,omitempty"`
@@ -148,21 +192,21 @@ type ListArchitecturesRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListArchitecturesRequest) Reset() {
-	*x = ListArchitecturesRequest{}
-	mi := &file_os_v1_arch_proto_msgTypes[2]
+func (x *ListArchsRequest) Reset() {
+	*x = ListArchsRequest{}
+	mi := &file_os_v1_arch_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListArchitecturesRequest) String() string {
+func (x *ListArchsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListArchitecturesRequest) ProtoMessage() {}
+func (*ListArchsRequest) ProtoMessage() {}
 
-func (x *ListArchitecturesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[2]
+func (x *ListArchsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -173,70 +217,70 @@ func (x *ListArchitecturesRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListArchitecturesRequest.ProtoReflect.Descriptor instead.
-func (*ListArchitecturesRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{2}
+// Deprecated: Use ListArchsRequest.ProtoReflect.Descriptor instead.
+func (*ListArchsRequest) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ListArchitecturesRequest) GetPagination() *v1.PaginationParams {
+func (x *ListArchsRequest) GetPagination() *v1.PaginationParams {
 	if x != nil {
 		return x.Pagination
 	}
 	return nil
 }
 
-func (x *ListArchitecturesRequest) GetId() string {
+func (x *ListArchsRequest) GetId() string {
 	if x != nil && x.Id != nil {
 		return *x.Id
 	}
 	return ""
 }
 
-func (x *ListArchitecturesRequest) GetName() string {
+func (x *ListArchsRequest) GetName() string {
 	if x != nil && x.Name != nil {
 		return *x.Name
 	}
 	return ""
 }
 
-func (x *ListArchitecturesRequest) GetCreatedAtFrom() int64 {
+func (x *ListArchsRequest) GetCreatedAtFrom() int64 {
 	if x != nil && x.CreatedAtFrom != nil {
 		return *x.CreatedAtFrom
 	}
 	return 0
 }
 
-func (x *ListArchitecturesRequest) GetCreatedAtTo() int64 {
+func (x *ListArchsRequest) GetCreatedAtTo() int64 {
 	if x != nil && x.CreatedAtTo != nil {
 		return *x.CreatedAtTo
 	}
 	return 0
 }
 
-// List architectures response
-type ListArchitecturesResponse struct {
-	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Architectures []*GetArchitectureResponse `protobuf:"bytes,1,rep,name=architectures,proto3" json:"architectures,omitempty"`
-	Pagination    *v1.PaginatedResponse      `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+// List Archs response
+type ListArchsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Archs         []*Arch                `protobuf:"bytes,1,rep,name=archs,proto3" json:"archs,omitempty"`
+	Pagination    *v1.PaginateResult     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListArchitecturesResponse) Reset() {
-	*x = ListArchitecturesResponse{}
-	mi := &file_os_v1_arch_proto_msgTypes[3]
+func (x *ListArchsResponse) Reset() {
+	*x = ListArchsResponse{}
+	mi := &file_os_v1_arch_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListArchitecturesResponse) String() string {
+func (x *ListArchsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListArchitecturesResponse) ProtoMessage() {}
+func (*ListArchsResponse) ProtoMessage() {}
 
-func (x *ListArchitecturesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[3]
+func (x *ListArchsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -247,27 +291,27 @@ func (x *ListArchitecturesResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListArchitecturesResponse.ProtoReflect.Descriptor instead.
-func (*ListArchitecturesResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{3}
+// Deprecated: Use ListArchsResponse.ProtoReflect.Descriptor instead.
+func (*ListArchsResponse) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ListArchitecturesResponse) GetArchitectures() []*GetArchitectureResponse {
+func (x *ListArchsResponse) GetArchs() []*Arch {
 	if x != nil {
-		return x.Architectures
+		return x.Archs
 	}
 	return nil
 }
 
-func (x *ListArchitecturesResponse) GetPagination() *v1.PaginatedResponse {
+func (x *ListArchsResponse) GetPagination() *v1.PaginateResult {
 	if x != nil {
 		return x.Pagination
 	}
 	return nil
 }
 
-// Create architecture request
-type CreateArchitectureRequest struct {
+// Create Arch request
+type CreateArchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
@@ -275,21 +319,21 @@ type CreateArchitectureRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateArchitectureRequest) Reset() {
-	*x = CreateArchitectureRequest{}
-	mi := &file_os_v1_arch_proto_msgTypes[4]
+func (x *CreateArchRequest) Reset() {
+	*x = CreateArchRequest{}
+	mi := &file_os_v1_arch_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateArchitectureRequest) String() string {
+func (x *CreateArchRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateArchitectureRequest) ProtoMessage() {}
+func (*CreateArchRequest) ProtoMessage() {}
 
-func (x *CreateArchitectureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[4]
+func (x *CreateArchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -300,48 +344,48 @@ func (x *CreateArchitectureRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateArchitectureRequest.ProtoReflect.Descriptor instead.
-func (*CreateArchitectureRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{4}
+// Deprecated: Use CreateArchRequest.ProtoReflect.Descriptor instead.
+func (*CreateArchRequest) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *CreateArchitectureRequest) GetId() string {
+func (x *CreateArchRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *CreateArchitectureRequest) GetName() string {
+func (x *CreateArchRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-// Create architecture response
-type CreateArchitectureResponse struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Architecture  *GetArchitectureResponse `protobuf:"bytes,1,opt,name=architecture,proto3" json:"architecture,omitempty"`
+// Create Arch response
+type CreateArchResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Arch          *Arch                  `protobuf:"bytes,1,opt,name=arch,proto3" json:"arch,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateArchitectureResponse) Reset() {
-	*x = CreateArchitectureResponse{}
-	mi := &file_os_v1_arch_proto_msgTypes[5]
+func (x *CreateArchResponse) Reset() {
+	*x = CreateArchResponse{}
+	mi := &file_os_v1_arch_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateArchitectureResponse) String() string {
+func (x *CreateArchResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateArchitectureResponse) ProtoMessage() {}
+func (*CreateArchResponse) ProtoMessage() {}
 
-func (x *CreateArchitectureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[5]
+func (x *CreateArchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -352,20 +396,20 @@ func (x *CreateArchitectureResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateArchitectureResponse.ProtoReflect.Descriptor instead.
-func (*CreateArchitectureResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{5}
+// Deprecated: Use CreateArchResponse.ProtoReflect.Descriptor instead.
+func (*CreateArchResponse) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *CreateArchitectureResponse) GetArchitecture() *GetArchitectureResponse {
+func (x *CreateArchResponse) GetArch() *Arch {
 	if x != nil {
-		return x.Architecture
+		return x.Arch
 	}
 	return nil
 }
 
-// Update architecture request
-type UpdateArchitectureRequest struct {
+// Update Arch request
+type UpdateArchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	NewId         *string                `protobuf:"bytes,2,opt,name=new_id,json=newId,proto3,oneof" json:"new_id,omitempty"`
@@ -374,21 +418,21 @@ type UpdateArchitectureRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateArchitectureRequest) Reset() {
-	*x = UpdateArchitectureRequest{}
-	mi := &file_os_v1_arch_proto_msgTypes[6]
+func (x *UpdateArchRequest) Reset() {
+	*x = UpdateArchRequest{}
+	mi := &file_os_v1_arch_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateArchitectureRequest) String() string {
+func (x *UpdateArchRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateArchitectureRequest) ProtoMessage() {}
+func (*UpdateArchRequest) ProtoMessage() {}
 
-func (x *UpdateArchitectureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[6]
+func (x *UpdateArchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -399,55 +443,55 @@ func (x *UpdateArchitectureRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateArchitectureRequest.ProtoReflect.Descriptor instead.
-func (*UpdateArchitectureRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use UpdateArchRequest.ProtoReflect.Descriptor instead.
+func (*UpdateArchRequest) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *UpdateArchitectureRequest) GetId() string {
+func (x *UpdateArchRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *UpdateArchitectureRequest) GetNewId() string {
+func (x *UpdateArchRequest) GetNewId() string {
 	if x != nil && x.NewId != nil {
 		return *x.NewId
 	}
 	return ""
 }
 
-func (x *UpdateArchitectureRequest) GetName() string {
+func (x *UpdateArchRequest) GetName() string {
 	if x != nil && x.Name != nil {
 		return *x.Name
 	}
 	return ""
 }
 
-// Update architecture response
-type UpdateArchitectureResponse struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Architecture  *GetArchitectureResponse `protobuf:"bytes,1,opt,name=architecture,proto3" json:"architecture,omitempty"`
+// Update Arch response
+type UpdateArchResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Arch          *Arch                  `protobuf:"bytes,1,opt,name=arch,proto3" json:"arch,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateArchitectureResponse) Reset() {
-	*x = UpdateArchitectureResponse{}
-	mi := &file_os_v1_arch_proto_msgTypes[7]
+func (x *UpdateArchResponse) Reset() {
+	*x = UpdateArchResponse{}
+	mi := &file_os_v1_arch_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateArchitectureResponse) String() string {
+func (x *UpdateArchResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateArchitectureResponse) ProtoMessage() {}
+func (*UpdateArchResponse) ProtoMessage() {}
 
-func (x *UpdateArchitectureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[7]
+func (x *UpdateArchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -458,41 +502,41 @@ func (x *UpdateArchitectureResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateArchitectureResponse.ProtoReflect.Descriptor instead.
-func (*UpdateArchitectureResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use UpdateArchResponse.ProtoReflect.Descriptor instead.
+func (*UpdateArchResponse) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *UpdateArchitectureResponse) GetArchitecture() *GetArchitectureResponse {
+func (x *UpdateArchResponse) GetArch() *Arch {
 	if x != nil {
-		return x.Architecture
+		return x.Arch
 	}
 	return nil
 }
 
-// Delete architecture request
-type DeleteArchitectureRequest struct {
+// Delete Arch request
+type DeleteArchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteArchitectureRequest) Reset() {
-	*x = DeleteArchitectureRequest{}
-	mi := &file_os_v1_arch_proto_msgTypes[8]
+func (x *DeleteArchRequest) Reset() {
+	*x = DeleteArchRequest{}
+	mi := &file_os_v1_arch_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteArchitectureRequest) String() string {
+func (x *DeleteArchRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteArchitectureRequest) ProtoMessage() {}
+func (*DeleteArchRequest) ProtoMessage() {}
 
-func (x *DeleteArchitectureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[8]
+func (x *DeleteArchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -503,40 +547,40 @@ func (x *DeleteArchitectureRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteArchitectureRequest.ProtoReflect.Descriptor instead.
-func (*DeleteArchitectureRequest) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{8}
+// Deprecated: Use DeleteArchRequest.ProtoReflect.Descriptor instead.
+func (*DeleteArchRequest) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *DeleteArchitectureRequest) GetId() string {
+func (x *DeleteArchRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-// Delete architecture response
-type DeleteArchitectureResponse struct {
+// Delete Arch response
+type DeleteArchResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteArchitectureResponse) Reset() {
-	*x = DeleteArchitectureResponse{}
-	mi := &file_os_v1_arch_proto_msgTypes[9]
+func (x *DeleteArchResponse) Reset() {
+	*x = DeleteArchResponse{}
+	mi := &file_os_v1_arch_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteArchitectureResponse) String() string {
+func (x *DeleteArchResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteArchitectureResponse) ProtoMessage() {}
+func (*DeleteArchResponse) ProtoMessage() {}
 
-func (x *DeleteArchitectureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_os_v1_arch_proto_msgTypes[9]
+func (x *DeleteArchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_os_v1_arch_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -547,26 +591,28 @@ func (x *DeleteArchitectureResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteArchitectureResponse.ProtoReflect.Descriptor instead.
-func (*DeleteArchitectureResponse) Descriptor() ([]byte, []int) {
-	return file_os_v1_arch_proto_rawDescGZIP(), []int{9}
+// Deprecated: Use DeleteArchResponse.ProtoReflect.Descriptor instead.
+func (*DeleteArchResponse) Descriptor() ([]byte, []int) {
+	return file_os_v1_arch_proto_rawDescGZIP(), []int{10}
 }
 
 var File_os_v1_arch_proto protoreflect.FileDescriptor
 
 const file_os_v1_arch_proto_rawDesc = "" +
 	"\n" +
-	"\x10os/v1/arch.proto\x12\x05os.v1\x1a\x16common/v1/common.proto\"(\n" +
-	"\x16GetArchitectureRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"{\n" +
-	"\x17GetArchitectureResponse\x12\x0e\n" +
+	"\x10os/v1/arch.proto\x12\x05os.v1\x1a\x16common/v1/common.proto\"h\n" +
+	"\x04Arch\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x03 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"\x91\x02\n" +
-	"\x18ListArchitecturesRequest\x12;\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\" \n" +
+	"\x0eGetArchRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"2\n" +
+	"\x0fGetArchResponse\x12\x1f\n" +
+	"\x04arch\x18\x01 \x01(\v2\v.os.v1.ArchR\x04arch\"\x89\x02\n" +
+	"\x10ListArchsRequest\x12;\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1b.common.v1.PaginationParamsR\n" +
 	"pagination\x12\x13\n" +
@@ -577,28 +623,28 @@ const file_os_v1_arch_proto_rawDesc = "" +
 	"\x03_idB\a\n" +
 	"\x05_nameB\x12\n" +
 	"\x10_created_at_fromB\x10\n" +
-	"\x0e_created_at_to\"\x9f\x01\n" +
-	"\x19ListArchitecturesResponse\x12D\n" +
-	"\rarchitectures\x18\x01 \x03(\v2\x1e.os.v1.GetArchitectureResponseR\rarchitectures\x12<\n" +
+	"\x0e_created_at_to\"q\n" +
+	"\x11ListArchsResponse\x12!\n" +
+	"\x05archs\x18\x01 \x03(\v2\v.os.v1.ArchR\x05archs\x129\n" +
 	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1c.common.v1.PaginatedResponseR\n" +
-	"pagination\"?\n" +
-	"\x19CreateArchitectureRequest\x12\x0e\n" +
+	"pagination\x18\x02 \x01(\v2\x19.common.v1.PaginateResultR\n" +
+	"pagination\"7\n" +
+	"\x11CreateArchRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"`\n" +
-	"\x1aCreateArchitectureResponse\x12B\n" +
-	"\farchitecture\x18\x01 \x01(\v2\x1e.os.v1.GetArchitectureResponseR\farchitecture\"t\n" +
-	"\x19UpdateArchitectureRequest\x12\x0e\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"5\n" +
+	"\x12CreateArchResponse\x12\x1f\n" +
+	"\x04arch\x18\x01 \x01(\v2\v.os.v1.ArchR\x04arch\"l\n" +
+	"\x11UpdateArchRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\x06new_id\x18\x02 \x01(\tH\x00R\x05newId\x88\x01\x01\x12\x17\n" +
 	"\x04name\x18\x03 \x01(\tH\x01R\x04name\x88\x01\x01B\t\n" +
 	"\a_new_idB\a\n" +
-	"\x05_name\"`\n" +
-	"\x1aUpdateArchitectureResponse\x12B\n" +
-	"\farchitecture\x18\x01 \x01(\v2\x1e.os.v1.GetArchitectureResponseR\farchitecture\"+\n" +
-	"\x19DeleteArchitectureRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x1c\n" +
-	"\x1aDeleteArchitectureResponseB\x84\x01\n" +
+	"\x05_name\"5\n" +
+	"\x12UpdateArchResponse\x12\x1f\n" +
+	"\x04arch\x18\x01 \x01(\v2\v.os.v1.ArchR\x04arch\"#\n" +
+	"\x11DeleteArchRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
+	"\x12DeleteArchResponseB\x84\x01\n" +
 	"\tcom.os.v1B\tArchProtoP\x01Z7github.com/wagecloud/wagecloud-server/gen/pb/os/v1;osv1\xa2\x02\x03OXX\xaa\x02\x05Os.V1\xca\x02\x05Os\\V1\xe2\x02\x11Os\\V1\\GPBMetadata\xea\x02\x06Os::V1b\x06proto3"
 
 var (
@@ -613,32 +659,34 @@ func file_os_v1_arch_proto_rawDescGZIP() []byte {
 	return file_os_v1_arch_proto_rawDescData
 }
 
-var file_os_v1_arch_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_os_v1_arch_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_os_v1_arch_proto_goTypes = []any{
-	(*GetArchitectureRequest)(nil),     // 0: os.v1.GetArchitectureRequest
-	(*GetArchitectureResponse)(nil),    // 1: os.v1.GetArchitectureResponse
-	(*ListArchitecturesRequest)(nil),   // 2: os.v1.ListArchitecturesRequest
-	(*ListArchitecturesResponse)(nil),  // 3: os.v1.ListArchitecturesResponse
-	(*CreateArchitectureRequest)(nil),  // 4: os.v1.CreateArchitectureRequest
-	(*CreateArchitectureResponse)(nil), // 5: os.v1.CreateArchitectureResponse
-	(*UpdateArchitectureRequest)(nil),  // 6: os.v1.UpdateArchitectureRequest
-	(*UpdateArchitectureResponse)(nil), // 7: os.v1.UpdateArchitectureResponse
-	(*DeleteArchitectureRequest)(nil),  // 8: os.v1.DeleteArchitectureRequest
-	(*DeleteArchitectureResponse)(nil), // 9: os.v1.DeleteArchitectureResponse
-	(*v1.PaginationParams)(nil),        // 10: common.v1.PaginationParams
-	(*v1.PaginatedResponse)(nil),       // 11: common.v1.PaginatedResponse
+	(*Arch)(nil),                // 0: os.v1.Arch
+	(*GetArchRequest)(nil),      // 1: os.v1.GetArchRequest
+	(*GetArchResponse)(nil),     // 2: os.v1.GetArchResponse
+	(*ListArchsRequest)(nil),    // 3: os.v1.ListArchsRequest
+	(*ListArchsResponse)(nil),   // 4: os.v1.ListArchsResponse
+	(*CreateArchRequest)(nil),   // 5: os.v1.CreateArchRequest
+	(*CreateArchResponse)(nil),  // 6: os.v1.CreateArchResponse
+	(*UpdateArchRequest)(nil),   // 7: os.v1.UpdateArchRequest
+	(*UpdateArchResponse)(nil),  // 8: os.v1.UpdateArchResponse
+	(*DeleteArchRequest)(nil),   // 9: os.v1.DeleteArchRequest
+	(*DeleteArchResponse)(nil),  // 10: os.v1.DeleteArchResponse
+	(*v1.PaginationParams)(nil), // 11: common.v1.PaginationParams
+	(*v1.PaginateResult)(nil),   // 12: common.v1.PaginateResult
 }
 var file_os_v1_arch_proto_depIdxs = []int32{
-	10, // 0: os.v1.ListArchitecturesRequest.pagination:type_name -> common.v1.PaginationParams
-	1,  // 1: os.v1.ListArchitecturesResponse.architectures:type_name -> os.v1.GetArchitectureResponse
-	11, // 2: os.v1.ListArchitecturesResponse.pagination:type_name -> common.v1.PaginatedResponse
-	1,  // 3: os.v1.CreateArchitectureResponse.architecture:type_name -> os.v1.GetArchitectureResponse
-	1,  // 4: os.v1.UpdateArchitectureResponse.architecture:type_name -> os.v1.GetArchitectureResponse
-	5,  // [5:5] is the sub-list for method output_type
-	5,  // [5:5] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	0,  // 0: os.v1.GetArchResponse.arch:type_name -> os.v1.Arch
+	11, // 1: os.v1.ListArchsRequest.pagination:type_name -> common.v1.PaginationParams
+	0,  // 2: os.v1.ListArchsResponse.archs:type_name -> os.v1.Arch
+	12, // 3: os.v1.ListArchsResponse.pagination:type_name -> common.v1.PaginateResult
+	0,  // 4: os.v1.CreateArchResponse.arch:type_name -> os.v1.Arch
+	0,  // 5: os.v1.UpdateArchResponse.arch:type_name -> os.v1.Arch
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_os_v1_arch_proto_init() }
@@ -646,15 +694,15 @@ func file_os_v1_arch_proto_init() {
 	if File_os_v1_arch_proto != nil {
 		return
 	}
-	file_os_v1_arch_proto_msgTypes[2].OneofWrappers = []any{}
-	file_os_v1_arch_proto_msgTypes[6].OneofWrappers = []any{}
+	file_os_v1_arch_proto_msgTypes[3].OneofWrappers = []any{}
+	file_os_v1_arch_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_os_v1_arch_proto_rawDesc), len(file_os_v1_arch_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
