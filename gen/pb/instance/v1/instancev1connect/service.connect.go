@@ -74,13 +74,13 @@ const (
 // InstanceServiceClient is a client for the instance.v1.InstanceService service.
 type InstanceServiceClient interface {
 	// Get instance by ID
-	GetInstance(context.Context, *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.Instance], error)
+	GetInstance(context.Context, *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.GetInstanceResponse], error)
 	// List instances
 	ListInstances(context.Context, *connect.Request[v1.ListInstancesRequest]) (*connect.Response[v1.ListInstancesResponse], error)
 	// Create instance
-	CreateInstance(context.Context, *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.Instance], error)
+	CreateInstance(context.Context, *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.CreateInstanceResponse], error)
 	// Update instance
-	UpdateInstance(context.Context, *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.Instance], error)
+	UpdateInstance(context.Context, *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.UpdateInstanceResponse], error)
 	// Delete instance
 	DeleteInstance(context.Context, *connect.Request[v1.DeleteInstanceRequest]) (*connect.Response[v1.DeleteInstanceResponse], error)
 	// Start instance
@@ -88,13 +88,13 @@ type InstanceServiceClient interface {
 	// Stop instance
 	StopInstance(context.Context, *connect.Request[v1.StopInstanceRequest]) (*connect.Response[v1.StopInstanceResponse], error)
 	// Get network by ID
-	GetNetwork(context.Context, *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.Network], error)
+	GetNetwork(context.Context, *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.GetNetworkResponse], error)
 	// List networks
 	ListNetworks(context.Context, *connect.Request[v1.ListNetworksRequest]) (*connect.Response[v1.ListNetworksResponse], error)
 	// Create network
-	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.Network], error)
+	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error)
 	// Update network
-	UpdateNetwork(context.Context, *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.Network], error)
+	UpdateNetwork(context.Context, *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.UpdateNetworkResponse], error)
 	// Delete network
 	DeleteNetwork(context.Context, *connect.Request[v1.DeleteNetworkRequest]) (*connect.Response[v1.DeleteNetworkResponse], error)
 }
@@ -110,7 +110,7 @@ func NewInstanceServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 	baseURL = strings.TrimRight(baseURL, "/")
 	instanceServiceMethods := v1.File_instance_v1_service_proto.Services().ByName("InstanceService").Methods()
 	return &instanceServiceClient{
-		getInstance: connect.NewClient[v1.GetInstanceRequest, v1.Instance](
+		getInstance: connect.NewClient[v1.GetInstanceRequest, v1.GetInstanceResponse](
 			httpClient,
 			baseURL+InstanceServiceGetInstanceProcedure,
 			connect.WithSchema(instanceServiceMethods.ByName("GetInstance")),
@@ -122,13 +122,13 @@ func NewInstanceServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(instanceServiceMethods.ByName("ListInstances")),
 			connect.WithClientOptions(opts...),
 		),
-		createInstance: connect.NewClient[v1.CreateInstanceRequest, v1.Instance](
+		createInstance: connect.NewClient[v1.CreateInstanceRequest, v1.CreateInstanceResponse](
 			httpClient,
 			baseURL+InstanceServiceCreateInstanceProcedure,
 			connect.WithSchema(instanceServiceMethods.ByName("CreateInstance")),
 			connect.WithClientOptions(opts...),
 		),
-		updateInstance: connect.NewClient[v1.UpdateInstanceRequest, v1.Instance](
+		updateInstance: connect.NewClient[v1.UpdateInstanceRequest, v1.UpdateInstanceResponse](
 			httpClient,
 			baseURL+InstanceServiceUpdateInstanceProcedure,
 			connect.WithSchema(instanceServiceMethods.ByName("UpdateInstance")),
@@ -152,7 +152,7 @@ func NewInstanceServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(instanceServiceMethods.ByName("StopInstance")),
 			connect.WithClientOptions(opts...),
 		),
-		getNetwork: connect.NewClient[v1.GetNetworkRequest, v1.Network](
+		getNetwork: connect.NewClient[v1.GetNetworkRequest, v1.GetNetworkResponse](
 			httpClient,
 			baseURL+InstanceServiceGetNetworkProcedure,
 			connect.WithSchema(instanceServiceMethods.ByName("GetNetwork")),
@@ -164,13 +164,13 @@ func NewInstanceServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(instanceServiceMethods.ByName("ListNetworks")),
 			connect.WithClientOptions(opts...),
 		),
-		createNetwork: connect.NewClient[v1.CreateNetworkRequest, v1.Network](
+		createNetwork: connect.NewClient[v1.CreateNetworkRequest, v1.CreateNetworkResponse](
 			httpClient,
 			baseURL+InstanceServiceCreateNetworkProcedure,
 			connect.WithSchema(instanceServiceMethods.ByName("CreateNetwork")),
 			connect.WithClientOptions(opts...),
 		),
-		updateNetwork: connect.NewClient[v1.UpdateNetworkRequest, v1.Network](
+		updateNetwork: connect.NewClient[v1.UpdateNetworkRequest, v1.UpdateNetworkResponse](
 			httpClient,
 			baseURL+InstanceServiceUpdateNetworkProcedure,
 			connect.WithSchema(instanceServiceMethods.ByName("UpdateNetwork")),
@@ -187,22 +187,22 @@ func NewInstanceServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 
 // instanceServiceClient implements InstanceServiceClient.
 type instanceServiceClient struct {
-	getInstance    *connect.Client[v1.GetInstanceRequest, v1.Instance]
+	getInstance    *connect.Client[v1.GetInstanceRequest, v1.GetInstanceResponse]
 	listInstances  *connect.Client[v1.ListInstancesRequest, v1.ListInstancesResponse]
-	createInstance *connect.Client[v1.CreateInstanceRequest, v1.Instance]
-	updateInstance *connect.Client[v1.UpdateInstanceRequest, v1.Instance]
+	createInstance *connect.Client[v1.CreateInstanceRequest, v1.CreateInstanceResponse]
+	updateInstance *connect.Client[v1.UpdateInstanceRequest, v1.UpdateInstanceResponse]
 	deleteInstance *connect.Client[v1.DeleteInstanceRequest, v1.DeleteInstanceResponse]
 	startInstance  *connect.Client[v1.StartInstanceRequest, v1.StartInstanceResponse]
 	stopInstance   *connect.Client[v1.StopInstanceRequest, v1.StopInstanceResponse]
-	getNetwork     *connect.Client[v1.GetNetworkRequest, v1.Network]
+	getNetwork     *connect.Client[v1.GetNetworkRequest, v1.GetNetworkResponse]
 	listNetworks   *connect.Client[v1.ListNetworksRequest, v1.ListNetworksResponse]
-	createNetwork  *connect.Client[v1.CreateNetworkRequest, v1.Network]
-	updateNetwork  *connect.Client[v1.UpdateNetworkRequest, v1.Network]
+	createNetwork  *connect.Client[v1.CreateNetworkRequest, v1.CreateNetworkResponse]
+	updateNetwork  *connect.Client[v1.UpdateNetworkRequest, v1.UpdateNetworkResponse]
 	deleteNetwork  *connect.Client[v1.DeleteNetworkRequest, v1.DeleteNetworkResponse]
 }
 
 // GetInstance calls instance.v1.InstanceService.GetInstance.
-func (c *instanceServiceClient) GetInstance(ctx context.Context, req *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.Instance], error) {
+func (c *instanceServiceClient) GetInstance(ctx context.Context, req *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.GetInstanceResponse], error) {
 	return c.getInstance.CallUnary(ctx, req)
 }
 
@@ -212,12 +212,12 @@ func (c *instanceServiceClient) ListInstances(ctx context.Context, req *connect.
 }
 
 // CreateInstance calls instance.v1.InstanceService.CreateInstance.
-func (c *instanceServiceClient) CreateInstance(ctx context.Context, req *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.Instance], error) {
+func (c *instanceServiceClient) CreateInstance(ctx context.Context, req *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.CreateInstanceResponse], error) {
 	return c.createInstance.CallUnary(ctx, req)
 }
 
 // UpdateInstance calls instance.v1.InstanceService.UpdateInstance.
-func (c *instanceServiceClient) UpdateInstance(ctx context.Context, req *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.Instance], error) {
+func (c *instanceServiceClient) UpdateInstance(ctx context.Context, req *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.UpdateInstanceResponse], error) {
 	return c.updateInstance.CallUnary(ctx, req)
 }
 
@@ -237,7 +237,7 @@ func (c *instanceServiceClient) StopInstance(ctx context.Context, req *connect.R
 }
 
 // GetNetwork calls instance.v1.InstanceService.GetNetwork.
-func (c *instanceServiceClient) GetNetwork(ctx context.Context, req *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.Network], error) {
+func (c *instanceServiceClient) GetNetwork(ctx context.Context, req *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.GetNetworkResponse], error) {
 	return c.getNetwork.CallUnary(ctx, req)
 }
 
@@ -247,12 +247,12 @@ func (c *instanceServiceClient) ListNetworks(ctx context.Context, req *connect.R
 }
 
 // CreateNetwork calls instance.v1.InstanceService.CreateNetwork.
-func (c *instanceServiceClient) CreateNetwork(ctx context.Context, req *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.Network], error) {
+func (c *instanceServiceClient) CreateNetwork(ctx context.Context, req *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error) {
 	return c.createNetwork.CallUnary(ctx, req)
 }
 
 // UpdateNetwork calls instance.v1.InstanceService.UpdateNetwork.
-func (c *instanceServiceClient) UpdateNetwork(ctx context.Context, req *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.Network], error) {
+func (c *instanceServiceClient) UpdateNetwork(ctx context.Context, req *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.UpdateNetworkResponse], error) {
 	return c.updateNetwork.CallUnary(ctx, req)
 }
 
@@ -264,13 +264,13 @@ func (c *instanceServiceClient) DeleteNetwork(ctx context.Context, req *connect.
 // InstanceServiceHandler is an implementation of the instance.v1.InstanceService service.
 type InstanceServiceHandler interface {
 	// Get instance by ID
-	GetInstance(context.Context, *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.Instance], error)
+	GetInstance(context.Context, *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.GetInstanceResponse], error)
 	// List instances
 	ListInstances(context.Context, *connect.Request[v1.ListInstancesRequest]) (*connect.Response[v1.ListInstancesResponse], error)
 	// Create instance
-	CreateInstance(context.Context, *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.Instance], error)
+	CreateInstance(context.Context, *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.CreateInstanceResponse], error)
 	// Update instance
-	UpdateInstance(context.Context, *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.Instance], error)
+	UpdateInstance(context.Context, *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.UpdateInstanceResponse], error)
 	// Delete instance
 	DeleteInstance(context.Context, *connect.Request[v1.DeleteInstanceRequest]) (*connect.Response[v1.DeleteInstanceResponse], error)
 	// Start instance
@@ -278,13 +278,13 @@ type InstanceServiceHandler interface {
 	// Stop instance
 	StopInstance(context.Context, *connect.Request[v1.StopInstanceRequest]) (*connect.Response[v1.StopInstanceResponse], error)
 	// Get network by ID
-	GetNetwork(context.Context, *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.Network], error)
+	GetNetwork(context.Context, *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.GetNetworkResponse], error)
 	// List networks
 	ListNetworks(context.Context, *connect.Request[v1.ListNetworksRequest]) (*connect.Response[v1.ListNetworksResponse], error)
 	// Create network
-	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.Network], error)
+	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error)
 	// Update network
-	UpdateNetwork(context.Context, *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.Network], error)
+	UpdateNetwork(context.Context, *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.UpdateNetworkResponse], error)
 	// Delete network
 	DeleteNetwork(context.Context, *connect.Request[v1.DeleteNetworkRequest]) (*connect.Response[v1.DeleteNetworkResponse], error)
 }
@@ -403,7 +403,7 @@ func NewInstanceServiceHandler(svc InstanceServiceHandler, opts ...connect.Handl
 // UnimplementedInstanceServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedInstanceServiceHandler struct{}
 
-func (UnimplementedInstanceServiceHandler) GetInstance(context.Context, *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.Instance], error) {
+func (UnimplementedInstanceServiceHandler) GetInstance(context.Context, *connect.Request[v1.GetInstanceRequest]) (*connect.Response[v1.GetInstanceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.GetInstance is not implemented"))
 }
 
@@ -411,11 +411,11 @@ func (UnimplementedInstanceServiceHandler) ListInstances(context.Context, *conne
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.ListInstances is not implemented"))
 }
 
-func (UnimplementedInstanceServiceHandler) CreateInstance(context.Context, *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.Instance], error) {
+func (UnimplementedInstanceServiceHandler) CreateInstance(context.Context, *connect.Request[v1.CreateInstanceRequest]) (*connect.Response[v1.CreateInstanceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.CreateInstance is not implemented"))
 }
 
-func (UnimplementedInstanceServiceHandler) UpdateInstance(context.Context, *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.Instance], error) {
+func (UnimplementedInstanceServiceHandler) UpdateInstance(context.Context, *connect.Request[v1.UpdateInstanceRequest]) (*connect.Response[v1.UpdateInstanceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.UpdateInstance is not implemented"))
 }
 
@@ -431,7 +431,7 @@ func (UnimplementedInstanceServiceHandler) StopInstance(context.Context, *connec
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.StopInstance is not implemented"))
 }
 
-func (UnimplementedInstanceServiceHandler) GetNetwork(context.Context, *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.Network], error) {
+func (UnimplementedInstanceServiceHandler) GetNetwork(context.Context, *connect.Request[v1.GetNetworkRequest]) (*connect.Response[v1.GetNetworkResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.GetNetwork is not implemented"))
 }
 
@@ -439,11 +439,11 @@ func (UnimplementedInstanceServiceHandler) ListNetworks(context.Context, *connec
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.ListNetworks is not implemented"))
 }
 
-func (UnimplementedInstanceServiceHandler) CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.Network], error) {
+func (UnimplementedInstanceServiceHandler) CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.CreateNetwork is not implemented"))
 }
 
-func (UnimplementedInstanceServiceHandler) UpdateNetwork(context.Context, *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.Network], error) {
+func (UnimplementedInstanceServiceHandler) UpdateNetwork(context.Context, *connect.Request[v1.UpdateNetworkRequest]) (*connect.Response[v1.UpdateNetworkResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("instance.v1.InstanceService.UpdateNetwork is not implemented"))
 }
 
