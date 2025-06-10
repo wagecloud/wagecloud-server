@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package account.v1;
+
+// Account role enum
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  ROLE_ADMIN = 2;
+}
+
+message AuthenticatedAccount {
+  int64 account_id = 1;
+  Role role = 2;
+}

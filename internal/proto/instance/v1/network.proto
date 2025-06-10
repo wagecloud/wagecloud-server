@@ -9,7 +9,6 @@ message Network {
   string id = 1;
   string private_ip = 2;
   int64 created_at = 3;
-  int64 updated_at = 4;
 }
 
 // Get network request
@@ -23,18 +22,17 @@ message GetNetworkResponse {
 
 // List networks request
 message ListNetworksRequest {
-  int32 page = 1;
-  int32 limit = 2;
-  optional string id = 3;
-  optional string private_ip = 4;
-  optional int64 created_at_from = 5;
-  optional int64 created_at_to = 6;
+  common.v1.PaginationParams pagination = 1;
+  optional string id = 2;
+  optional string private_ip = 3;
+  optional int64 created_at_from = 4;
+  optional int64 created_at_to = 5;
 }
 
 // List networks response
 message ListNetworksResponse {
   repeated Network networks = 1;
-  common.v1.PaginatedResponse pagination = 2;
+  common.v1.PaginateResult pagination = 2;
 }
 
 // Create network request
@@ -43,11 +41,21 @@ message CreateNetworkRequest {
   string private_ip = 2;
 }
 
+// Create network response
+message CreateNetworkResponse {
+  Network network = 1;
+}
+
 // Update network request
 message UpdateNetworkRequest {
   string id = 1;
   optional string new_id = 2;
   optional string private_ip = 3;
+}
+
+// Update network response
+message UpdateNetworkResponse {
+  Network network = 1;
 }
 
 // Delete network request

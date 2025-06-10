@@ -27,9 +27,8 @@ message Payment {
   int64 account_id = 2;
   PaymentMethod method = 3;
   PaymentStatus status = 4;
-  double total = 5;
-  int64 created_at = 6;
-  int64 updated_at = 7;
+  int64 total = 5;
+  int64 date_created = 6;
 }
 
 // Get payment request
@@ -37,28 +36,36 @@ message GetPaymentRequest {
   int64 id = 1;
 }
 
+message GetPaymentResponse {
+  Payment payment = 1;
+}
+
 // List payments request
 message ListPaymentsRequest {
-  int32 page = 1;
-  int32 limit = 2;
-  optional string id = 3;
-  optional int64 account_id = 4;
-  optional PaymentMethod method = 5;
-  optional PaymentStatus status = 6;
-  optional int64 date_created_from = 7;
-  optional int64 date_created_to = 8;
+  common.v1.PaginationParams pagination = 1;
+  optional string id = 2;
+  optional int64 account_id = 3;
+  optional PaymentMethod method = 4;
+  optional PaymentStatus status = 5;
+  optional int64 date_created_from = 6;
+  optional int64 date_created_to = 7;
 }
 
 // List payments response
 message ListPaymentsResponse {
   repeated Payment payments = 1;
-  common.v1.PaginatedResponse pagination = 2;
+  common.v1.PaginateResult pagination = 2;
 }
 
 // Create payment request
 message CreatePaymentRequest {
   PaymentMethod method = 1;
-  double total = 2;
+  int64 total = 2;
+}
+
+// Create payment response
+message CreatePaymentResponse {
+  Payment payment = 1;
 }
 
 // Update payment request
@@ -66,7 +73,12 @@ message UpdatePaymentRequest {
   int64 id = 1;
   optional PaymentMethod method = 2;
   optional PaymentStatus status = 3;
-  optional double total = 4;
+  optional int64 total = 4;
+}
+
+// Update payment response
+message UpdatePaymentResponse {
+  Payment payment = 1;
 }
 
 // Delete payment request
@@ -83,8 +95,6 @@ message PaymentItem {
   int64 payment_id = 2;
   string name = 3;
   int64 price = 4;
-  int64 created_at = 5;
-  int64 updated_at = 6;
 }
 
 // Create payment item request
@@ -92,6 +102,11 @@ message CreatePaymentItemRequest {
   int64 payment_id = 1;
   string name = 2;
   int64 price = 3;
+}
+
+// Create payment item response
+message CreatePaymentItemResponse {
+  PaymentItem payment_item = 1;
 }
 
 // VNPAY payment message
@@ -103,8 +118,6 @@ message VNPAYPayment {
   string vnp_transaction_date = 5;
   string vnp_create_date = 6;
   string vnp_ip_addr = 7;
-  int64 created_at = 8;
-  int64 updated_at = 9;
 }
 
 // Create VNPAY payment request
@@ -118,26 +131,31 @@ message CreateVNPAYPaymentRequest {
   string vnp_ip_addr = 7;
 }
 
+// Create VNPAY payment response
+message CreateVNPAYPaymentResponse {
+  VNPAYPayment vnpay_payment = 1;
+}
+
 // Payment service definition
 service PaymentService {
   // Get payment by ID
-  rpc GetPayment(GetPaymentRequest) returns (Payment) {}
+  rpc GetPayment(GetPaymentRequest) returns (GetPaymentResponse) {}
 
   // List payments
   rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse) {}
 
   // Create payment
-  rpc CreatePayment(CreatePaymentRequest) returns (Payment) {}
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse) {}
 
   // Update payment
-  rpc UpdatePayment(UpdatePaymentRequest) returns (Payment) {}
+  rpc UpdatePayment(UpdatePaymentRequest) returns (UpdatePaymentResponse) {}
 
   // Delete payment
   rpc DeletePayment(DeletePaymentRequest) returns (DeletePaymentResponse) {}
 
   // Create payment item
-  rpc CreatePaymentItem(CreatePaymentItemRequest) returns (PaymentItem) {}
+  rpc CreatePaymentItem(CreatePaymentItemRequest) returns (CreatePaymentItemResponse) {}
 
   // Create VNPAY payment
-  rpc CreateVNPAYPayment(CreateVNPAYPaymentRequest) returns (VNPAYPayment) {}
+  rpc CreateVNPAYPayment(CreateVNPAYPaymentRequest) returns (CreateVNPAYPaymentResponse) {}
 }

@@ -8,16 +8,16 @@ import "instance/v1/network.proto";
 // Instance service definition
 service InstanceService {
   // Get instance by ID
-  rpc GetInstance(GetInstanceRequest) returns (Instance) {}
+  rpc GetInstance(GetInstanceRequest) returns (GetInstanceResponse) {}
 
   // List instances
   rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse) {}
 
   // Create instance
-  rpc CreateInstance(CreateInstanceRequest) returns (Instance) {}
+  rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse) {}
 
   // Update instance
-  rpc UpdateInstance(UpdateInstanceRequest) returns (Instance) {}
+  rpc UpdateInstance(UpdateInstanceRequest) returns (UpdateInstanceResponse) {}
 
   // Delete instance
   rpc DeleteInstance(DeleteInstanceRequest) returns (DeleteInstanceResponse) {}
@@ -29,16 +29,16 @@ service InstanceService {
   rpc StopInstance(StopInstanceRequest) returns (StopInstanceResponse) {}
 
   // Get network by ID
-  rpc GetNetwork(GetNetworkRequest) returns (Network) {}
+  rpc GetNetwork(GetNetworkRequest) returns (GetNetworkResponse) {}
 
   // List networks
   rpc ListNetworks(ListNetworksRequest) returns (ListNetworksResponse) {}
 
   // Create network
-  rpc CreateNetwork(CreateNetworkRequest) returns (Network) {}
+  rpc CreateNetwork(CreateNetworkRequest) returns (CreateNetworkResponse) {}
 
   // Update network
-  rpc UpdateNetwork(UpdateNetworkRequest) returns (Network) {}
+  rpc UpdateNetwork(UpdateNetworkRequest) returns (UpdateNetworkResponse) {}
 
   // Delete network
   rpc DeleteNetwork(DeleteNetworkRequest) returns (DeleteNetworkResponse) {}

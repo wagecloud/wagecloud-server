@@ -22,18 +22,18 @@ service OSService {
   // Delete OS
   rpc DeleteOS(DeleteOSRequest) returns (DeleteOSResponse) {}
 
-  // Get architecture by ID
-  rpc GetArchitecture(GetArchitectureRequest) returns (GetArchitectureResponse) {}
+  // Get Arch by ID
+  rpc GetArch(GetArchRequest) returns (GetArchResponse) {}
 
-  // List architectures
-  rpc ListArchitectures(ListArchitecturesRequest) returns (ListArchitecturesResponse) {}
+  // List Archs
+  rpc ListArchs(ListArchsRequest) returns (ListArchsResponse) {}
 
-  // Create architecture
-  rpc CreateArchitecture(CreateArchitectureRequest) returns (CreateArchitectureResponse) {}
+  // Create Arch
+  rpc CreateArch(CreateArchRequest) returns (CreateArchResponse) {}
 
-  // Update architecture
-  rpc UpdateArchitecture(UpdateArchitectureRequest) returns (UpdateArchitectureResponse) {}
+  // Update Arch
+  rpc UpdateArch(UpdateArchRequest) returns (UpdateArchResponse) {}
 
-  // Delete architecture
-  rpc DeleteArchitecture(DeleteArchitectureRequest) returns (DeleteArchitectureResponse) {}
+  // Delete Arch
+  rpc DeleteArch(DeleteArchRequest) returns (DeleteArchResponse) {}
 }

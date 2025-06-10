@@ -4,12 +4,16 @@ package os.v1;
 
 import "common/v1/common.proto";
 
-// OS message
-message GetOSResponse {
+message OS {
   string id = 1;
   string name = 2;
   int64 created_at = 3;
   int64 updated_at = 4;
+}
+
+// OS message
+message GetOSResponse {
+  OS os = 1;
 }
 
 // Get OS request
@@ -27,8 +31,8 @@ message ListOSsRequest {
 
 // List OSs response
 message ListOSsResponse {
-  repeated GetOSResponse oss = 1;
-  common.v1.PaginatedResponse pagination = 2;
+  repeated OS oss = 1;
+  common.v1.PaginateResult pagination = 2;
 }
 
 // Create OS request
@@ -39,7 +43,7 @@ message CreateOSRequest {
 
 // Create OS response
 message CreateOSResponse {
-  GetOSResponse os = 1;
+  OS os = 1;
 }
 
 // Update OS request
@@ -51,7 +55,7 @@ message UpdateOSRequest {
 
 // Update OS response
 message UpdateOSResponse {
-  GetOSResponse os = 1;
+  OS os = 1;
 }
 
 // Delete OS request

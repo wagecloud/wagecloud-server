@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package instance.v1;
 
+import "account/v1/common.proto";
 import "common/v1/common.proto";
 
 // Instance message
@@ -11,9 +12,9 @@ message Instance {
   string network_id = 3;
   string os_id = 4;
   string arch_id = 5;
-  int64 cpu = 6;
-  int64 ram = 7;
-  int64 storage = 8;
+  int32 cpu = 6;
+  int32 ram = 7;
+  int32 storage = 8;
   int64 created_at = 9;
   int64 updated_at = 10;
 }
@@ -23,49 +24,58 @@ message GetInstanceRequest {
   string id = 1;
 }
 
+// Get instance response
+message GetInstanceResponse {
+  Instance instance = 1;
+}
+
 // List instances request
 message ListInstancesRequest {
   common.v1.PaginationParams pagination = 1;
-  optional string network_id = 2;
-  optional string os_id = 3;
-  optional string arch_id = 4;
-  optional string name = 5;
-  optional int64 cpu_from = 6;
-  optional int64 cpu_to = 7;
-  optional int64 ram_from = 8;
-  optional int64 ram_to = 9;
-  optional int64 storage_from = 10;
-  optional int64 storage_to = 11;
-  optional int64 created_at_from = 12;
-  optional int64 created_at_to = 13;
+  account.v1.AuthenticatedAccount account = 2;
+  optional string network_id = 3;
+  optional string os_id = 4;
+  optional string arch_id = 5;
+  optional string name = 6;
+  optional int64 cpu_from = 7;
+  optional int64 cpu_to = 8;
+  optional int64 ram_from = 9;
+  optional int64 ram_to = 10;
+  optional int64 storage_from = 11;
+  optional int64 storage_to = 12;
+  optional int64 created_at_from = 13;
+  optional int64 created_at_to = 14;
 }
 
 // List instances response
 message ListInstancesResponse {
   repeated Instance instances = 1;
-  common.v1.PaginatedResponse pagination = 2;
+  common.v1.PaginateResult pagination = 2;
 }
 
 // Create instance request
 message CreateInstanceRequest {
-  message Userdata {
-    string name = 1;
-    repeated string ssh_authorized_keys = 2;
-    string password = 3;
-  }
-  message Metadata {
-    string local_hostname = 1;
-  }
-  message Spec {
-    string os_id = 1;
-    string arch_id = 2;
-    int32 memory = 3;
-    int32 cpu = 4;
-    int32 storage = 5;
-  }
-  Userdata userdata = 1;
-  Metadata metadata = 2;
-  Spec spec = 3;
+  account.v1.AuthenticatedAccount account = 1;
+
+  // Userdata fields
+  string name = 2;
+  repeated string ssh_authorized_keys = 3;
+  string password = 4;
+
+  // Metadata
+  string local_hostname = 5;
+
+  // Spec fields
+  string os_id = 6;
+  string arch_id = 7;
+  int32 memory = 8;
+  int32 cpu = 9;
+  int32 storage = 10;
+}
+
+// Create instance response
+message CreateInstanceResponse {
+  Instance instance = 1;
 }
 
 // Update instance request
