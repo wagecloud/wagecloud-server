@@ -19,7 +19,7 @@ datasource db {
 
 model AccountBase {
   id         BigInt   @id @default(autoincrement())
-  role       Role
+  type       AccountType
   name       String   @db.VarChar(255)
   username   String   @unique
   password   String   @db.VarChar(255)
@@ -45,9 +45,9 @@ model AccountUser {
   @@schema("account")
 }
 
-enum Role {
-  ADMIN
-  USER
+enum AccountType {
+  ACCOUNT_TYPE_ADMIN
+  ACCOUNT_TYPE_USER
 
   @@map("role")
   @@schema("account")
@@ -149,7 +149,7 @@ model Payment {
   id           BigInt        @id @default(autoincrement())
   account_id   BigInt
   method       PaymentMethod
-  status       Status
+  status       PaymentStatus
   total        BigInt
   date_created DateTime      @default(now()) @db.Timestamptz(3)
 
@@ -177,18 +177,20 @@ model PaymentVnpay {
 }
 
 enum PaymentMethod {
-  VNPAY
-  MOMO
+  PAYMENT_METHOD_UNKNOWN
+  PAYMENT_METHOD_VNPAY
+  PAYMENT_METHOD_MOMO
 
   @@map("method")
   @@schema("payment")
 }
 
-enum Status {
-  PENDING
-  SUCCESS
-  CANCELED
-  FAILED
+enum PaymentStatus {
+  PAYMENT_STATUS_UNKNOWN
+  PAYMENT_STATUS_PENDING
+  PAYMENT_STATUS_SUCCESS
+  PAYMENT_STATUS_CANCELED
+  PAYMENT_STATUS_FAILED
 
   @@map("status")
   @@schema("payment")
