@@ -120,7 +120,7 @@ type UpdatePaymentParams struct {
 	ID     int64
 	Method *paymentmodel.PaymentMethod
 	Status *paymentmodel.PaymentStatus
-	Total  *float64
+	Total  *int64
 }
 
 func (s *Storage) UpdatePayment(ctx context.Context, params UpdatePaymentParams) (paymentmodel.PaymentBase, error) {

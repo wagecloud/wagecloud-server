@@ -7,8 +7,8 @@ import (
 	paymentmodel "github.com/wagecloud/wagecloud-server/internal/modules/payment/model"
 	paymentservice "github.com/wagecloud/wagecloud-server/internal/modules/payment/service"
 	paymentstorage "github.com/wagecloud/wagecloud-server/internal/modules/payment/storage"
-	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
+	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
 
 type EchoHandler struct {
@@ -110,7 +110,7 @@ type UpdatePaymentRequest struct {
 	ID     int64                       `param:"id" validate:"required"`
 	Method *paymentmodel.PaymentMethod `json:"method"`
 	Status *paymentmodel.PaymentStatus `json:"status"`
-	Total  *float64                    `json:"total"`
+	Total  *int64                      `json:"total"`
 }
 
 func (h *EchoHandler) UpdatePayment(c echo.Context) error {

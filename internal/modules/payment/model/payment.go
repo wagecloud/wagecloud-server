@@ -1,19 +1,21 @@
 package paymentmodel
 
-type PaymentMethod string
-
-const (
-	PaymentMethodVNPAY PaymentMethod = "VNPAY"
-	PaymentMethodMOMO  PaymentMethod = "MOMO"
-)
-
 type PaymentStatus string
 
 const (
-	PaymentStatusPending  PaymentStatus = "PENDING"
-	PaymentStatusSuccess  PaymentStatus = "SUCCESS"
-	PaymentStatusCanceled PaymentStatus = "CANCELED"
-	PaymentStatusFailed   PaymentStatus = "FAILED"
+	PaymentStatusUnknown  PaymentStatus = "PAYMENT_STATUS_UNKNOWN"
+	PaymentStatusPending  PaymentStatus = "PAYMENT_STATUS_PENDING"
+	PaymentStatusSuccess  PaymentStatus = "PAYMENT_STATUS_SUCCESS"
+	PaymentStatusCanceled PaymentStatus = "PAYMENT_STATUS_CANCELED"
+	PaymentStatusFailed   PaymentStatus = "PAYMENT_STATUS_FAILED"
+)
+
+type PaymentMethod string
+
+const (
+	PaymentMethodUnknown PaymentMethod = "PAYMENT_METHOD_UNKNOWN"
+	PaymentMethodVNPAY   PaymentMethod = "PAYMENT_METHOD_VNPAY"
+	PaymentMethodMOMO    PaymentMethod = "PAYMENT_METHOD_MOMO"
 )
 
 type PaymentBase struct {
