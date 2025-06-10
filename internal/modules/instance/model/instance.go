@@ -26,7 +26,6 @@ type Instance struct {
 
 type Network struct {
 	ID        string `json:"id"`
-	Name      string `json:"name"`
 	PrivateIP string `json:"private_ip"`
 	CreatedAt int64  `json:"created_at"`
 }

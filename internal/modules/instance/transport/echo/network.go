@@ -5,8 +5,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	instancesvc "github.com/wagecloud/wagecloud-server/internal/modules/instance/service"
-	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
+	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
 
 type GetNetworkRequest struct {

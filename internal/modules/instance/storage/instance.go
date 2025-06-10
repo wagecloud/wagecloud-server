@@ -51,16 +51,8 @@ func (ts *TxStorage) Rollback(ctx context.Context) error {
 	return ts.tx.Rollback(ctx)
 }
 
-type GetInstanceParams struct {
-	ID        string
-	AccountID *int64
-}
-
-func (s *Storage) GetInstance(ctx context.Context, params GetInstanceParams) (instancemodel.Instance, error) {
-	row, err := s.sqlc.GetInstance(ctx, sqlc.GetInstanceParams{
-		ID:        params.ID,
-		AccountID: *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
-	})
+func (s *Storage) GetInstance(ctx context.Context, id string) (instancemodel.Instance, error) {
+	row, err := s.sqlc.GetInstance(ctx, id)
 	if err != nil {
 		return instancemodel.Instance{}, err
 	}
@@ -188,12 +180,11 @@ type UpdateInstanceParams struct {
 
 func (s *Storage) UpdateInstance(ctx context.Context, params UpdateInstanceParams) (instancemodel.Instance, error) {
 	row, err := s.sqlc.UpdateInstance(ctx, sqlc.UpdateInstanceParams{
-		ID:        params.ID,
-		AccountID: *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
-		Name:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
-		Cpu:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CPU),
-		Ram:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RAM),
-		Storage:   *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.Storage),
+		ID:      params.ID,
+		Name:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
+		Cpu:     *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CPU),
+		Ram:     *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RAM),
+		Storage: *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.Storage),
 	})
 	if err != nil {
 		return instancemodel.Instance{}, err
@@ -219,9 +210,6 @@ type DeleteInstanceParams struct {
 	AccountID *int64
 }
 
-func (s *Storage) DeleteInstance(ctx context.Context, params DeleteInstanceParams) error {
-	return s.sqlc.DeleteInstance(ctx, sqlc.DeleteInstanceParams{
-		ID:        params.ID,
-		AccountID: *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
-	})
+func (s *Storage) DeleteInstance(ctx context.Context, id string) error {
+	return s.sqlc.DeleteInstance(ctx, id)
 }

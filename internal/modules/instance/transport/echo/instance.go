@@ -6,8 +6,8 @@ import (
 	"github.com/labstack/echo/v4"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
 	instancesvc "github.com/wagecloud/wagecloud-server/internal/modules/instance/service"
-	"github.com/wagecloud/wagecloud-server/internal/shared/http/response"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
+	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
 
 type EchoHandler struct {
@@ -32,15 +32,8 @@ func (h *EchoHandler) GetInstance(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	claims, err := accountsvc.GetClaims(c.Request())
-	if err != nil {
-		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
-	}
-
 	instance, err := h.service.GetInstance(c.Request().Context(), instancesvc.GetInstanceParams{
-		Role:      claims.Role,
-		AccountID: claims.AccountID,
-		ID:        req.ID,
+		ID: req.ID,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
@@ -86,8 +79,7 @@ func (h *EchoHandler) ListInstances(c echo.Context) error {
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
-		Role:          claims.Role,
-		AccountID:     claims.AccountID,
+		Account:       claims.ToAuthenticatedAccount(),
 		OsID:          req.OsID,
 		ArchID:        req.ArchID,
 		Name:          req.Name,
@@ -119,9 +111,9 @@ type CreateInstanceRequest struct {
 	Spec struct {
 		OsID    string `json:"os_id" validate:"required,min=1,max=255"`
 		ArchID  string `json:"arch_id" validate:"required,min=1,max=255"`
-		Memory  int    `json:"memory" validate:"required,min=512,max=262144"`
-		Cpu     int    `json:"cpu" validate:"required,min=1,max=64"`
-		Storage int    `json:"storage" validate:"required,min=10,max=2048"`
+		Memory  int32  `json:"memory" validate:"required,min=512,max=262144"`
+		Cpu     int32  `json:"cpu" validate:"required,min=1,max=64"`
+		Storage int32  `json:"storage" validate:"required,min=10,max=2048"`
 	} `json:"spec" validate:"required"`
 }
 
@@ -141,7 +133,7 @@ func (h *EchoHandler) CreateInstance(c echo.Context) error {
 	}
 
 	instance, err := h.service.CreateInstance(c.Request().Context(), instancesvc.CreateInstanceParams{
-		AccountID:         claims.AccountID,
+		Account:           claims.ToAuthenticatedAccount(),
 		Name:              req.Userdata.Name,
 		SSHAuthorizedKeys: req.Userdata.SSHAuthorizedKeys,
 		Password:          req.Userdata.Password,
@@ -186,8 +178,7 @@ func (h *EchoHandler) UpdateInstance(c echo.Context) error {
 	}
 
 	instance, err := h.service.UpdateInstance(c.Request().Context(), instancesvc.UpdateInstanceParams{
-		Role:      claims.Role,
-		AccountID: claims.AccountID,
+		Account:   claims.ToAuthenticatedAccount(),
 		ID:        req.ID,
 		NetworkID: req.NetworkID,
 		OsID:      req.OsID,
@@ -218,17 +209,9 @@ func (h *EchoHandler) DeleteInstance(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	claims, err := accountsvc.GetClaims(c.Request())
-	if err != nil {
-		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
-	}
-
-	err = h.service.DeleteInstance(c.Request().Context(), instancesvc.DeleteInstanceParams{
-		Role:      claims.Role,
-		AccountID: claims.AccountID,
-		ID:        req.ID,
-	})
-	if err != nil {
+	if err := h.service.DeleteInstance(c.Request().Context(), instancesvc.DeleteInstanceParams{
+		ID: req.ID,
+	}); err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
@@ -249,17 +232,9 @@ func (h *EchoHandler) StartInstance(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
 
-	claims, err := accountsvc.GetClaims(c.Request())
-	if err != nil {
-		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
-	}
-
-	err = h.service.StartInstance(c.Request().Context(), instancesvc.StartInstanceParams{
-		AccountID: claims.AccountID,
-		Role:      claims.Role,
-		ID:        req.ID,
-	})
-	if err != nil {
+	if err := h.service.StartInstance(c.Request().Context(), instancesvc.StartInstanceParams{
+		ID: req.ID,
+	}); err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
@@ -286,9 +261,8 @@ func (h *EchoHandler) StopInstance(c echo.Context) error {
 	}
 
 	err = h.service.StopInstance(c.Request().Context(), instancesvc.StopInstanceParams{
-		AccountID: claims.AccountID,
-		Role:      claims.Role,
-		ID:        req.ID,
+		Account: claims.ToAuthenticatedAccount(),
+		ID:      req.ID,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)

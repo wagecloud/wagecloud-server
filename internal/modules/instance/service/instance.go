@@ -2,6 +2,7 @@ package instancesvc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/wagecloud/wagecloud-server/internal/client/libvirt"
@@ -46,28 +47,29 @@ func NewService(libvirt libvirt.Client, storage *instancestorage.Storage) Servic
 }
 
 type GetInstanceParams struct {
-	Role      accountmodel.Role
-	AccountID int64
-	ID        string
+	Account accountmodel.AuthenticatedAccount
+	ID      string
 }
 
 func (s *ServiceImpl) GetInstance(ctx context.Context, params GetInstanceParams) (instancemodel.Instance, error) {
-	storageParams := instancestorage.GetInstanceParams{
-		ID:        params.ID,
-		AccountID: &params.AccountID,
+	instance, err := s.storage.GetInstance(ctx, params.ID)
+	if err != nil {
+		return instancemodel.Instance{}, err
 	}
 
-	if params.Role == accountmodel.RoleUser {
-		storageParams.AccountID = &params.AccountID
+	if err = s.canAccess(ctx, canAccessParams{
+		Account:  params.Account,
+		Instance: instance,
+	}); err != nil {
+		return instancemodel.Instance{}, err
 	}
 
-	return s.storage.GetInstance(ctx, storageParams)
+	return instance, nil
 }
 
 type ListInstancesParams struct {
 	pagination.PaginationParams
-	Role          accountmodel.Role
-	AccountID     int64
+	Account       accountmodel.AuthenticatedAccount
 	OsID          *string
 	ArchID        *string
 	Name          *string
@@ -97,9 +99,9 @@ func (s *ServiceImpl) ListInstances(ctx context.Context, params ListInstancesPar
 		CreatedAtTo:      params.CreatedAtTo,
 	}
 
-	// Users can only see their own Instances
-	if params.Role == accountmodel.RoleUser {
-		storageParams.AccountID = &params.AccountID
+	// Authorization: users can only see their own instances
+	if params.Account.Role == accountmodel.RoleUser {
+		storageParams.AccountID = &params.Account.AccountID
 	}
 
 	total, err := s.storage.CountInstances(ctx, storageParams)
@@ -122,7 +124,7 @@ func (s *ServiceImpl) ListInstances(ctx context.Context, params ListInstancesPar
 }
 
 type CreateInstanceParams struct {
-	AccountID int64
+	Account accountmodel.AuthenticatedAccount
 	// Userdata
 	Name              string
 	SSHAuthorizedKeys []string
@@ -132,9 +134,9 @@ type CreateInstanceParams struct {
 	//Spec
 	OsID    string
 	ArchID  string
-	Memory  int
-	Cpu     int
-	Storage int
+	Memory  int32
+	Cpu     int32
+	Storage int32
 }
 
 func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceParams) (instancemodel.Instance, error) {
@@ -165,9 +167,9 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 		return instancemodel.Instance{}, err
 	}
 
-	Instance, err := txStorage.CreateInstance(ctx, instancemodel.Instance{
+	instance, err := txStorage.CreateInstance(ctx, instancemodel.Instance{
 		ID:        uuid.New().String(),
-		AccountID: params.AccountID,
+		AccountID: params.Account.AccountID,
 		NetworkID: network.ID,
 		OSID:      os.ID,
 		ArchID:    arch.ID,
@@ -196,16 +198,16 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 
 	// Convert from our model to libvirt Domain
 	domain := libvirt.Domain{
-		ID:     Instance.ID,
-		Name:   Instance.Name,
-		Memory: libvirt.Memory{Value: uint(Instance.RAM), Unit: libvirt.UnitMB},
-		Cpu:    libvirt.Cpu{Value: uint(Instance.CPU)},
+		ID:     instance.ID,
+		Name:   instance.Name,
+		Memory: libvirt.Memory{Value: uint(instance.RAM), Unit: libvirt.UnitMB},
+		Cpu:    libvirt.Cpu{Value: uint(instance.CPU)},
 		OS: libvirt.OS{
 			Name: os.Name,
 			Type: "kvm",
 			Arch: arch.ID,
 		},
-		Storage: uint(Instance.Storage),
+		Storage: uint(instance.Storage),
 	}
 
 	if err = s.libvirt.CreateCloudinit(ctx, libvirt.CreateCloudinitParams{
@@ -226,12 +228,11 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 		return instancemodel.Instance{}, err
 	}
 
-	return Instance, nil
+	return instance, nil
 }
 
 type UpdateInstanceParams struct {
-	Role      accountmodel.Role
-	AccountID int64
+	Account   accountmodel.AuthenticatedAccount
 	ID        string
 	NetworkID *string
 	OsID      *string
@@ -252,8 +253,8 @@ func (s *ServiceImpl) UpdateInstance(ctx context.Context, params UpdateInstanceP
 	}
 
 	// Users can only see their own instances
-	if params.Role == accountmodel.RoleUser {
-		storageParams.AccountID = &params.AccountID
+	if params.Account.Role == accountmodel.RoleUser {
+		storageParams.AccountID = &params.Account.AccountID
 	}
 
 	updatedInstance, err := s.storage.UpdateInstance(ctx, storageParams)
@@ -265,9 +266,8 @@ func (s *ServiceImpl) UpdateInstance(ctx context.Context, params UpdateInstanceP
 }
 
 type DeleteInstanceParams struct {
-	ID        string
-	AccountID int64
-	Role      accountmodel.Role
+	Account accountmodel.AuthenticatedAccount
+	ID      string
 }
 
 func (s *ServiceImpl) DeleteInstance(ctx context.Context, params DeleteInstanceParams) error {
@@ -277,16 +277,9 @@ func (s *ServiceImpl) DeleteInstance(ctx context.Context, params DeleteInstanceP
 	}
 	defer txStorage.Rollback(ctx)
 
-	storageParams := instancestorage.DeleteInstanceParams{
-		ID: params.ID,
-	}
+	// TODO: missing checK: user only delete their own instances
 
-	// Users can only see their own Instances
-	if params.Role == accountmodel.RoleUser {
-		storageParams.AccountID = &params.AccountID
-	}
-
-	if err := txStorage.DeleteInstance(ctx, storageParams); err != nil {
+	if err := txStorage.DeleteInstance(ctx, params.ID); err != nil {
 		return err
 	}
 
@@ -304,44 +297,39 @@ func (s *ServiceImpl) DeleteInstance(ctx context.Context, params DeleteInstanceP
 }
 
 type StartInstanceParams struct {
-	AccountID int64
-	Role      accountmodel.Role
-	ID        string
+	Account accountmodel.AuthenticatedAccount
+	ID      string
 }
 
 func (s *ServiceImpl) StartInstance(ctx context.Context, params StartInstanceParams) error {
-	// Users can only start their own Instances
-	if params.Role == accountmodel.RoleUser {
-		_, err := s.storage.GetInstance(ctx, instancestorage.GetInstanceParams{
-			ID:        params.ID,
-			AccountID: &params.AccountID,
-		})
-		if err != nil {
-			return err
-		}
-	}
-
 	// TODO: put this in background, kinda slow 💀
 	return s.libvirt.StartDomain(ctx, params.ID)
 }
 
 type StopInstanceParams struct {
-	AccountID int64
-	Role      accountmodel.Role
-	ID        string
+	Account accountmodel.AuthenticatedAccount
+	ID      string
 }
 
 func (s *ServiceImpl) StopInstance(ctx context.Context, params StopInstanceParams) error {
-	// Users can only stop their own Instances
-	if params.Role == accountmodel.RoleUser {
-		_, err := s.storage.GetInstance(ctx, instancestorage.GetInstanceParams{
-			ID:        params.ID,
-			AccountID: &params.AccountID,
-		})
-		if err != nil {
-			return err
-		}
+	return s.libvirt.StopDomain(ctx, params.ID)
+}
+
+type canAccessParams struct {
+	Account  accountmodel.AuthenticatedAccount
+	Instance instancemodel.Instance
+}
+
+// TODO: future upgrade
+func (s *ServiceImpl) canAccess(_ context.Context, params canAccessParams) error {
+	// Users can only access their own instances
+	if params.Account.Role == accountmodel.RoleUser && params.Account.AccountID != params.Instance.AccountID {
+		return errors.New("access denied: user can only access their own instances")
 	}
 
-	return s.libvirt.StopDomain(ctx, params.ID)
+	if params.Account.Role == accountmodel.RoleAdmin {
+		return nil
+	}
+
+	return errors.New("access denied: unsupported role or instance access")
 }
