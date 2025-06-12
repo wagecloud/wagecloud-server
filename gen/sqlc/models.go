@@ -159,7 +159,6 @@ type AccountUser struct {
 type InstanceBase struct {
 	ID        string
 	AccountID int64
-	NetworkID string
 	OsID      string
 	ArchID    string
 	Name      string

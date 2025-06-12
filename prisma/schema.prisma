@@ -58,7 +58,6 @@ enum AccountType {
 model Instance {
   id         String @id
   account_id BigInt
-  network_id String @unique
   os_id      String
   arch_id    String
 
@@ -70,9 +69,10 @@ model Instance {
   updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
   User    AccountUser @relation(fields: [account_id], references: [id])
-  Network Network     @relation(fields: [network_id], references: [id])
   OS      OS          @relation(fields: [os_id], references: [id])
   Arch    Arch        @relation(fields: [arch_id], references: [id])
+
+  Network Network?
 
   @@map("base")
   @@schema("instance")
@@ -83,7 +83,7 @@ model Network {
   private_ip String
   created_at DateTime @default(now()) @db.Timestamptz(3)
 
-  Instance Instance?
+  Instance  Instance @relation(fields: [id], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@map("network")
   @@schema("instance")

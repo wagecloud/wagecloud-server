@@ -10,7 +10,6 @@ SELECT COUNT(id)
 FROM "instance"."base"
 WHERE (
   (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL) AND
-  (network_id = sqlc.narg('network_id') OR sqlc.narg('network_id') IS NULL) AND
   (os_id = sqlc.narg('os_id') OR sqlc.narg('os_id') IS NULL) AND
   (arch_id = sqlc.narg('arch_id') OR sqlc.narg('arch_id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
@@ -29,7 +28,6 @@ SELECT instance.*
 FROM "instance"."base" instance
 WHERE (
   (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL) AND
-  (network_id = sqlc.narg('network_id') OR sqlc.narg('network_id') IS NULL) AND
   (os_id = sqlc.narg('os_id') OR sqlc.narg('os_id') IS NULL) AND
   (arch_id = sqlc.narg('arch_id') OR sqlc.narg('arch_id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
@@ -47,14 +45,13 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateInstance :one
-INSERT INTO "instance"."base" (id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+INSERT INTO "instance"."base" (id, account_id, os_id, arch_id, name, cpu, ram, storage)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
 -- name: UpdateInstance :one
 UPDATE "instance"."base"
 SET
-  network_id = COALESCE(sqlc.narg('network_id'), network_id),
   os_id = COALESCE(sqlc.narg('os_id'), os_id),
   arch_id = COALESCE(sqlc.narg('arch_id'), arch_id),
   name = COALESCE(sqlc.narg('name'), name),

@@ -16,24 +16,22 @@ SELECT COUNT(id)
 FROM "instance"."base"
 WHERE (
   (account_id = $1 OR $1 IS NULL) AND
-  (network_id = $2 OR $2 IS NULL) AND
-  (os_id = $3 OR $3 IS NULL) AND
-  (arch_id = $4 OR $4 IS NULL) AND
-  (name ILIKE '%' || $5 || '%' OR $5 IS NULL) AND
-  (cpu >= $6 OR $6 IS NULL) AND
-  (cpu <= $7 OR $7 IS NULL) AND
-  (ram >= $8 OR $8 IS NULL) AND
-  (ram <= $9 OR $9 IS NULL) AND
-  (storage >= $10 OR $10 IS NULL) AND
-  (storage <= $11 OR $11 IS NULL) AND
-  (created_at >= $12 OR $12 IS NULL) AND
-  (created_at <= $13 OR $13 IS NULL)
+  (os_id = $2 OR $2 IS NULL) AND
+  (arch_id = $3 OR $3 IS NULL) AND
+  (name ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
+  (cpu >= $5 OR $5 IS NULL) AND
+  (cpu <= $6 OR $6 IS NULL) AND
+  (ram >= $7 OR $7 IS NULL) AND
+  (ram <= $8 OR $8 IS NULL) AND
+  (storage >= $9 OR $9 IS NULL) AND
+  (storage <= $10 OR $10 IS NULL) AND
+  (created_at >= $11 OR $11 IS NULL) AND
+  (created_at <= $12 OR $12 IS NULL)
 )
 `
 
 type CountInstancesParams struct {
 	AccountID     pgtype.Int8
-	NetworkID     pgtype.Text
 	OsID          pgtype.Text
 	ArchID        pgtype.Text
 	Name          pgtype.Text
@@ -50,7 +48,6 @@ type CountInstancesParams struct {
 func (q *Queries) CountInstances(ctx context.Context, arg CountInstancesParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countInstances,
 		arg.AccountID,
-		arg.NetworkID,
 		arg.OsID,
 		arg.ArchID,
 		arg.Name,
@@ -69,15 +66,14 @@ func (q *Queries) CountInstances(ctx context.Context, arg CountInstancesParams) 
 }
 
 const createInstance = `-- name: CreateInstance :one
-INSERT INTO "instance"."base" (id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage, created_at, updated_at
+INSERT INTO "instance"."base" (id, account_id, os_id, arch_id, name, cpu, ram, storage)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, account_id, os_id, arch_id, name, cpu, ram, storage, created_at, updated_at
 `
 
 type CreateInstanceParams struct {
 	ID        string
 	AccountID int64
-	NetworkID string
 	OsID      string
 	ArchID    string
 	Name      string
@@ -90,7 +86,6 @@ func (q *Queries) CreateInstance(ctx context.Context, arg CreateInstanceParams) 
 	row := q.db.QueryRow(ctx, createInstance,
 		arg.ID,
 		arg.AccountID,
-		arg.NetworkID,
 		arg.OsID,
 		arg.ArchID,
 		arg.Name,
@@ -102,7 +97,6 @@ func (q *Queries) CreateInstance(ctx context.Context, arg CreateInstanceParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
-		&i.NetworkID,
 		&i.OsID,
 		&i.ArchID,
 		&i.Name,
@@ -128,7 +122,7 @@ func (q *Queries) DeleteInstance(ctx context.Context, id string) error {
 }
 
 const getInstance = `-- name: GetInstance :one
-SELECT instance.id, instance.account_id, instance.network_id, instance.os_id, instance.arch_id, instance.name, instance.cpu, instance.ram, instance.storage, instance.created_at, instance.updated_at
+SELECT instance.id, instance.account_id, instance.os_id, instance.arch_id, instance.name, instance.cpu, instance.ram, instance.storage, instance.created_at, instance.updated_at
 FROM "instance"."base" instance
 WHERE (
   id = $1
@@ -141,7 +135,6 @@ func (q *Queries) GetInstance(ctx context.Context, id string) (InstanceBase, err
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
-		&i.NetworkID,
 		&i.OsID,
 		&i.ArchID,
 		&i.Name,
@@ -155,31 +148,29 @@ func (q *Queries) GetInstance(ctx context.Context, id string) (InstanceBase, err
 }
 
 const listInstances = `-- name: ListInstances :many
-SELECT instance.id, instance.account_id, instance.network_id, instance.os_id, instance.arch_id, instance.name, instance.cpu, instance.ram, instance.storage, instance.created_at, instance.updated_at
+SELECT instance.id, instance.account_id, instance.os_id, instance.arch_id, instance.name, instance.cpu, instance.ram, instance.storage, instance.created_at, instance.updated_at
 FROM "instance"."base" instance
 WHERE (
   (account_id = $1 OR $1 IS NULL) AND
-  (network_id = $2 OR $2 IS NULL) AND
-  (os_id = $3 OR $3 IS NULL) AND
-  (arch_id = $4 OR $4 IS NULL) AND
-  (name ILIKE '%' || $5 || '%' OR $5 IS NULL) AND
-  (cpu >= $6 OR $6 IS NULL) AND
-  (cpu <= $7 OR $7 IS NULL) AND
-  (ram >= $8 OR $8 IS NULL) AND
-  (ram <= $9 OR $9 IS NULL) AND
-  (storage >= $10 OR $10 IS NULL) AND
-  (storage <= $11 OR $11 IS NULL) AND
-  (created_at >= $12 OR $12 IS NULL) AND
-  (created_at <= $13 OR $13 IS NULL)
+  (os_id = $2 OR $2 IS NULL) AND
+  (arch_id = $3 OR $3 IS NULL) AND
+  (name ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
+  (cpu >= $5 OR $5 IS NULL) AND
+  (cpu <= $6 OR $6 IS NULL) AND
+  (ram >= $7 OR $7 IS NULL) AND
+  (ram <= $8 OR $8 IS NULL) AND
+  (storage >= $9 OR $9 IS NULL) AND
+  (storage <= $10 OR $10 IS NULL) AND
+  (created_at >= $11 OR $11 IS NULL) AND
+  (created_at <= $12 OR $12 IS NULL)
 )
 ORDER BY created_at DESC
-LIMIT $15
-OFFSET $14
+LIMIT $14
+OFFSET $13
 `
 
 type ListInstancesParams struct {
 	AccountID     pgtype.Int8
-	NetworkID     pgtype.Text
 	OsID          pgtype.Text
 	ArchID        pgtype.Text
 	Name          pgtype.Text
@@ -198,7 +189,6 @@ type ListInstancesParams struct {
 func (q *Queries) ListInstances(ctx context.Context, arg ListInstancesParams) ([]InstanceBase, error) {
 	rows, err := q.db.Query(ctx, listInstances,
 		arg.AccountID,
-		arg.NetworkID,
 		arg.OsID,
 		arg.ArchID,
 		arg.Name,
@@ -223,7 +213,6 @@ func (q *Queries) ListInstances(ctx context.Context, arg ListInstancesParams) ([
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,
-			&i.NetworkID,
 			&i.OsID,
 			&i.ArchID,
 			&i.Name,
@@ -246,34 +235,31 @@ func (q *Queries) ListInstances(ctx context.Context, arg ListInstancesParams) ([
 const updateInstance = `-- name: UpdateInstance :one
 UPDATE "instance"."base"
 SET
-  network_id = COALESCE($2, network_id),
-  os_id = COALESCE($3, os_id),
-  arch_id = COALESCE($4, arch_id),
-  name = COALESCE($5, name),
-  cpu = COALESCE($6, cpu),
-  ram = COALESCE($7, ram),
-  storage = COALESCE($8, storage)
+  os_id = COALESCE($2, os_id),
+  arch_id = COALESCE($3, arch_id),
+  name = COALESCE($4, name),
+  cpu = COALESCE($5, cpu),
+  ram = COALESCE($6, ram),
+  storage = COALESCE($7, storage)
 WHERE (
   id = $1
 )
-RETURNING id, account_id, network_id, os_id, arch_id, name, cpu, ram, storage, created_at, updated_at
+RETURNING id, account_id, os_id, arch_id, name, cpu, ram, storage, created_at, updated_at
 `
 
 type UpdateInstanceParams struct {
-	ID        string
-	NetworkID pgtype.Text
-	OsID      pgtype.Text
-	ArchID    pgtype.Text
-	Name      pgtype.Text
-	Cpu       pgtype.Int4
-	Ram       pgtype.Int4
-	Storage   pgtype.Int4
+	ID      string
+	OsID    pgtype.Text
+	ArchID  pgtype.Text
+	Name    pgtype.Text
+	Cpu     pgtype.Int4
+	Ram     pgtype.Int4
+	Storage pgtype.Int4
 }
 
 func (q *Queries) UpdateInstance(ctx context.Context, arg UpdateInstanceParams) (InstanceBase, error) {
 	row := q.db.QueryRow(ctx, updateInstance,
 		arg.ID,
-		arg.NetworkID,
 		arg.OsID,
 		arg.ArchID,
 		arg.Name,
@@ -285,7 +271,6 @@ func (q *Queries) UpdateInstance(ctx context.Context, arg UpdateInstanceParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
-		&i.NetworkID,
 		&i.OsID,
 		&i.ArchID,
 		&i.Name,

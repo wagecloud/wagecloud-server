@@ -6,7 +6,6 @@ func InstanceModelToProto(instance Instance) *instancev1.Instance {
 	return &instancev1.Instance{
 		Id:        instance.ID,
 		Name:      instance.Name,
-		NetworkId: instance.NetworkID,
 		OsId:      instance.OSID,
 		ArchId:    instance.ArchID,
 		Cpu:       instance.CPU,
@@ -21,7 +20,6 @@ func InstanceProtoToModel(instance *instancev1.Instance) Instance {
 	return Instance{
 		ID:        instance.Id,
 		Name:      instance.Name,
-		NetworkID: instance.NetworkId,
 		OSID:      instance.OsId,
 		ArchID:    instance.ArchId,
 		CPU:       instance.Cpu,

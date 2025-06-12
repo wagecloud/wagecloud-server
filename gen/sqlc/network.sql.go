@@ -135,20 +135,18 @@ func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]I
 const updateNetwork = `-- name: UpdateNetwork :one
 UPDATE "instance"."network"
 SET
-    id = COALESCE($2, id),
-    private_ip = COALESCE($3, private_ip)
+    private_ip = COALESCE($2, private_ip)
 WHERE id = $1
 RETURNING id, private_ip, created_at
 `
 
 type UpdateNetworkParams struct {
 	ID        string
-	NewID     pgtype.Text
 	PrivateIp pgtype.Text
 }
 
 func (q *Queries) UpdateNetwork(ctx context.Context, arg UpdateNetworkParams) (InstanceNetwork, error) {
-	row := q.db.QueryRow(ctx, updateNetwork, arg.ID, arg.NewID, arg.PrivateIp)
+	row := q.db.QueryRow(ctx, updateNetwork, arg.ID, arg.PrivateIp)
 	var i InstanceNetwork
 	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
 	return i, err

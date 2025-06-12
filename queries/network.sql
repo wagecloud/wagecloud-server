@@ -34,7 +34,6 @@ RETURNING *;
 -- name: UpdateNetwork :one
 UPDATE "instance"."network"
 SET
-    id = COALESCE(sqlc.narg('new_id'), id),
     private_ip = COALESCE(sqlc.narg('private_ip'), private_ip)
 WHERE id = $1
 RETURNING *;

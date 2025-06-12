@@ -20,7 +20,6 @@ Table AccountUser {
 Table Instance {
   id String [pk]
   account_id BigInt [not null]
-  network_id String [unique, not null]
   os_id String [not null]
   arch_id String [not null]
   name String [not null]
@@ -106,11 +105,11 @@ Ref: AccountUser.id - AccountBase.id
 
 Ref: Instance.account_id > AccountUser.id
 
-Ref: Instance.network_id - Network.id
-
 Ref: Instance.os_id > OS.id
 
 Ref: Instance.arch_id > Arch.id
+
+Ref: Network.id - Instance.id [delete: Cascade]
 
 Ref: OSImage.os_id > OS.id
 
