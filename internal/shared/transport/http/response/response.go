@@ -1,6 +1,7 @@
 package response
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -75,6 +76,8 @@ func FromError(w http.ResponseWriter, httpCode int, err error) error {
 	if err == nil {
 		return FromDTO(w, http.StatusOK, nil)
 	}
+
+	fmt.Println("Error occurred:", err)
 
 	return writeError(w, httpCode, err)
 }

@@ -1,6 +1,7 @@
 package libvirt
 
 import (
+	"crypto/rand"
 	"fmt"
 	"path"
 
@@ -120,6 +121,11 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 		return nil, fmt.Errorf("image or cloudinit file not found")
 	}
 
+	mac, err := generateRandomMAC()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate random MAC address: %v", err)
+	}
+
 	domainXML := &libvirtxml.Domain{
 		Type: "kvm",
 		Name: domain.ID,
@@ -194,7 +200,7 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 			Interfaces: []libvirtxml.DomainInterface{
 				{
 					MAC: &libvirtxml.DomainInterfaceMAC{
-						Address: "52:54:00:b7:a5:c2",
+						Address: mac,
 					},
 					Source: &libvirtxml.DomainInterfaceSource{
 						Bridge: &libvirtxml.DomainInterfaceSourceBridge{
@@ -226,4 +232,20 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 	}
 
 	return domainXML, nil
+}
+
+// generateRandomMAC generates a random MAC address
+func generateRandomMAC() (string, error) {
+	buf := make([]byte, 6)
+	_, err := rand.Read(buf)
+	if err != nil {
+		return "", err
+	}
+
+	// Set the locally administered bit (bit 1 of first octet)
+	// and clear the multicast bit (bit 0 of first octet)
+	buf[0] = (buf[0] | 0x02) & 0xFE
+
+	return fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x",
+		buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]), nil
 }
