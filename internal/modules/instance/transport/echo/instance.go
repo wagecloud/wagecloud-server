@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
 	instancesvc "github.com/wagecloud/wagecloud-server/internal/modules/instance/service"
+	paymentmodel "github.com/wagecloud/wagecloud-server/internal/modules/payment/model"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
@@ -133,23 +134,32 @@ func (h *EchoHandler) CreateInstance(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
-	instance, err := h.service.CreateInstance(c.Request().Context(), instancesvc.CreateInstanceParams{
-		Account:           claims.ToAuthenticatedAccount(),
-		Name:              req.Userdata.Name,
-		SSHAuthorizedKeys: req.Userdata.SSHAuthorizedKeys,
-		Password:          req.Userdata.Password,
-		LocalHostname:     req.Metadata.LocalHostname,
-		OsID:              req.Spec.OsID,
-		ArchID:            req.Spec.ArchID,
-		Memory:            req.Spec.Memory,
-		Cpu:               req.Spec.Cpu,
-		Storage:           req.Spec.Storage,
+	paymentResult, err := h.service.PayCreateInstance(c.Request().Context(), instancesvc.PayCreateInstanceParams{
+		CreateInstanceParams: instancesvc.CreateInstanceParams{
+			Account:           claims.ToAuthenticatedAccount(),
+			Name:              req.Userdata.Name,
+			SSHAuthorizedKeys: req.Userdata.SSHAuthorizedKeys,
+			Password:          req.Userdata.Password,
+			LocalHostname:     req.Metadata.LocalHostname,
+			OsID:              req.Spec.OsID,
+			ArchID:            req.Spec.ArchID,
+			Memory:            req.Spec.Memory,
+			Cpu:               req.Spec.Cpu,
+			Storage:           req.Spec.Storage,
+		},
+		Method: paymentmodel.PaymentMethodVNPAY,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
 
-	return response.FromDTO(c.Response().Writer, http.StatusCreated, instance)
+	return response.FromDTO(c.Response().Writer, http.StatusCreated, struct {
+		PaymentUrl string `json:"payment_url"`
+		ID         int64  `json:"id,omitempty"`
+	}{
+		PaymentUrl: paymentResult.URL,
+		ID:         paymentResult.Payment.ID, // ID will be set after payment is completed
+	})
 }
 
 type UpdateInstanceRequest struct {

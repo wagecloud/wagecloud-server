@@ -62,7 +62,6 @@ func (s *ServiceRpcImpl) CreateNetwork(ctx context.Context, params CreateNetwork
 func (s *ServiceRpcImpl) UpdateNetwork(ctx context.Context, params UpdateNetworkParams) (instancemodel.Network, error) {
 	result, err := s.connect.UpdateNetwork(ctx, connect.NewRequest(&instancev1.UpdateNetworkRequest{
 		Id:        params.ID,
-		NewId:     params.NewID,
 		PrivateIp: params.PrivateIP,
 	}))
 	if err != nil {

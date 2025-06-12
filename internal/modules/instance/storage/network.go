@@ -83,14 +83,12 @@ func (r *Storage) CreateNetwork(ctx context.Context, network instancemodel.Netwo
 
 type UpdateNetworkParams struct {
 	ID        string
-	NewID     *string
 	PrivateIP *string
 }
 
 func (r *Storage) UpdateNetwork(ctx context.Context, params UpdateNetworkParams) (instancemodel.Network, error) {
 	row, err := r.sqlc.UpdateNetwork(ctx, sqlc.UpdateNetworkParams{
 		ID:        params.ID,
-		NewID:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.NewID),
 		PrivateIp: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
 	})
 	if err != nil {

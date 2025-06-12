@@ -60,7 +60,6 @@ func (s *Storage) GetInstance(ctx context.Context, id string) (instancemodel.Ins
 	return instancemodel.Instance{
 		ID:        row.ID,
 		AccountID: row.AccountID,
-		NetworkID: row.NetworkID,
 		OSID:      row.OsID,
 		ArchID:    row.ArchID,
 		Name:      row.Name,
@@ -123,7 +122,6 @@ func (s *Storage) ListInstances(ctx context.Context, params ListInstancesParams)
 		instances = append(instances, instancemodel.Instance{
 			ID:        row.ID,
 			AccountID: row.AccountID,
-			NetworkID: row.NetworkID,
 			OSID:      row.OsID,
 			ArchID:    row.ArchID,
 			Name:      row.Name,
@@ -142,7 +140,6 @@ func (s *Storage) CreateInstance(ctx context.Context, instance instancemodel.Ins
 	row, err := s.sqlc.CreateInstance(ctx, sqlc.CreateInstanceParams{
 		ID:        instance.ID,
 		AccountID: instance.AccountID,
-		NetworkID: instance.NetworkID,
 		OsID:      instance.OSID,
 		ArchID:    instance.ArchID,
 		Name:      instance.Name,
@@ -157,7 +154,6 @@ func (s *Storage) CreateInstance(ctx context.Context, instance instancemodel.Ins
 	return instancemodel.Instance{
 		ID:        row.ID,
 		AccountID: row.AccountID,
-		NetworkID: row.NetworkID,
 		OSID:      row.OsID,
 		ArchID:    row.ArchID,
 		Name:      row.Name,
@@ -193,7 +189,6 @@ func (s *Storage) UpdateInstance(ctx context.Context, params UpdateInstanceParam
 	return instancemodel.Instance{
 		ID:        row.ID,
 		AccountID: row.AccountID,
-		NetworkID: row.NetworkID,
 		OSID:      row.OsID,
 		ArchID:    row.ArchID,
 		Name:      row.Name,

@@ -2,6 +2,7 @@ package instancesvc
 
 import (
 	"context"
+	"fmt"
 
 	instancemodel "github.com/wagecloud/wagecloud-server/internal/modules/instance/model"
 	instancestorage "github.com/wagecloud/wagecloud-server/internal/modules/instance/storage"
@@ -32,6 +33,8 @@ func (s *ServiceImpl) ListNetworks(ctx context.Context, params ListNetworksParam
 		CreatedAtFrom:    params.CreatedAtFrom,
 		CreatedAtTo:      params.CreatedAtTo,
 	}
+
+	fmt.Println(repoParams)
 
 	total, err := s.storage.CountNetworks(ctx, repoParams)
 	if err != nil {
@@ -66,14 +69,12 @@ func (s *ServiceImpl) CreateNetwork(ctx context.Context, params CreateNetworkPar
 
 type UpdateNetworkParams struct {
 	ID        string
-	NewID     *string
 	PrivateIP *string
 }
 
 func (s *ServiceImpl) UpdateNetwork(ctx context.Context, params UpdateNetworkParams) (instancemodel.Network, error) {
 	return s.storage.UpdateNetwork(ctx, instancestorage.UpdateNetworkParams{
 		ID:        params.ID,
-		NewID:     params.NewID,
 		PrivateIP: params.PrivateIP,
 	})
 }

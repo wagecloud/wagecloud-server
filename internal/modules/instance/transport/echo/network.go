@@ -113,7 +113,6 @@ func (h *EchoHandler) UpdateNetwork(c echo.Context) error {
 
 	network, err := h.service.UpdateNetwork(c.Request().Context(), instancesvc.UpdateNetworkParams{
 		ID:        req.ID,
-		NewID:     req.NewID,
 		PrivateIP: req.PrivateIP,
 	})
 	if err != nil {
