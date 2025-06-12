@@ -49,7 +49,7 @@ enum AccountType {
   ACCOUNT_TYPE_ADMIN
   ACCOUNT_TYPE_USER
 
-  @@map("role")
+  @@map("type")
   @@schema("account")
 }
 
@@ -80,7 +80,6 @@ model Instance {
 
 model Network {
   id         String   @id
-  name       String
   private_ip String
   created_at DateTime @default(now()) @db.Timestamptz(3)
 
