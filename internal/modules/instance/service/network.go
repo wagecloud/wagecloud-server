@@ -56,15 +56,14 @@ type UnmapPortNginxParams struct {
 }
 
 func (s *ServiceImpl) UnmapPortNginx(ctx context.Context, params UnmapPortNginxParams) error {
-  externalPort := params.ExternalPort
-  protocolType := params.ProtocolType
+	externalPort := params.ExternalPort
+	protocolType := params.ProtocolType
 
 	var pathName string
 
 	if protocolType == "stream" {
 		pathName = filepath.Join(os.Getenv("HOME"), "my-nginx/users.d/stream/test.conf")
-	}
-	if protocolType == "http" {
+	} else if protocolType == "http" {
 		pathName = filepath.Join(os.Getenv("HOME"), "my-nginx/users.d/http/test.conf")
 	} else {
 		return fmt.Errorf("unsupported protocol type: %s", protocolType)
