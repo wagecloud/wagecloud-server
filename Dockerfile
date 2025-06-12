@@ -17,9 +17,9 @@ COPY . .
 
 # Build the application with optimizations
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static"' \
-    -a -installsuffix cgo \
-    -o server .
+  -ldflags='-w -s -extldflags "-static"' \
+  -a -installsuffix cgo \
+  -o server .
 
 # Stage 2: Create minimal runtime image
 FROM scratch
@@ -31,8 +31,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy the binary
 COPY --from=builder /app/server /server
 
-# Use a fixed port instead of environment variable
-EXPOSE 8080
+EXPOSE 3000
 
 # Run as non-root user (if your app supports it)
 USER 65534:50051
