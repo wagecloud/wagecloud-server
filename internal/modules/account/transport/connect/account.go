@@ -2,6 +2,7 @@ package accountconnect
 
 import (
 	"context"
+	"net/http"
 
 	"connectrpc.com/connect"
 	accountv1 "github.com/wagecloud/wagecloud-server/gen/pb/account/v1"
@@ -15,10 +16,10 @@ type ImplementedAccountServiceHandler struct {
 	service accountsvc.Service
 }
 
-func NewImplementedAccountServiceHandler(service accountsvc.Service) accountv1connect.AccountServiceHandler {
-	return &ImplementedAccountServiceHandler{
+func NewAccountServiceHandler(service accountsvc.Service) (string, http.Handler) {
+	return accountv1connect.NewAccountServiceHandler(&ImplementedAccountServiceHandler{
 		service: service,
-	}
+	})
 }
 
 func (t *ImplementedAccountServiceHandler) GetUser(ctx context.Context, req *connect.Request[accountv1.GetUserRequest]) (*connect.Response[accountv1.GetUserResponse], error) {

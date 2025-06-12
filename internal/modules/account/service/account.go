@@ -136,7 +136,7 @@ func (s *ServiceImpl) RegisterUser(ctx context.Context, params RegisterUserParam
 	}
 
 	createdAccount, err := txStorage.CreateAccount(ctx, accountmodel.AccountBase{
-		Role:     accountmodel.RoleUser,
+		Type:     accountmodel.AccountTypeUser,
 		Name:     params.Name,
 		Username: params.Username,
 		Password: string(hashedPassword),
@@ -244,7 +244,7 @@ type canAccessParams struct {
 }
 
 func (s *ServiceImpl) canAccess(_ context.Context, params canAccessParams) error {
-	if params.Account.Role == accountmodel.RoleAdmin {
+	if params.Account.Type == accountmodel.AccountTypeAdmin {
 		return nil
 	}
 

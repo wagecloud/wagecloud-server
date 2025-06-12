@@ -83,7 +83,7 @@ func (s *Storage) GetAccount(ctx context.Context, params GetAccountParams) (acco
 
 	return accountmodel.AccountBase{
 		ID:        row.ID,
-		Role:      accountmodel.Role(row.Role),
+		Type:      accountmodel.AccountType(row.Type),
 		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
@@ -95,7 +95,7 @@ func (s *Storage) GetAccount(ctx context.Context, params GetAccountParams) (acco
 type ListAccountsParams struct {
 	pagination.PaginationParams
 	ID            *string
-	Role          *accountmodel.Role
+	Type          *accountmodel.AccountType
 	Username      *string
 	Name          *string
 	CreatedAtFrom *int64
@@ -105,7 +105,7 @@ type ListAccountsParams struct {
 func (s *Storage) CountAccounts(ctx context.Context, params ListAccountsParams) (int64, error) {
 	return s.sqlc.CountAccounts(ctx, sqlc.CountAccountsParams{
 		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
-		Role:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountRole{}, params.Role),
+		Type:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountType{}, params.Type),
 		Username:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
@@ -118,7 +118,7 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 		Limit:         params.Limit,
 		Offset:        params.Offset(),
 		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
-		Role:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountRole{}, params.Role),
+		Type:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountType{}, params.Type),
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		Username:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
@@ -132,7 +132,7 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 	for _, row := range rows {
 		accounts = append(accounts, accountmodel.AccountBase{
 			ID:        row.ID,
-			Role:      accountmodel.Role(row.Role),
+			Type:      accountmodel.AccountType(row.Type),
 			Name:      row.Name,
 			Username:  row.Username,
 			Password:  row.Password,
@@ -146,7 +146,7 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 
 func (s *Storage) CreateAccount(ctx context.Context, account accountmodel.AccountBase) (accountmodel.AccountBase, error) {
 	row, err := s.sqlc.CreateAccount(ctx, sqlc.CreateAccountParams{
-		Role:     sqlc.AccountRole(account.Role),
+		Type:     sqlc.AccountType(account.Type),
 		Name:     account.Name,
 		Username: account.Username,
 		Password: account.Password,
@@ -157,7 +157,7 @@ func (s *Storage) CreateAccount(ctx context.Context, account accountmodel.Accoun
 
 	return accountmodel.AccountBase{
 		ID:        row.ID,
-		Role:      accountmodel.Role(row.Role),
+		Type:      accountmodel.AccountType(row.Type),
 		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
@@ -186,7 +186,7 @@ func (s *Storage) UpdateAccount(ctx context.Context, params UpdateAccountParams)
 
 	return accountmodel.AccountBase{
 		ID:        row.ID,
-		Role:      accountmodel.Role(row.Role),
+		Type:      accountmodel.AccountType(row.Type),
 		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
@@ -222,7 +222,7 @@ func (s *Storage) GetUser(ctx context.Context, params GetUserParams) (accountmod
 	return accountmodel.AccountUser{
 		AccountBase: accountmodel.AccountBase{
 			ID:        row.ID,
-			Role:      accountmodel.Role(row.Role),
+			Type:      accountmodel.AccountType(row.Type),
 			Name:      row.Name,
 			Username:  row.Username,
 			Password:  row.Password,
@@ -245,7 +245,7 @@ func (s *Storage) CreateUser(ctx context.Context, user accountmodel.AccountUser)
 	return accountmodel.AccountUser{
 		AccountBase: accountmodel.AccountBase{
 			ID:   row.ID,
-			Role: accountmodel.RoleUser,
+			Type: accountmodel.AccountTypeUser,
 		},
 		Email: row.Email,
 	}, nil

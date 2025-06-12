@@ -17,7 +17,9 @@ func NewEchoHandler(service accountsvc.Service) *EchoHandler {
 }
 
 type GetUserRequest struct {
-	ID *int64 `param:"id" validate:"omitempty"`
+	ID       *int64  `query:"id" validate:"omitempty"`
+	Username *string `query:"username" validate:"omitempty,min=1,max=255"`
+	Email    *string `query:"email" validate:"omitempty,email"`
 }
 
 func (h *EchoHandler) GetUser(c echo.Context) error {
@@ -35,8 +37,15 @@ func (h *EchoHandler) GetUser(c echo.Context) error {
 		return response.FromError(c.Response().Writer, http.StatusUnauthorized, err)
 	}
 
+	if req.ID == nil && req.Username == nil && req.Email == nil {
+		req.ID = &claims.AccountID
+	}
+
 	account, err := h.service.GetUser(c.Request().Context(), accountsvc.GetUserParams{
-		ID: &claims.AccountID,
+		Account:  claims.ToAuthenticatedAccount(),
+		ID:       req.ID,
+		Username: req.Username,
+		Email:    req.Email,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
