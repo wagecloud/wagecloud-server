@@ -7,9 +7,10 @@ type Match struct {
 	Driver string `json:"driver,omitempty" yaml:"driver,omitempty"`
 }
 type Ethernet struct {
-	Match   Match  `json:"match" yaml:"match"`
-	Dhcp4   bool   `json:"dhcp4,omitempty" yaml:"dhcp4,omitempty"`
-	SetName string `json:"set-name,omitempty" yaml:"set-name,omitempty"`
+	Match          Match  `json:"match" yaml:"match"`
+	Dhcp4          bool   `json:"dhcp4,omitempty" yaml:"dhcp4,omitempty"`
+	DhcpIdentifier string `json:"dhcp-identifier,omitempty" yaml:"dhcp-identifier,omitempty"`
+	SetName        string `json:"set-name,omitempty" yaml:"set-name,omitempty"`
 }
 type Network struct {
 	Version   int                 `json:"version,omitempty" yaml:"version,omitempty"`
@@ -28,8 +29,9 @@ func NewDefaultNetworkConfig() NetworkConfig {
 		Match: Match{
 			Driver: "virtio_net",
 		},
-		Dhcp4:   true,
-		SetName: "eth0",
+		Dhcp4:          true,
+		DhcpIdentifier: "mac",
+		SetName:        "eth0",
 	}
 
 	return n
