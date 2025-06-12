@@ -1,26 +1,31 @@
 package paymentmodel
 
-import paymentv1 "github.com/wagecloud/wagecloud-server/gen/pb/payment/v1"
+import (
+	"time"
 
-func PaymentModelToProto(payment PaymentBase) *paymentv1.Payment {
+	paymentv1 "github.com/wagecloud/wagecloud-server/gen/pb/payment/v1"
+	commonmodel "github.com/wagecloud/wagecloud-server/internal/shared/model"
+)
+
+func PaymentModelToProto(payment Payment) *paymentv1.Payment {
 	return &paymentv1.Payment{
 		Id:          payment.ID,
 		AccountId:   payment.AccountID,
 		Method:      PaymentMethodModelToProto(payment.Method),
 		Status:      PaymentStatusModelToProto(payment.Status),
-		Total:       payment.Total,
-		DateCreated: payment.DateCreated,
+		Total:       payment.Total.Int64(),
+		DateCreated: payment.DateCreated.UnixMilli(),
 	}
 }
 
-func PaymentProtoToModel(payment *paymentv1.Payment) PaymentBase {
-	return PaymentBase{
+func PaymentProtoToModel(payment *paymentv1.Payment) Payment {
+	return Payment{
 		ID:          payment.Id,
 		AccountID:   payment.AccountId,
 		Method:      PaymentMethodProtoToModel(payment.Method),
 		Status:      PaymentStatusProtoToModel(payment.Status),
-		Total:       payment.Total,
-		DateCreated: payment.DateCreated,
+		Total:       commonmodel.Concurrency(payment.Total),
+		DateCreated: time.UnixMilli(payment.DateCreated),
 	}
 }
 
@@ -29,7 +34,7 @@ func PaymentItemModelToProto(item PaymentItem) *paymentv1.PaymentItem {
 		Id:        item.ID,
 		PaymentId: item.PaymentID,
 		Name:      item.Name,
-		Price:     item.Price,
+		Price:     item.Price.Int64(),
 	}
 }
 
@@ -38,7 +43,7 @@ func PaymentItemProtoToModel(item *paymentv1.PaymentItem) PaymentItem {
 		ID:        item.Id,
 		PaymentID: item.PaymentId,
 		Name:      item.Name,
-		Price:     item.Price,
+		Price:     commonmodel.Concurrency(item.Price),
 	}
 }
 

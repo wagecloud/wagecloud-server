@@ -18,9 +18,10 @@ type ServiceRpcImpl struct {
 }
 
 func NewServiceRpc(connect instancev1connect.InstanceServiceClient) Service {
-	return &ServiceRpcImpl{
-		connect: connect,
-	}
+	return nil
+	// return &ServiceRpcImpl{
+	// 	connect: connect,
+	// }
 }
 
 func (s *ServiceRpcImpl) GetInstance(ctx context.Context, params GetInstanceParams) (instancemodel.Instance, error) {
