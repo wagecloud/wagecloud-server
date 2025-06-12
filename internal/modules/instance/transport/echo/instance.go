@@ -1,6 +1,7 @@
 package instanceecho
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -227,6 +228,8 @@ func (h *EchoHandler) StartInstance(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
 	}
+
+	fmt.Println("Starting instance with ID:", req.ID)
 
 	if err := c.Validate(&req); err != nil {
 		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)

@@ -39,8 +39,9 @@ type Service interface {
 	DeleteNetwork(ctx context.Context, params DeleteNetworkParams) error
 }
 
-func NewService(libvirt libvirt.Client, storage *instancestorage.Storage) Service {
+func NewService(libvirt libvirt.Client, storage *instancestorage.Storage, osSvc ossvc.Service) Service {
 	return &ServiceImpl{
+		osSvc:   osSvc,
 		libvirt: libvirt,
 		storage: storage,
 	}
@@ -100,7 +101,7 @@ func (s *ServiceImpl) ListInstances(ctx context.Context, params ListInstancesPar
 	}
 
 	// Authorization: users can only see their own instances
-	if params.Account.Role == accountmodel.RoleUser {
+	if params.Account.Type == accountmodel.AccountTypeUser {
 		storageParams.AccountID = &params.Account.AccountID
 	}
 
@@ -203,8 +204,8 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 		Memory: libvirt.Memory{Value: uint(instance.RAM), Unit: libvirt.UnitMB},
 		Cpu:    libvirt.Cpu{Value: uint(instance.CPU)},
 		OS: libvirt.OS{
-			Name: os.Name,
-			Type: "kvm",
+			Name: os.ID,
+			Type: "hvm",
 			Arch: arch.ID,
 		},
 		Storage: uint(instance.Storage),
@@ -253,7 +254,7 @@ func (s *ServiceImpl) UpdateInstance(ctx context.Context, params UpdateInstanceP
 	}
 
 	// Users can only see their own instances
-	if params.Account.Role == accountmodel.RoleUser {
+	if params.Account.Type == accountmodel.AccountTypeUser {
 		storageParams.AccountID = &params.Account.AccountID
 	}
 
@@ -323,11 +324,11 @@ type canAccessParams struct {
 // TODO: future upgrade
 func (s *ServiceImpl) canAccess(_ context.Context, params canAccessParams) error {
 	// Users can only access their own instances
-	if params.Account.Role == accountmodel.RoleUser && params.Account.AccountID != params.Instance.AccountID {
+	if params.Account.Type == accountmodel.AccountTypeUser && params.Account.AccountID != params.Instance.AccountID {
 		return errors.New("access denied: user can only access their own instances")
 	}
 
-	if params.Account.Role == accountmodel.RoleAdmin {
+	if params.Account.Type == accountmodel.AccountTypeAdmin {
 		return nil
 	}
 
