@@ -145,3 +145,4 @@ func (h *EchoHandler) DeleteNetwork(c echo.Context) error {
 
 	return response.FromMessage(c.Response().Writer, http.StatusOK, "Network deleted successfully")
 }
+

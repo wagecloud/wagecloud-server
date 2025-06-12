@@ -85,9 +85,22 @@ func DeleteServerBlock(pathName string, targetPort string) error {
 	return nil
 }
 
-func AddOrUpdateServerBlock(pathName, vmIP string, internalPort, hostPort int, protocolType ProtocolType) error {
-	hostPortStr := strconv.Itoa(hostPort)
+type AddOrUpdateServerBlockParams struct {
+	PathName     string
+	VMIP         string
+	InternalPort int
+	HostPort     int
+	ProtocolType ProtocolType
+}
 
+func AddOrUpdateServerBlock(params AddOrUpdateServerBlockParams) error {
+	pathName := params.PathName
+	vmIP := params.VMIP
+	internalPort := params.InternalPort
+	hostPort := params.HostPort
+	protocolType := params.ProtocolType
+
+	hostPortStr := strconv.Itoa(hostPort)
 	// Step 1: Delete old block if exists
 	if fileExists(pathName) {
 		_ = DeleteServerBlock(pathName, hostPortStr)
