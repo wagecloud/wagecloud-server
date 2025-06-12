@@ -8,15 +8,21 @@ import (
 	"os"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/wagecloud/wagecloud-server/config"
+	"github.com/wagecloud/wagecloud-server/gen/pb/account/v1/accountv1connect"
+	"github.com/wagecloud/wagecloud-server/gen/pb/instance/v1/instancev1connect"
+	"github.com/wagecloud/wagecloud-server/gen/pb/os/v1/osv1connect"
+	"github.com/wagecloud/wagecloud-server/gen/pb/payment/v1/paymentv1connect"
 	"github.com/wagecloud/wagecloud-server/internal/client/libvirt"
 	"github.com/wagecloud/wagecloud-server/internal/client/pgxpool"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
 	accountstorage "github.com/wagecloud/wagecloud-server/internal/modules/account/storage"
+	accountconnect "github.com/wagecloud/wagecloud-server/internal/modules/account/transport/connect"
 	accountecho "github.com/wagecloud/wagecloud-server/internal/modules/account/transport/echo"
 	instancesvc "github.com/wagecloud/wagecloud-server/internal/modules/instance/service"
 	instancestorage "github.com/wagecloud/wagecloud-server/internal/modules/instance/storage"
@@ -24,8 +30,15 @@ import (
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
 	osstorage "github.com/wagecloud/wagecloud-server/internal/modules/os/storage"
 	osecho "github.com/wagecloud/wagecloud-server/internal/modules/os/transport/echo"
+	paymentsvc "github.com/wagecloud/wagecloud-server/internal/modules/payment/service"
+	paymentstorage "github.com/wagecloud/wagecloud-server/internal/modules/payment/storage"
+	paymentecho "github.com/wagecloud/wagecloud-server/internal/modules/payment/transport/echo"
 	echovalidator "github.com/wagecloud/wagecloud-server/internal/shared/transport/http/validator"
+	"github.com/wagecloud/wagecloud-server/internal/utils/net"
+	"github.com/wagecloud/wagecloud-server/internal/utils/ptr"
 	"go.uber.org/zap"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 var targetService = flag.String("service", "", "Which service to run")
@@ -36,6 +49,8 @@ const productionConfigFile = "config/config.production.yml"
 var configFile string
 
 func main() {
+	flag.Parse()
+
 	setUpConfig()
 	setupLogger()
 	setupSentry()
@@ -92,15 +107,10 @@ func setupModules() {
 		log.Fatalf("Failed to get pgx pool: %v", err)
 	}
 
-	libvirt := libvirt.NewClient()
-
-	accountHandler := accountecho.NewEchoHandler(accountsvc.NewService(accountstorage.NewStorage(pgpool)))
-	instanceHandler := instanceecho.NewEchoHandler(instancesvc.NewService(libvirt, instancestorage.NewStorage(pgpool)))
-	osHandler := osecho.NewEchoHandler(ossvc.NewService(osstorage.NewStorage(pgpool)))
-
 	e := echo.New()
 
 	e.Pre(middleware.AddTrailingSlash())
+	// e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
@@ -112,35 +122,18 @@ func setupModules() {
 	api := e.Group("/api")
 	v1 := api.Group("/v1")
 
-	// Account
-	account := v1.Group("/account")
-	account.GET("/", accountHandler.GetUser)
-	account.POST("/login", accountHandler.LoginUser)
-	account.POST("/register", accountHandler.RegisterUser)
+	svcCtx := serviceContext{
+		pgpool:        pgpool,
+		e:             v1,
+		targetService: ptr.DerefDefault(targetService, ""),
+		httpClient:    &http.Client{},
+		mux:           &http.ServeMux{},
+	}
 
-	// Instance
-	instance := v1.Group("/instance")
-	instance.GET("/", instanceHandler.ListInstances)
-	instance.GET("/:id", instanceHandler.GetInstance)
-	instance.POST("/", instanceHandler.CreateInstance)
-	instance.PATCH("/:id", instanceHandler.UpdateInstance)
-	instance.DELETE("/:id", instanceHandler.DeleteInstance)
-
-	// OS
-	os := v1.Group("/os")
-	os.GET("/", osHandler.ListOSs)
-	os.GET("/:id", osHandler.GetOS)
-	os.POST("", osHandler.CreateOS)
-	os.PATCH("/:id", osHandler.UpdateOS)
-	os.DELETE("/:id", osHandler.DeleteOS)
-
-	// Arch
-	arch := v1.Group("/os/arch")
-	arch.GET("/", osHandler.ListArchs)
-	arch.GET("/:id", osHandler.GetArch)
-	arch.POST("/", osHandler.CreateArch)
-	arch.PATCH("/:id", osHandler.UpdateArch)
-	arch.DELETE("/:id", osHandler.DeleteArch)
+	setupServiceAccount(svcCtx)
+	osSvc := setupServiceOS(svcCtx)
+	setupServiceInstance(svcCtx, osSvc.svc)
+	setupServicePayment(svcCtx)
 
 	// Print the api routes
 	for _, route := range e.Routes() {
@@ -156,8 +149,186 @@ func setupModules() {
 		}
 	}
 
-	// Start the server
-	if err := e.Start(fmt.Sprintf(":%d", 3000)); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	if *targetService != "" {
+		// Start the connect/gRPC server
+		go func() {
+			port, err := net.FindNextAvailablePort(50051)
+			if err != nil {
+				log.Fatalf("Failed to find available port: %v", err)
+			}
+
+			if err = http.ListenAndServe(
+				fmt.Sprintf(":%d", port),
+				h2c.NewHandler(svcCtx.mux, &http2.Server{}),
+			); err != nil {
+				log.Fatalf("failed to start server: %v", err)
+			}
+		}()
+	}
+
+	// Start the HTTP server
+	go func() {
+		port, err := net.FindNextAvailablePort(3000)
+		if err != nil {
+			log.Fatalf("Failed to find available port: %v", err)
+		}
+
+		port = 3000
+
+		if err := e.Start(fmt.Sprintf(":%d", port)); err != nil {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	select {}
+
+}
+
+type serviceContext struct {
+	pgpool        pgxpool.DBTX
+	e             *echo.Group
+	targetService string
+	httpClient    *http.Client
+	mux           *http.ServeMux
+}
+
+type service[T any] struct {
+	svc   T
+	isRPC bool
+}
+
+func setupServiceAccount(svcCtx serviceContext) service[accountsvc.Service] {
+	var accountSvc accountsvc.Service
+
+	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "account"
+
+	if isRPC {
+		connectClient := accountv1connect.NewAccountServiceClient(
+			svcCtx.httpClient,
+			"localhost:50051",
+			connect.WithGRPC(),
+		)
+		accountSvc = accountsvc.NewServiceRpc(connectClient)
+	} else {
+		accountSvc = accountsvc.NewService(accountstorage.NewStorage(svcCtx.pgpool))
+		accountHandler := accountecho.NewEchoHandler(accountSvc)
+		path, handler := accountconnect.NewAccountServiceHandler(accountSvc)
+		svcCtx.mux.Handle(path, handler)
+
+		account := svcCtx.e.Group("/account")
+		account.GET("/", accountHandler.GetUser)
+		account.POST("/login/", accountHandler.LoginUser)
+		account.POST("/register/", accountHandler.RegisterUser)
+	}
+
+	return service[accountsvc.Service]{
+		svc:   accountSvc,
+		isRPC: isRPC,
+	}
+}
+
+func setupServiceOS(svcCtx serviceContext) service[ossvc.Service] {
+	var osSvc ossvc.Service
+
+	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "os"
+
+	if isRPC {
+		connectClient := osv1connect.NewOSServiceClient(
+			svcCtx.httpClient,
+			"localhost:50051",
+			connect.WithGRPC(),
+		)
+		osSvc = ossvc.NewServiceRpc(connectClient)
+	} else {
+		osSvc = ossvc.NewService(osstorage.NewStorage(svcCtx.pgpool))
+		osHandler := osecho.NewEchoHandler(osSvc)
+
+		os := svcCtx.e.Group("/os")
+		os.GET("/", osHandler.ListOSs)
+		os.GET("/:id", osHandler.GetOS)
+		os.POST("/", osHandler.CreateOS)
+		os.PATCH("/:id", osHandler.UpdateOS)
+		os.DELETE("/:id", osHandler.DeleteOS)
+
+		arch := os.Group("/arch")
+		arch.GET("/", osHandler.ListArchs)
+		arch.GET("/:id", osHandler.GetArch)
+		arch.POST("/", osHandler.CreateArch)
+		arch.PATCH("/:id", osHandler.UpdateArch)
+		arch.DELETE("/:id", osHandler.DeleteArch)
+	}
+
+	return service[ossvc.Service]{
+		svc:   osSvc,
+		isRPC: isRPC,
+	}
+}
+
+func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service) service[instancesvc.Service] {
+	var instanceSvc instancesvc.Service
+
+	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "instance"
+
+	if isRPC {
+		connectClient := instancev1connect.NewInstanceServiceClient(
+			svcCtx.httpClient,
+			"localhost:50051",
+			connect.WithGRPC(),
+		)
+		instanceSvc = instancesvc.NewServiceRpc(connectClient)
+	} else {
+		libvirt := libvirt.NewClient()
+		instanceSvc = instancesvc.NewService(
+			libvirt,
+			instancestorage.NewStorage(svcCtx.pgpool),
+			osSvc,
+		)
+		instanceHandler := instanceecho.NewEchoHandler(instanceSvc)
+
+		instance := svcCtx.e.Group("/instance")
+		instance.GET("/", instanceHandler.ListInstances)
+		instance.GET("/:id", instanceHandler.GetInstance)
+		instance.POST("/", instanceHandler.CreateInstance)
+		instance.POST("/start/:id/", instanceHandler.StartInstance)
+		instance.POST("/stop/:id/", instanceHandler.StopInstance)
+		instance.PATCH("/:id", instanceHandler.UpdateInstance)
+		instance.DELETE("/:id", instanceHandler.DeleteInstance)
+	}
+
+	return service[instancesvc.Service]{
+		svc:   instanceSvc,
+		isRPC: isRPC,
+	}
+}
+
+func setupServicePayment(svcCtx serviceContext) service[paymentsvc.Service] {
+	var paymentSvc paymentsvc.Service
+
+	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "payment"
+
+	if isRPC {
+		connectClient := paymentv1connect.NewPaymentServiceClient(
+			svcCtx.httpClient,
+			"localhost:50051",
+			connect.WithGRPC(),
+		)
+		paymentSvc = paymentsvc.NewServiceRpc(connectClient)
+	} else {
+		paymentSvc = paymentsvc.NewService(paymentstorage.NewStorage(svcCtx.pgpool))
+		paymentHandler := paymentecho.NewEchoHandler(paymentSvc)
+
+		payment := svcCtx.e.Group("/payment")
+		payment.GET("/", paymentHandler.ListPayments)
+		payment.GET("/:id", paymentHandler.GetPayment)
+		payment.POST("/", paymentHandler.CreatePayment)
+		payment.PATCH("/:id", paymentHandler.UpdatePayment)
+		payment.DELETE("/:id", paymentHandler.DeletePayment)
+		payment.POST("/item", paymentHandler.CreatePaymentItem)
+		payment.POST("/vnpay", paymentHandler.CreatePaymentVNPAY)
+	}
+
+	return service[paymentsvc.Service]{
+		svc:   paymentSvc,
+		isRPC: isRPC,
 	}
 }
