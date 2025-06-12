@@ -1,25 +1,32 @@
-// Create a dedicated subdirectory with appropriate permissions
+# Notes
+
+## [SETUP] Before cloning the image, need to reset all machine identify files
+
+### Clean up machine-specific files
+
+sudo virt-customize -a /path/to/your/image.img \
+  --delete /etc/machine-id \
+  --delete /var/lib/dbus/machine-id \
+  --touch /etc/machine-id \
+  --delete /etc/ssh/ssh_host_rsa_key \
+  --delete /etc/ssh/ssh_host_rsa_key.pub \
+  --delete /etc/ssh/ssh_host_ecdsa_key \
+  --delete /etc/ssh/ssh_host_ecdsa_key.pub \
+  --delete /etc/ssh/ssh_host_ed25519_key \
+  --delete /etc/ssh/ssh_host_ed25519_key.pub
+
+## [SETUP] Adding permissions to libvirt images directory
+
+### Create a dedicated subdirectory with appropriate permissions
+
 sudo mkdir /var/libvirt/images/yourusername
 sudo chown yourusername:yourusername /var/libvirt/images/yourusername
 
-// Customize libvirt file system for running with root perm
+## [RUN] Qemu create image
 
-* sudo vi /etc/libvirt/libvirtd.conf
-// Uncomment the following lines and modify
-
-auth_unix_ro = "none" // need authen for read only?
-auth_unix_rw = "none" // need authen for read/write?
-unix_sock_group = "root" // uncomment this line
-unix_sock_ro_perms = "0777" // uncomment this line
-unix_sock_rw_perms = "0770" // uncomment this line
-
-// destionation for customer's images
-/var/lib/libvirt/images/{$USER}/uuid   :with uuid as id of customer and USER as username, example: /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe
-
-// qemu create image
 sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudimg-amd64.img -f qcow2 -F qcow2 /var/lib/libvirt/images/alexng/7a4a5c55-000c-44d5-b41e-903b71bf32fe/focal-server-cloudimg-amd64.img
 
-# Code rules
+## [CODE] Code rules
 
 * Calling to other services must use saga pattern to ensure that the system is resilient to failures and can recover gracefully.
 Eg: service A calls service B, if service B fails, service A should run the compensating transaction to revert the changes made by service A.
