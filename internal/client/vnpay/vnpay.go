@@ -2,9 +2,12 @@ package vnpay
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 )
 
 type ClientImpl struct {
@@ -47,7 +50,7 @@ func (c *ClientImpl) CreateOrder(ctx context.Context, params CreateOrderParams) 
 	q.Add("vnp_Version", "2.1.0")
 	q.Add("vnp_Command", "pay")
 	q.Add("vnp_TmnCode", c.tmnCode)
-	q.Add("vnp_Amount", fmt.Sprintf("%f", params.Amount*100))
+	q.Add("vnp_Amount", fmt.Sprintf("%.0f", params.Amount*100))
 	// q.Add("vnp_BankCode", string(BankCodeVNPAYQR))
 	q.Add("vnp_CreateDate", formatTime(time.Now()))
 	q.Add("vnp_CurrCode", "VND")
@@ -92,12 +95,21 @@ func (c *ClientImpl) VerifyPayment(ctx context.Context, ipn map[string]any) erro
 	delete(ipn, "vnp_SecureHash")
 
 	hashData := buildSortedQuery(ipn)
-	fmt.Println("Hash data:", hashData)
 	hash := sign(hashData, []byte(c.hashSecret))
 
 	if hash != expectedHash {
-		fmt.Println("Hash mismatch:", expectedHash, hash)
 		return fmt.Errorf("hash mismatch: expected %s, got %s", expectedHash, hash)
+	}
+
+	txnStatus, ok := ipn["vnp_TransactionStatus"].(string)
+	if !ok {
+		return errors.New("Transaction status not found in query parameters")
+	}
+
+	// Verify the transaction status
+	if txnStatus != "00" {
+		logger.Log.Error("Transaction failed" + "transaction_status" + txnStatus)
+		return nil
 	}
 
 	return nil
