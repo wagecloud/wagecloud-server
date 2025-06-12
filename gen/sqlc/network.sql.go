@@ -44,7 +44,7 @@ func (q *Queries) CountNetworks(ctx context.Context, arg CountNetworksParams) (i
 const createNetwork = `-- name: CreateNetwork :one
 INSERT INTO "instance"."network" (id, private_ip)
 VALUES ($1, $2)
-RETURNING id, name, private_ip, created_at
+RETURNING id, private_ip, created_at
 `
 
 type CreateNetworkParams struct {
@@ -55,12 +55,7 @@ type CreateNetworkParams struct {
 func (q *Queries) CreateNetwork(ctx context.Context, arg CreateNetworkParams) (InstanceNetwork, error) {
 	row := q.db.QueryRow(ctx, createNetwork, arg.ID, arg.PrivateIp)
 	var i InstanceNetwork
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.PrivateIp,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
 	return i, err
 }
 
@@ -75,7 +70,7 @@ func (q *Queries) DeleteNetwork(ctx context.Context, id string) error {
 }
 
 const getNetwork = `-- name: GetNetwork :one
-SELECT network.id, network.name, network.private_ip, network.created_at
+SELECT network.id, network.private_ip, network.created_at
 FROM "instance"."network" network
 WHERE id = $1
 `
@@ -83,17 +78,12 @@ WHERE id = $1
 func (q *Queries) GetNetwork(ctx context.Context, id string) (InstanceNetwork, error) {
 	row := q.db.QueryRow(ctx, getNetwork, id)
 	var i InstanceNetwork
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.PrivateIp,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
 	return i, err
 }
 
 const listNetworks = `-- name: ListNetworks :many
-SELECT network.id, network.name, network.private_ip, network.created_at
+SELECT network.id, network.private_ip, network.created_at
 FROM "instance"."network" network
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
@@ -131,12 +121,7 @@ func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]I
 	var items []InstanceNetwork
 	for rows.Next() {
 		var i InstanceNetwork
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.PrivateIp,
-			&i.CreatedAt,
-		); err != nil {
+		if err := rows.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -153,7 +138,7 @@ SET
     id = COALESCE($2, id),
     private_ip = COALESCE($3, private_ip)
 WHERE id = $1
-RETURNING id, name, private_ip, created_at
+RETURNING id, private_ip, created_at
 `
 
 type UpdateNetworkParams struct {
@@ -165,11 +150,6 @@ type UpdateNetworkParams struct {
 func (q *Queries) UpdateNetwork(ctx context.Context, arg UpdateNetworkParams) (InstanceNetwork, error) {
 	row := q.db.QueryRow(ctx, updateNetwork, arg.ID, arg.NewID, arg.PrivateIp)
 	var i InstanceNetwork
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.PrivateIp,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
 	return i, err
 }

@@ -11,53 +11,54 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type AccountRole string
+type AccountType string
 
 const (
-	AccountRoleROLEADMIN AccountRole = "ROLE_ADMIN"
-	AccountRoleROLEUSER  AccountRole = "ROLE_USER"
+	AccountTypeACCOUNTTYPEADMIN AccountType = "ACCOUNT_TYPE_ADMIN"
+	AccountTypeACCOUNTTYPEUSER  AccountType = "ACCOUNT_TYPE_USER"
 )
 
-func (e *AccountRole) Scan(src interface{}) error {
+func (e *AccountType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = AccountRole(s)
+		*e = AccountType(s)
 	case string:
-		*e = AccountRole(s)
+		*e = AccountType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for AccountRole: %T", src)
+		return fmt.Errorf("unsupported scan type for AccountType: %T", src)
 	}
 	return nil
 }
 
-type NullAccountRole struct {
-	AccountRole AccountRole
-	Valid       bool // Valid is true if AccountRole is not NULL
+type NullAccountType struct {
+	AccountType AccountType
+	Valid       bool // Valid is true if AccountType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullAccountRole) Scan(value interface{}) error {
+func (ns *NullAccountType) Scan(value interface{}) error {
 	if value == nil {
-		ns.AccountRole, ns.Valid = "", false
+		ns.AccountType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.AccountRole.Scan(value)
+	return ns.AccountType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullAccountRole) Value() (driver.Value, error) {
+func (ns NullAccountType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.AccountRole), nil
+	return string(ns.AccountType), nil
 }
 
 type PaymentMethod string
 
 const (
-	PaymentMethodVNPAY PaymentMethod = "VNPAY"
-	PaymentMethodMOMO  PaymentMethod = "MOMO"
+	PaymentMethodPAYMENTMETHODUNKNOWN PaymentMethod = "PAYMENT_METHOD_UNKNOWN"
+	PaymentMethodPAYMENTMETHODVNPAY   PaymentMethod = "PAYMENT_METHOD_VNPAY"
+	PaymentMethodPAYMENTMETHODMOMO    PaymentMethod = "PAYMENT_METHOD_MOMO"
 )
 
 func (e *PaymentMethod) Scan(src interface{}) error {
@@ -98,10 +99,11 @@ func (ns NullPaymentMethod) Value() (driver.Value, error) {
 type PaymentStatus string
 
 const (
-	PaymentStatusPENDING  PaymentStatus = "PENDING"
-	PaymentStatusSUCCESS  PaymentStatus = "SUCCESS"
-	PaymentStatusCANCELED PaymentStatus = "CANCELED"
-	PaymentStatusFAILED   PaymentStatus = "FAILED"
+	PaymentStatusPAYMENTSTATUSUNKNOWN  PaymentStatus = "PAYMENT_STATUS_UNKNOWN"
+	PaymentStatusPAYMENTSTATUSPENDING  PaymentStatus = "PAYMENT_STATUS_PENDING"
+	PaymentStatusPAYMENTSTATUSSUCCESS  PaymentStatus = "PAYMENT_STATUS_SUCCESS"
+	PaymentStatusPAYMENTSTATUSCANCELED PaymentStatus = "PAYMENT_STATUS_CANCELED"
+	PaymentStatusPAYMENTSTATUSFAILED   PaymentStatus = "PAYMENT_STATUS_FAILED"
 )
 
 func (e *PaymentStatus) Scan(src interface{}) error {
@@ -141,7 +143,7 @@ func (ns NullPaymentStatus) Value() (driver.Value, error) {
 
 type AccountBase struct {
 	ID        int64
-	Role      AccountRole
+	Type      AccountType
 	Name      string
 	Username  string
 	Password  string
@@ -170,7 +172,6 @@ type InstanceBase struct {
 
 type InstanceNetwork struct {
 	ID        string
-	Name      string
 	PrivateIp string
 	CreatedAt pgtype.Timestamptz
 }

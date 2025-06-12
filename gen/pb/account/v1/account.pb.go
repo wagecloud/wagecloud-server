@@ -28,7 +28,7 @@ type Account struct {
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
-	Role          Role                   `protobuf:"varint,5,opt,name=role,proto3,enum=account.v1.Role" json:"role,omitempty"`
+	Type          AccountType            `protobuf:"varint,5,opt,name=type,proto3,enum=account.v1.AccountType" json:"type,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,11 +93,11 @@ func (x *Account) GetEmail() string {
 	return ""
 }
 
-func (x *Account) GetRole() Role {
+func (x *Account) GetType() AccountType {
 	if x != nil {
-		return x.Role
+		return x.Type
 	}
-	return Role_ROLE_UNSPECIFIED
+	return AccountType_ACCOUNT_TYPE_UNSPECIFIED
 }
 
 func (x *Account) GetCreatedAt() int64 {
@@ -469,13 +469,13 @@ var File_account_v1_account_proto protoreflect.FileDescriptor
 const file_account_v1_account_proto_rawDesc = "" +
 	"\n" +
 	"\x18account/v1/account.proto\x12\n" +
-	"account.v1\x1a\x17account/v1/common.proto\"\xc3\x01\n" +
+	"account.v1\x1a\x17account/v1/common.proto\"\xca\x01\n" +
 	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
-	"\x05email\x18\x04 \x01(\tR\x05email\x12$\n" +
-	"\x04role\x18\x05 \x01(\x0e2\x10.account.v1.RoleR\x04role\x12\x1d\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12+\n" +
+	"\x04type\x18\x05 \x01(\x0e2\x17.account.v1.AccountTypeR\x04type\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
@@ -537,10 +537,10 @@ var file_account_v1_account_proto_goTypes = []any{
 	(*LoginResponse)(nil),    // 4: account.v1.LoginResponse
 	(*RegisterRequest)(nil),  // 5: account.v1.RegisterRequest
 	(*RegisterResponse)(nil), // 6: account.v1.RegisterResponse
-	(Role)(0),                // 7: account.v1.Role
+	(AccountType)(0),         // 7: account.v1.AccountType
 }
 var file_account_v1_account_proto_depIdxs = []int32{
-	7, // 0: account.v1.Account.role:type_name -> account.v1.Role
+	7, // 0: account.v1.Account.type:type_name -> account.v1.AccountType
 	0, // 1: account.v1.GetUserResponse.account:type_name -> account.v1.Account
 	0, // 2: account.v1.LoginResponse.account:type_name -> account.v1.Account
 	0, // 3: account.v1.RegisterResponse.account:type_name -> account.v1.Account

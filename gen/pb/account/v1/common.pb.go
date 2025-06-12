@@ -21,60 +21,60 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Account role enum
-type Role int32
+// Account type enum
+type AccountType int32
 
 const (
-	Role_ROLE_UNSPECIFIED Role = 0
-	Role_ROLE_USER        Role = 1
-	Role_ROLE_ADMIN       Role = 2
+	AccountType_ACCOUNT_TYPE_UNSPECIFIED AccountType = 0
+	AccountType_ACCOUNT_TYPE_USER        AccountType = 1
+	AccountType_ACCOUNT_TYPE_ADMIN       AccountType = 2
 )
 
-// Enum value maps for Role.
+// Enum value maps for AccountType.
 var (
-	Role_name = map[int32]string{
-		0: "ROLE_UNSPECIFIED",
-		1: "ROLE_USER",
-		2: "ROLE_ADMIN",
+	AccountType_name = map[int32]string{
+		0: "ACCOUNT_TYPE_UNSPECIFIED",
+		1: "ACCOUNT_TYPE_USER",
+		2: "ACCOUNT_TYPE_ADMIN",
 	}
-	Role_value = map[string]int32{
-		"ROLE_UNSPECIFIED": 0,
-		"ROLE_USER":        1,
-		"ROLE_ADMIN":       2,
+	AccountType_value = map[string]int32{
+		"ACCOUNT_TYPE_UNSPECIFIED": 0,
+		"ACCOUNT_TYPE_USER":        1,
+		"ACCOUNT_TYPE_ADMIN":       2,
 	}
 )
 
-func (x Role) Enum() *Role {
-	p := new(Role)
+func (x AccountType) Enum() *AccountType {
+	p := new(AccountType)
 	*p = x
 	return p
 }
 
-func (x Role) String() string {
+func (x AccountType) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (Role) Descriptor() protoreflect.EnumDescriptor {
+func (AccountType) Descriptor() protoreflect.EnumDescriptor {
 	return file_account_v1_common_proto_enumTypes[0].Descriptor()
 }
 
-func (Role) Type() protoreflect.EnumType {
+func (AccountType) Type() protoreflect.EnumType {
 	return &file_account_v1_common_proto_enumTypes[0]
 }
 
-func (x Role) Number() protoreflect.EnumNumber {
+func (x AccountType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use Role.Descriptor instead.
-func (Role) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use AccountType.Descriptor instead.
+func (AccountType) EnumDescriptor() ([]byte, []int) {
 	return file_account_v1_common_proto_rawDescGZIP(), []int{0}
 }
 
 type AuthenticatedAccount struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccountId     int64                  `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	Role          Role                   `protobuf:"varint,2,opt,name=role,proto3,enum=account.v1.Role" json:"role,omitempty"`
+	Type          AccountType            `protobuf:"varint,2,opt,name=type,proto3,enum=account.v1.AccountType" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -116,11 +116,11 @@ func (x *AuthenticatedAccount) GetAccountId() int64 {
 	return 0
 }
 
-func (x *AuthenticatedAccount) GetRole() Role {
+func (x *AuthenticatedAccount) GetType() AccountType {
 	if x != nil {
-		return x.Role
+		return x.Type
 	}
-	return Role_ROLE_UNSPECIFIED
+	return AccountType_ACCOUNT_TYPE_UNSPECIFIED
 }
 
 var File_account_v1_common_proto protoreflect.FileDescriptor
@@ -128,16 +128,15 @@ var File_account_v1_common_proto protoreflect.FileDescriptor
 const file_account_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"\x17account/v1/common.proto\x12\n" +
-	"account.v1\"[\n" +
+	"account.v1\"b\n" +
 	"\x14AuthenticatedAccount\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x01 \x01(\x03R\taccountId\x12$\n" +
-	"\x04role\x18\x02 \x01(\x0e2\x10.account.v1.RoleR\x04role*;\n" +
-	"\x04Role\x12\x14\n" +
-	"\x10ROLE_UNSPECIFIED\x10\x00\x12\r\n" +
-	"\tROLE_USER\x10\x01\x12\x0e\n" +
-	"\n" +
-	"ROLE_ADMIN\x10\x02B\xa9\x01\n" +
+	"account_id\x18\x01 \x01(\x03R\taccountId\x12+\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x17.account.v1.AccountTypeR\x04type*Z\n" +
+	"\vAccountType\x12\x1c\n" +
+	"\x18ACCOUNT_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11ACCOUNT_TYPE_USER\x10\x01\x12\x16\n" +
+	"\x12ACCOUNT_TYPE_ADMIN\x10\x02B\xa9\x01\n" +
 	"\x0ecom.account.v1B\vCommonProtoP\x01ZAgithub.com/wagecloud/wagecloud-server/gen/pb/account/v1;accountv1\xa2\x02\x03AXX\xaa\x02\n" +
 	"Account.V1\xca\x02\n" +
 	"Account\\V1\xe2\x02\x16Account\\V1\\GPBMetadata\xea\x02\vAccount::V1b\x06proto3"
@@ -157,11 +156,11 @@ func file_account_v1_common_proto_rawDescGZIP() []byte {
 var file_account_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_account_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_account_v1_common_proto_goTypes = []any{
-	(Role)(0),                    // 0: account.v1.Role
+	(AccountType)(0),             // 0: account.v1.AccountType
 	(*AuthenticatedAccount)(nil), // 1: account.v1.AuthenticatedAccount
 }
 var file_account_v1_common_proto_depIdxs = []int32{
-	0, // 0: account.v1.AuthenticatedAccount.role:type_name -> account.v1.Role
+	0, // 0: account.v1.AuthenticatedAccount.type:type_name -> account.v1.AccountType
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
