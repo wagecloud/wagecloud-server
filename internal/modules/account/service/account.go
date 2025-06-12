@@ -10,21 +10,21 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/patrickmn/go-cache"
 	"github.com/wagecloud/wagecloud-server/config"
 	accountmodel "github.com/wagecloud/wagecloud-server/internal/modules/account/model"
 	accountstorage "github.com/wagecloud/wagecloud-server/internal/modules/account/storage"
-	"github.com/wagecloud/wagecloud-server/internal/utils/cache"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	tokenHeader = "authorization"
-	tokenPrefix = "Bearer "
+	tokenHeader        = "authorization"
+	tokenPrefix        = "Bearer "
+	tokenCacheDuration = 5 * 60 * time.Second
 )
 
 var (
-	// TODO: use redis
-	claimsCache = cache.NewCache[string, accountmodel.Claims]()
+	claimsCache = cache.New(tokenCacheDuration, 10*time.Minute) // 5 min default expiration, 10 min cleanup interval
 )
 
 type ServiceImpl struct {
@@ -221,20 +221,30 @@ func ValidateAccessToken(tokenStr string) (claims accountmodel.Claims, err error
 	return claims, nil
 }
 
+// GetClaims retrieves and validates JWT claims from the token, using an in-memory cache
 func GetClaims(r *http.Request) (claims accountmodel.Claims, err error) {
 	token := r.Header.Get(tokenHeader)
 
-	claims, ok := claimsCache.Get(token)
-	if ok {
-		return claims, nil
+	if token == "" {
+		return accountmodel.Claims{}, fmt.Errorf("missing authorization header")
 	}
 
+	// Try to get claims from cache first
+	if cachedClaims, found := claimsCache.Get(token); found {
+		if claims, ok := cachedClaims.(accountmodel.Claims); ok {
+			return claims, nil
+		}
+	}
+
+	// If not in cache, validate token and store in cache
 	claims, err = ValidateAccessToken(strings.TrimPrefix(token, tokenPrefix))
 	if err != nil {
 		return accountmodel.Claims{}, err
 	}
 
-	claimsCache.Set(token, claims, 5*60*time.Second)
+	// Store claims in cache
+	claimsCache.Set(token, claims, tokenCacheDuration)
+
 	return claims, nil
 }
 
