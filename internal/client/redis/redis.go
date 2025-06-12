@@ -13,8 +13,8 @@ type ClientImpl struct {
 }
 
 type Client interface {
-	Set(ctx context.Context, key string, value any, expiration time.Duration) error
-	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key string, value []byte, expiration time.Duration) error
+	Get(ctx context.Context, key string) ([]byte, error)
 	Delete(ctx context.Context, key string) error
 	Exists(ctx context.Context, key string) (bool, error)
 }
@@ -47,11 +47,9 @@ func NewClient(cfg RedisConfig) (Client, error) {
 	return &ClientImpl{Client: rdb}, nil
 }
 
-func (r *ClientImpl) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
-	// rueidis expects string or []byte as value, convert accordingly
-	valStr := fmt.Sprintf("%v", value)
+func (r *ClientImpl) Set(ctx context.Context, key string, value []byte, expiration time.Duration) error {
 
-	cmd := r.Client.B().Set().Key(key).Value(valStr)
+	cmd := r.Client.B().Set().Key(key).Value(string(value))
 	if expiration > 0 {
 		cmd.Ex(expiration)
 	}
@@ -61,21 +59,21 @@ func (r *ClientImpl) Set(ctx context.Context, key string, value any, expiration 
 	return nil
 }
 
-func (r *ClientImpl) Get(ctx context.Context, key string) (string, error) {
+func (r *ClientImpl) Get(ctx context.Context, key string) ([]byte, error) {
 	resp := r.Client.Do(ctx, r.Client.B().Get().Key(key).Build())
 	if err := resp.Error(); err != nil {
 		if err == rueidis.Nil {
-			return "", nil
+			return nil, nil
 		}
-		return "", fmt.Errorf("failed to get key from Redis: %w", err)
+		return nil, fmt.Errorf("failed to get key from Redis: %w", err)
 	}
 
 	str, err := resp.ToString()
 	if err != nil {
-		return "", fmt.Errorf("failed to parse get response: %w", err)
+		return nil, fmt.Errorf("failed to parse get response: %w", err)
 	}
 
-	return str, nil
+	return []byte(str), nil
 }
 
 func (r *ClientImpl) Delete(ctx context.Context, key string) error {
