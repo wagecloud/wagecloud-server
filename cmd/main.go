@@ -16,9 +16,10 @@ import (
 	"github.com/wagecloud/wagecloud-server/gen/pb/account/v1/accountv1connect"
 	"github.com/wagecloud/wagecloud-server/gen/pb/instance/v1/instancev1connect"
 	"github.com/wagecloud/wagecloud-server/gen/pb/os/v1/osv1connect"
-	"github.com/wagecloud/wagecloud-server/gen/pb/payment/v1/paymentv1connect"
 	"github.com/wagecloud/wagecloud-server/internal/client/libvirt"
+	"github.com/wagecloud/wagecloud-server/internal/client/nats"
 	"github.com/wagecloud/wagecloud-server/internal/client/pgxpool"
+	"github.com/wagecloud/wagecloud-server/internal/client/redis"
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
 	accountstorage "github.com/wagecloud/wagecloud-server/internal/modules/account/storage"
@@ -117,10 +118,28 @@ func setupModules() {
 		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 	}))
+	// e.Use(middleware.Logger())
 	e.Validator = echovalidator.NewCustomValidator()
 
 	api := e.Group("/api")
 	v1 := api.Group("/v1")
+
+	natsClient, err := nats.NewClient(nats.NATSConfig{
+		URL:     config.GetConfig().Nats.Url,
+		Timeout: config.GetConfig().Nats.Timeout,
+	})
+	if err != nil {
+		log.Fatalf("Failed to connect to NATS: %v", err)
+	}
+
+	redisClient, err := redis.NewClient(redis.RedisConfig{
+		Addr:     config.GetConfig().Redis.Addr,
+		Password: config.GetConfig().Redis.Password,
+		DB:       config.GetConfig().Redis.DB,
+	})
+	if err != nil {
+		log.Fatalf("Failed to connect to Redis: %v", err)
+	}
 
 	svcCtx := serviceContext{
 		pgpool:        pgpool,
@@ -128,16 +147,18 @@ func setupModules() {
 		targetService: ptr.DerefDefault(targetService, ""),
 		httpClient:    &http.Client{},
 		mux:           &http.ServeMux{},
+		nats:          natsClient,
+		redis:         redisClient,
 	}
 
 	setupServiceAccount(svcCtx)
 	osSvc := setupServiceOS(svcCtx)
-	setupServiceInstance(svcCtx, osSvc.svc)
-	setupServicePayment(svcCtx)
+	paymentSvc := setupServicePayment(svcCtx)
+	setupServiceInstance(svcCtx, osSvc.svc, paymentSvc.svc)
 
 	// Print the api routes
 	for _, route := range e.Routes() {
-		logger.Log.Info("Route registered", zap.String("method", route.Method), zap.String("path", route.Path))
+		logger.Log.Info("", zap.String("method", route.Method), zap.String("path", route.Path))
 	}
 
 	// Setup 404 handler
@@ -190,6 +211,8 @@ type serviceContext struct {
 	targetService string
 	httpClient    *http.Client
 	mux           *http.ServeMux
+	nats          nats.Client
+	redis         redis.Client
 }
 
 type service[T any] struct {
@@ -264,7 +287,7 @@ func setupServiceOS(svcCtx serviceContext) service[ossvc.Service] {
 	}
 }
 
-func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service) service[instancesvc.Service] {
+func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service, paymentSvc paymentsvc.Service) service[instancesvc.Service] {
 	var instanceSvc instancesvc.Service
 
 	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "instance"
@@ -280,8 +303,11 @@ func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service) service[in
 		libvirt := libvirt.NewClient()
 		instanceSvc = instancesvc.NewService(
 			libvirt,
+			svcCtx.nats,
+			svcCtx.redis,
 			instancestorage.NewStorage(svcCtx.pgpool),
 			osSvc,
+			paymentSvc,
 		)
 		instanceHandler := instanceecho.NewEchoHandler(instanceSvc)
 
@@ -293,6 +319,13 @@ func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service) service[in
 		instance.POST("/stop/:id/", instanceHandler.StopInstance)
 		instance.PATCH("/:id", instanceHandler.UpdateInstance)
 		instance.DELETE("/:id", instanceHandler.DeleteInstance)
+
+		network := instance.Group("/network")
+		network.GET("/", instanceHandler.ListNetworks)
+		network.GET("/:id", instanceHandler.GetNetwork)
+		network.POST("/", instanceHandler.CreateNetwork)
+		network.PATCH("/:id", instanceHandler.UpdateNetwork)
+		network.DELETE("/:id", instanceHandler.DeleteNetwork)
 	}
 
 	return service[instancesvc.Service]{
@@ -307,24 +340,18 @@ func setupServicePayment(svcCtx serviceContext) service[paymentsvc.Service] {
 	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "payment"
 
 	if isRPC {
-		connectClient := paymentv1connect.NewPaymentServiceClient(
-			svcCtx.httpClient,
-			"localhost:50051",
-			connect.WithGRPC(),
-		)
-		paymentSvc = paymentsvc.NewServiceRpc(connectClient)
+		// connectClient := paymentv1connect.NewPaymentServiceClient(
+		// 	svcCtx.httpClient,
+		// 	"localhost:50051",
+		// 	connect.WithGRPC(),
+		// )
+		// paymentSvc = paymentsvc.NewServiceRpc(connectClient)
 	} else {
-		paymentSvc = paymentsvc.NewService(paymentstorage.NewStorage(svcCtx.pgpool))
+		paymentSvc = paymentsvc.NewService(paymentstorage.NewStorage(svcCtx.pgpool), svcCtx.nats)
 		paymentHandler := paymentecho.NewEchoHandler(paymentSvc)
 
-		payment := svcCtx.e.Group("/payment")
-		payment.GET("/", paymentHandler.ListPayments)
-		payment.GET("/:id", paymentHandler.GetPayment)
-		payment.POST("/", paymentHandler.CreatePayment)
-		payment.PATCH("/:id", paymentHandler.UpdatePayment)
-		payment.DELETE("/:id", paymentHandler.DeletePayment)
-		payment.POST("/item", paymentHandler.CreatePaymentItem)
-		payment.POST("/vnpay", paymentHandler.CreatePaymentVNPAY)
+		paymentHandler.RegisterRoutes(svcCtx.e)
+
 	}
 
 	return service[paymentsvc.Service]{
