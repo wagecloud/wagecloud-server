@@ -210,6 +210,10 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 					Model: &libvirtxml.DomainInterfaceModel{
 						Type: "virtio",
 					},
+					Target: &libvirtxml.DomainInterfaceTarget{
+						// TODO: try change into vnet1 and see if getPrivateIP works?
+						Dev: "vnet0",
+					},
 				},
 			},
 			Graphics: []libvirtxml.DomainGraphic{

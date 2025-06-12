@@ -32,6 +32,7 @@ type Client interface {
 	DeleteDomain(ctx context.Context, domainID string) error
 	StartDomain(ctx context.Context, domainID string) error
 	StopDomain(ctx context.Context, domainID string) error
+	GetPrivateIP(ctx context.Context, domainID string) (string, error)
 
 	// QEMU
 	CreateImage(ctx context.Context, params CreateImageParams) error
@@ -75,6 +76,30 @@ func (s *ClientImpl) getDomain(domainID string) (*libvirt.Domain, error) {
 	}
 
 	return domain, nil
+}
+
+func (s *ClientImpl) GetPrivateIP(ctx context.Context, domainID string) (string, error) {
+	domain, err := s.getDomain(domainID)
+	if err != nil {
+		return "", err
+	}
+
+	// Get the interface interfaces
+	ifaces1, _ := domain.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_ARP)
+	ifaces2, _ := domain.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE)
+	ifaces3, _ := domain.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT)
+	ifaces := append(ifaces1, ifaces2...)
+	ifaces = append(ifaces, ifaces3...)
+
+	for _, iface := range ifaces {
+		for _, addr := range iface.Addrs {
+			if addr.Type == libvirt.IP_ADDR_TYPE_IPV4 {
+				return addr.Addr, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no private IP found for domain %s", domainID)
 }
 
 func (s *ClientImpl) GetDomain(ctx context.Context, domainID string) (Domain, error) {
