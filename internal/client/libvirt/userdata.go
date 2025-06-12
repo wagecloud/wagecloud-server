@@ -1,7 +1,8 @@
 package libvirt
 
 type Userdata struct {
-	Users []User `json:"users,omitempty" yaml:"users,omitempty"`
+	Users  []User   `json:"users,omitempty" yaml:"users,omitempty"`
+	Runcmd []string `json:"runcmd,omitempty" yaml:"runcmd,omitempty"`
 }
 
 type User struct {
@@ -19,6 +20,7 @@ func NewDefaultUserdata() Userdata {
 		Users: []User{
 			NewDefaultUser(),
 		},
+		Runcmd: NewDefaultRuncmd(),
 	}
 	return u
 }
@@ -34,4 +36,12 @@ func NewDefaultUser() User {
 		Shell:             "/bin/bash",
 	}
 	return u
+}
+
+func NewDefaultRuncmd() []string {
+	return []string{
+		// "rm -f /etc/machine-id",
+		// "systemd-machine-id-setup",
+		// "ln -s /etc/machine-id /var/lib/dbus/machine-id",
+	}
 }
