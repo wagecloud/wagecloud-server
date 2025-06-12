@@ -4,7 +4,7 @@
 
 Table AccountBase {
   id BigInt [pk, increment]
-  role Role [not null]
+  type AccountType [not null]
   name String [not null]
   username String [unique, not null]
   password String [not null]
@@ -33,7 +33,6 @@ Table Instance {
 
 Table Network {
   id String [pk]
-  name String [not null]
   private_ip String [not null]
   created_at DateTime [default: `now()`, not null]
 }
@@ -69,7 +68,7 @@ Table Payment {
   id BigInt [pk, increment]
   account_id BigInt [not null]
   method PaymentMethod [not null]
-  status Status [not null]
+  status PaymentStatus [not null]
   total BigInt [not null]
   date_created DateTime [default: `now()`, not null]
 }
@@ -84,21 +83,23 @@ Table PaymentVnpay {
   vnp_IpAddr String [not null]
 }
 
-Enum Role {
-  ADMIN
-  USER
+Enum AccountType {
+  ACCOUNT_TYPE_ADMIN
+  ACCOUNT_TYPE_USER
 }
 
 Enum PaymentMethod {
-  VNPAY
-  MOMO
+  PAYMENT_METHOD_UNKNOWN
+  PAYMENT_METHOD_VNPAY
+  PAYMENT_METHOD_MOMO
 }
 
-Enum Status {
-  PENDING
-  SUCCESS
-  CANCELED
-  FAILED
+Enum PaymentStatus {
+  PAYMENT_STATUS_UNKNOWN
+  PAYMENT_STATUS_PENDING
+  PAYMENT_STATUS_SUCCESS
+  PAYMENT_STATUS_CANCELED
+  PAYMENT_STATUS_FAILED
 }
 
 Ref: AccountUser.id - AccountBase.id

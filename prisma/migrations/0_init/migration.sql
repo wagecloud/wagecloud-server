@@ -11,18 +11,18 @@ CREATE SCHEMA IF NOT EXISTS "os";
 CREATE SCHEMA IF NOT EXISTS "payment";
 
 -- CreateEnum
-CREATE TYPE "account"."role" AS ENUM ('ROLE_ADMIN', 'ROLE_USER');
+CREATE TYPE "account"."type" AS ENUM ('ACCOUNT_TYPE_ADMIN', 'ACCOUNT_TYPE_USER');
 
 -- CreateEnum
-CREATE TYPE "payment"."method" AS ENUM ('VNPAY', 'MOMO');
+CREATE TYPE "payment"."method" AS ENUM ('PAYMENT_METHOD_UNKNOWN', 'PAYMENT_METHOD_VNPAY', 'PAYMENT_METHOD_MOMO');
 
 -- CreateEnum
-CREATE TYPE "payment"."status" AS ENUM ('PENDING', 'SUCCESS', 'CANCELED', 'FAILED');
+CREATE TYPE "payment"."status" AS ENUM ('PAYMENT_STATUS_UNKNOWN', 'PAYMENT_STATUS_PENDING', 'PAYMENT_STATUS_SUCCESS', 'PAYMENT_STATUS_CANCELED', 'PAYMENT_STATUS_FAILED');
 
 -- CreateTable
 CREATE TABLE "account"."base" (
     "id" BIGSERIAL NOT NULL,
-    "role" "account"."role" NOT NULL,
+    "type" "account"."type" NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "username" TEXT NOT NULL,
     "password" VARCHAR(255) NOT NULL,
@@ -60,7 +60,6 @@ CREATE TABLE "instance"."base" (
 -- CreateTable
 CREATE TABLE "instance"."network" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
     "private_ip" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
