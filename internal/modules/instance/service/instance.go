@@ -10,14 +10,18 @@ import (
 	instancemodel "github.com/wagecloud/wagecloud-server/internal/modules/instance/model"
 	instancestorage "github.com/wagecloud/wagecloud-server/internal/modules/instance/storage"
 	ossvc "github.com/wagecloud/wagecloud-server/internal/modules/os/service"
+	paymentmodel "github.com/wagecloud/wagecloud-server/internal/modules/payment/model"
+	paymentsvc "github.com/wagecloud/wagecloud-server/internal/modules/payment/service"
+	commonmodel "github.com/wagecloud/wagecloud-server/internal/shared/model"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 	"github.com/wagecloud/wagecloud-server/internal/utils/hash"
 )
 
 type ServiceImpl struct {
-	osSvc   ossvc.Service
-	libvirt libvirt.Client
-	storage *instancestorage.Storage
+	storage    *instancestorage.Storage
+	libvirt    libvirt.Client
+	osSvc      ossvc.Service
+	paymentSvc paymentsvc.Service
 }
 
 type Service interface {
@@ -25,6 +29,7 @@ type Service interface {
 	GetInstance(ctx context.Context, params GetInstanceParams) (instancemodel.Instance, error)
 	ListInstances(ctx context.Context, params ListInstancesParams) (pagination.PaginateResult[instancemodel.Instance], error)
 	CreateInstance(ctx context.Context, params CreateInstanceParams) (instancemodel.Instance, error)
+	PayCreateInstance(ctx context.Context, params PayCreateInstanceParams) (string, error)
 	UpdateInstance(ctx context.Context, params UpdateInstanceParams) (instancemodel.Instance, error)
 	DeleteInstance(ctx context.Context, params DeleteInstanceParams) error
 	StartInstance(ctx context.Context, params StartInstanceParams) error
@@ -39,11 +44,12 @@ type Service interface {
 	DeleteNetwork(ctx context.Context, params DeleteNetworkParams) error
 }
 
-func NewService(libvirt libvirt.Client, storage *instancestorage.Storage, osSvc ossvc.Service) Service {
+func NewService(libvirt libvirt.Client, storage *instancestorage.Storage, osSvc ossvc.Service, paymentSvc paymentsvc.Service) Service {
 	return &ServiceImpl{
-		osSvc:   osSvc,
-		libvirt: libvirt,
-		storage: storage,
+		osSvc:      osSvc,
+		libvirt:    libvirt,
+		storage:    storage,
+		paymentSvc: paymentSvc,
 	}
 }
 
@@ -230,6 +236,38 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 	}
 
 	return instance, nil
+}
+
+type PayCreateInstanceParams struct {
+	CreateInstanceParams
+	Method paymentmodel.PaymentMethod
+}
+
+// PayAndCreateInstance creates a new instance and returns the payment URL for the user to pay.
+// Waits for the payment to be successful before creating the instance.
+func (s *ServiceImpl) PayCreateInstance(ctx context.Context, params PayCreateInstanceParams) (string, error) {
+	// TODO: remove hard-coded example price:
+	// Storage: 100.000 VND/GB
+	// Memory: 150.000 VND/GB
+	// CPU: 200.000 VND/CPU
+
+	totalPrice := commonmodel.NewConcurrency(float64(params.Storage)*100_000) +
+		commonmodel.NewConcurrency(float64(params.Memory)*150_000) +
+		commonmodel.NewConcurrency(float64(params.Cpu)*200_000)
+
+	paymentResult, err := s.paymentSvc.CreatePayment(ctx, paymentsvc.CreatePaymentParams{
+		Account: params.Account,
+		Method:  params.Method,
+		Items: []paymentsvc.CreatePaymentParamsItem{{
+			Name:  params.Name,
+			Price: totalPrice,
+		}},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return paymentResult.URL, nil
 }
 
 type UpdateInstanceParams struct {
