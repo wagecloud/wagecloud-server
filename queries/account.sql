@@ -13,7 +13,7 @@ SELECT COUNT(id)
 FROM "account"."base"
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
-  (role = sqlc.narg('role') OR sqlc.narg('role') IS NULL) AND
+  (type = sqlc.narg('type') OR sqlc.narg('type') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
   (username ILIKE '%' || sqlc.narg('username') || '%' OR sqlc.narg('username') IS NULL) AND
   (created_at >= sqlc.narg('created_at_from') OR sqlc.narg('created_at_from') IS NULL) AND
@@ -25,7 +25,7 @@ SELECT *
 FROM "account"."base"
 WHERE (
   (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
-  (role = sqlc.narg('role') OR sqlc.narg('role') IS NULL) AND
+  (type = sqlc.narg('type') OR sqlc.narg('type') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
   (username ILIKE '%' || sqlc.narg('username') || '%' OR sqlc.narg('username') IS NULL) AND
   (created_at >= sqlc.narg('created_at_from') OR sqlc.narg('created_at_from') IS NULL) AND
@@ -36,7 +36,7 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateAccount :one
-INSERT INTO "account"."base" (role, name, username, password)
+INSERT INTO "account"."base" (type, name, username, password)
 VALUES ($1, $2, $3, $4)
 RETURNING *;
 
@@ -58,7 +58,7 @@ SELECT u.*, b.*
 FROM "account"."user" u
 INNER JOIN "account"."base" b ON b.id = u.id
 WHERE (
-  (b.role = 'USER') AND
+  (b.type = 'ACCOUNT_TYPE_USER') AND
   (b.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL) AND
   (b.username = sqlc.narg('username') OR sqlc.narg('username') IS NULL) AND
   (u.email = sqlc.narg('email') OR sqlc.narg('email') IS NULL)
