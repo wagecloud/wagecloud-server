@@ -22,7 +22,7 @@ func (s *ClientImpl) CreateImage(ctx context.Context, params CreateImageParams) 
 	}
 
 	if !file.Exists(params.BaseImagePath) {
-		return fmt.Errorf("base image not found")
+		return fmt.Errorf("base image not found: %s", params.BaseImagePath)
 	}
 
 	// cloneImgPath := path.Join(
