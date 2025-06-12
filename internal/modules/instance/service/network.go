@@ -3,11 +3,85 @@ package instancesvc
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
+	nginx "github.com/wagecloud/wagecloud-server/internal/client/nginx"
 	instancemodel "github.com/wagecloud/wagecloud-server/internal/modules/instance/model"
 	instancestorage "github.com/wagecloud/wagecloud-server/internal/modules/instance/storage"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 )
+
+type MapPortNginxParams struct {
+	VMIP         string
+	ExternalPort int32
+	InternalPort int32
+	Type         string // "stream" or "http"
+}
+
+func (s *ServiceImpl) MapPortNginx(ctx context.Context, params MapPortNginxParams) error {
+	// err := AddOrUpdateServerBlock(filepath.Join(os.Getenv("HOME"), "my-nginx/users.d/stream/test.conf"), "192.168.122.235", 22, 2345, stream)
+	var pathName string
+
+	if params.Type == "stream" {
+		pathName = filepath.Join(os.Getenv("HOME"), "my-nginx/users.d/stream/test.conf")
+	} else if params.Type == "http" {
+		pathName = filepath.Join(os.Getenv("HOME"), "my-nginx/users.d/http/test.conf")
+	} else {
+		return fmt.Errorf("unsupported protocol type: %s", params.Type)
+	}
+
+	err := nginx.AddOrUpdateServerBlock(nginx.AddOrUpdateServerBlockParams{
+		PathName:     pathName,
+		VMIP:         params.VMIP,
+		InternalPort: int(params.InternalPort),
+		HostPort:     int(params.ExternalPort),
+		ProtocolType: nginx.ProtocolType(params.Type),
+	})
+
+	if err != nil {
+		return fmt.Errorf("error adding or updating server block: %w", err)
+	}
+
+	err = nginx.Reloading()
+	if err != nil {
+		return fmt.Errorf("error reloading nginx: %w", err)
+	}
+	return nil
+}
+
+type UnmapPortNginxParams struct {
+	ExternalPort int32
+	ProtocolType string // "stream" or "http"
+}
+
+func (s *ServiceImpl) UnmapPortNginx(ctx context.Context, params UnmapPortNginxParams) error {
+	externalPort := params.ExternalPort
+	protocolType := params.ProtocolType
+
+	var pathName string
+
+	if protocolType == "stream" {
+		pathName = filepath.Join(os.Getenv("HOME"), "my-nginx/users.d/stream/test.conf")
+	} else if protocolType == "http" {
+		pathName = filepath.Join(os.Getenv("HOME"), "my-nginx/users.d/http/test.conf")
+	} else {
+		return fmt.Errorf("unsupported protocol type: %s", protocolType)
+	}
+
+	hostPortStr := fmt.Sprintf("%d", externalPort)
+	err := nginx.DeleteServerBlock(pathName, hostPortStr)
+
+	if err != nil {
+		return fmt.Errorf("error deleting server block: %w", err)
+	}
+
+	err = nginx.Reloading()
+	if err != nil {
+		return fmt.Errorf("error reloading nginx: %w", err)
+	}
+	return nil
+}
 
 type GetNetworkParams struct {
 	ID string

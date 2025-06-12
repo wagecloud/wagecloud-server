@@ -1,0 +1,33 @@
+
+networks:
+  wagecloud-network:
+    name: wagecloud-network
+    external: false
+
+volumes:
+  wagecloud-postgres-data:
+  wagecloud-redis-data:
+  wagecloud-nats-data:
+
+
+services:
+  postgres:
+    container_name: wagecloud-postgres
+    image: postgres:17-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: wagecloud
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-peakwagecloudpassword}
+      POSTGRES_DB: wagecloud
+    volumes:
+      - wagecloud-postgres-data:/var/lib/postgresql/data
+    networks:
+      - wagecloud-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U wagecloud -d wagecloud" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
