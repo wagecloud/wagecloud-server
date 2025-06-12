@@ -94,7 +94,7 @@ func setupSentry() {
 func setupModules() {
 	logger.Log.Info("Setting up modules...")
 
-	pgpool, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
+	pgpoolread, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
 		Url:             config.GetConfig().Postgres.Url,
 		Host:            config.GetConfig().Postgres.Host,
 		Port:            config.GetConfig().Postgres.Port,
@@ -106,6 +106,20 @@ func setupModules() {
 	})
 	if err != nil {
 		log.Fatalf("Failed to get pgx pool: %v", err)
+	}
+
+	pgpoolwrite, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
+		Url:             config.GetConfig().PostgresWrite.Url,
+		Host:            config.GetConfig().PostgresWrite.Host,
+		Port:            config.GetConfig().PostgresWrite.Port,
+		Username:        config.GetConfig().PostgresWrite.Username,
+		Password:        config.GetConfig().PostgresWrite.Password,
+		Database:        config.GetConfig().PostgresWrite.Database,
+		MaxConnections:  config.GetConfig().PostgresWrite.MaxConnections,
+		MaxConnIdleTime: config.GetConfig().PostgresWrite.MaxConnIdleTime,
+	})
+	if err != nil {
+		log.Fatalf("Failed to get pgx pool for write: %v", err)
 	}
 
 	e := echo.New()
@@ -142,7 +156,7 @@ func setupModules() {
 	}
 
 	svcCtx := serviceContext{
-		pgpool:        pgpool,
+		db:            pgxpool.NewDBRouter(pgpoolread, pgpoolwrite),
 		e:             v1,
 		targetService: ptr.DerefDefault(targetService, ""),
 		httpClient:    &http.Client{},
@@ -206,7 +220,7 @@ func setupModules() {
 }
 
 type serviceContext struct {
-	pgpool        pgxpool.DBTX
+	db            pgxpool.DBTX
 	e             *echo.Group
 	targetService string
 	httpClient    *http.Client
@@ -233,7 +247,7 @@ func setupServiceAccount(svcCtx serviceContext) service[accountsvc.Service] {
 		)
 		accountSvc = accountsvc.NewServiceRpc(connectClient)
 	} else {
-		accountSvc = accountsvc.NewService(accountstorage.NewStorage(svcCtx.pgpool))
+		accountSvc = accountsvc.NewService(accountstorage.NewStorage(svcCtx.db))
 		accountHandler := accountecho.NewEchoHandler(accountSvc)
 		path, handler := accountconnect.NewAccountServiceHandler(accountSvc)
 		svcCtx.mux.Handle(path, handler)
@@ -263,7 +277,7 @@ func setupServiceOS(svcCtx serviceContext) service[ossvc.Service] {
 		)
 		osSvc = ossvc.NewServiceRpc(connectClient)
 	} else {
-		osSvc = ossvc.NewService(osstorage.NewStorage(svcCtx.pgpool))
+		osSvc = ossvc.NewService(osstorage.NewStorage(svcCtx.db))
 		osHandler := osecho.NewEchoHandler(osSvc)
 
 		os := svcCtx.e.Group("/os")
@@ -305,7 +319,7 @@ func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service, paymentSvc
 			libvirt,
 			svcCtx.nats,
 			svcCtx.redis,
-			instancestorage.NewStorage(svcCtx.pgpool),
+			instancestorage.NewStorage(svcCtx.db),
 			osSvc,
 			paymentSvc,
 		)
@@ -347,7 +361,7 @@ func setupServicePayment(svcCtx serviceContext) service[paymentsvc.Service] {
 		// )
 		// paymentSvc = paymentsvc.NewServiceRpc(connectClient)
 	} else {
-		paymentSvc = paymentsvc.NewService(paymentstorage.NewStorage(svcCtx.pgpool), svcCtx.nats)
+		paymentSvc = paymentsvc.NewService(paymentstorage.NewStorage(svcCtx.db), svcCtx.nats)
 		paymentHandler := paymentecho.NewEchoHandler(paymentSvc)
 
 		paymentHandler.RegisterRoutes(svcCtx.e)
