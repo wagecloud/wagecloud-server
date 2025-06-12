@@ -29,6 +29,7 @@ type App struct {
 	BaseImageDir        string `yaml:"baseImageDir"`
 	VMImageDir          string `yaml:"vmImageDir"`
 	CloudinitDir        string `yaml:"cloudinitDir"`
+	FrontendUrl         string `yaml:"frontendUrl"`
 }
 
 type HttpServer struct {

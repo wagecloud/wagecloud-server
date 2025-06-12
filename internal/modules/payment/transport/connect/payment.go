@@ -56,19 +56,19 @@ func (t *ImplementedPaymentServiceHandler) ListPayments(ctx context.Context, req
 	}), nil
 }
 
-func (t *ImplementedPaymentServiceHandler) CreatePayment(ctx context.Context, req *connect.Request[paymentv1.CreatePaymentRequest]) (*connect.Response[paymentv1.CreatePaymentResponse], error) {
-	result, err := t.service.CreatePayment(ctx, paymentmodel.PaymentBase{
-		Method: paymentmodel.PaymentMethodProtoToModel(req.Msg.Method),
-		Total:  int64(req.Msg.Total),
-	})
-	if err != nil {
-		return nil, err
-	}
+// func (t *ImplementedPaymentServiceHandler) CreatePayment(ctx context.Context, req *connect.Request[paymentv1.CreatePaymentRequest]) (*connect.Response[paymentv1.CreatePaymentResponse], error) {
+// 	result, err := t.service.CreatePayment(ctx, paymentmodel.Payment{
+// 		Method: paymentmodel.PaymentMethodProtoToModel(req.Msg.Method),
+// 		Total:  int64(req.Msg.Total),
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return connect.NewResponse(&paymentv1.CreatePaymentResponse{
-		Payment: paymentmodel.PaymentModelToProto(result),
-	}), nil
-}
+// 	return connect.NewResponse(&paymentv1.CreatePaymentResponse{
+// 		Payment: paymentmodel.PaymentModelToProto(result),
+// 	}), nil
+// }
 
 func (t *ImplementedPaymentServiceHandler) UpdatePayment(ctx context.Context, req *connect.Request[paymentv1.UpdatePaymentRequest]) (*connect.Response[paymentv1.UpdatePaymentResponse], error) {
 	_, err := t.service.UpdatePayment(ctx, paymentstorage.UpdatePaymentParams{
@@ -93,36 +93,36 @@ func (t *ImplementedPaymentServiceHandler) DeletePayment(ctx context.Context, re
 	return connect.NewResponse(&paymentv1.DeletePaymentResponse{}), nil
 }
 
-func (t *ImplementedPaymentServiceHandler) CreatePaymentItem(ctx context.Context, req *connect.Request[paymentv1.CreatePaymentItemRequest]) (*connect.Response[paymentv1.CreatePaymentItemResponse], error) {
-	result, err := t.service.CreatePaymentItem(ctx, paymentmodel.PaymentItem{
-		PaymentID: req.Msg.PaymentId,
-		Name:      req.Msg.Name,
-		Price:     req.Msg.Price,
-	})
-	if err != nil {
-		return nil, err
-	}
+// func (t *ImplementedPaymentServiceHandler) CreatePaymentItem(ctx context.Context, req *connect.Request[paymentv1.CreatePaymentItemRequest]) (*connect.Response[paymentv1.CreatePaymentItemResponse], error) {
+// 	result, err := t.service.CreatePaymentItem(ctx, paymentmodel.PaymentItem{
+// 		PaymentID: req.Msg.PaymentId,
+// 		Name:      req.Msg.Name,
+// 		Price:     req.Msg.Price,
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return connect.NewResponse(&paymentv1.CreatePaymentItemResponse{
-		PaymentItem: paymentmodel.PaymentItemModelToProto(result),
-	}), nil
-}
+// 	return connect.NewResponse(&paymentv1.CreatePaymentItemResponse{
+// 		PaymentItem: paymentmodel.PaymentItemModelToProto(result),
+// 	}), nil
+// }
 
-func (t *ImplementedPaymentServiceHandler) CreateVNPAYPayment(ctx context.Context, req *connect.Request[paymentv1.CreateVNPAYPaymentRequest]) (*connect.Response[paymentv1.CreateVNPAYPaymentResponse], error) {
-	result, err := t.service.CreatePaymentVNPAY(ctx, paymentmodel.PaymentVNPAY{
-		ID:                 req.Msg.Id,
-		VnpTxnRef:          req.Msg.VnpTxnRef,
-		VnpOrderInfo:       req.Msg.VnpOrderInfo,
-		VnpTransactionNo:   req.Msg.VnpTransactionNo,
-		VnpTransactionDate: req.Msg.VnpTransactionDate,
-		VnpCreateDate:      req.Msg.VnpCreateDate,
-		VnpIpAddr:          req.Msg.VnpIpAddr,
-	})
-	if err != nil {
-		return nil, err
-	}
+// func (t *ImplementedPaymentServiceHandler) CreateVNPAYPayment(ctx context.Context, req *connect.Request[paymentv1.CreateVNPAYPaymentRequest]) (*connect.Response[paymentv1.CreateVNPAYPaymentResponse], error) {
+// 	result, err := t.service.CreatePaymentVNPAY(ctx, paymentmodel.PaymentVNPAY{
+// 		ID:                 req.Msg.Id,
+// 		VnpTxnRef:          req.Msg.VnpTxnRef,
+// 		VnpOrderInfo:       req.Msg.VnpOrderInfo,
+// 		VnpTransactionNo:   req.Msg.VnpTransactionNo,
+// 		VnpTransactionDate: req.Msg.VnpTransactionDate,
+// 		VnpCreateDate:      req.Msg.VnpCreateDate,
+// 		VnpIpAddr:          req.Msg.VnpIpAddr,
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return connect.NewResponse(&paymentv1.CreateVNPAYPaymentResponse{
-		VnpayPayment: paymentmodel.VnpayPaymentModelToProto(result),
-	}), nil
-}
+// 	return connect.NewResponse(&paymentv1.CreateVNPAYPaymentResponse{
+// 		VnpayPayment: paymentmodel.VnpayPaymentModelToProto(result),
+// 	}), nil
+// }

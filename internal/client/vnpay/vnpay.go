@@ -31,7 +31,7 @@ func NewClient(cfg ClientOptions) Client {
 
 type CreateOrderParams struct {
 	PaymentID int64
-	Amount    int64
+	Amount    float64
 	Info      string
 	ReturnUrl string
 }
@@ -47,7 +47,7 @@ func (c *ClientImpl) CreateOrder(ctx context.Context, params CreateOrderParams) 
 	q.Add("vnp_Version", "2.1.0")
 	q.Add("vnp_Command", "pay")
 	q.Add("vnp_TmnCode", c.tmnCode)
-	q.Add("vnp_Amount", fmt.Sprintf("%d", params.Amount*100))
+	q.Add("vnp_Amount", fmt.Sprintf("%f", params.Amount*100))
 	// q.Add("vnp_BankCode", string(BankCodeVNPAYQR))
 	q.Add("vnp_CreateDate", formatTime(time.Now()))
 	q.Add("vnp_CurrCode", "VND")

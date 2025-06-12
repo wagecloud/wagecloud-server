@@ -1,5 +1,11 @@
 package paymentmodel
 
+import (
+	"time"
+
+	commonmodel "github.com/wagecloud/wagecloud-server/internal/shared/model"
+)
+
 type PaymentStatus string
 
 const (
@@ -18,20 +24,20 @@ const (
 	PaymentMethodMOMO    PaymentMethod = "PAYMENT_METHOD_MOMO"
 )
 
-type PaymentBase struct {
-	ID          int64         `json:"id"` /* unique */
-	AccountID   int64         `json:"account_id"`
-	Method      PaymentMethod `json:"method"`
-	Status      PaymentStatus `json:"status"`
-	Total       int64         `json:"total"`
-	DateCreated int64         `json:"date_created"`
+type Payment struct {
+	ID          int64                   `json:"id"` /* unique */
+	AccountID   int64                   `json:"account_id"`
+	Method      PaymentMethod           `json:"method"`
+	Status      PaymentStatus           `json:"status"`
+	Total       commonmodel.Concurrency `json:"total"`
+	DateCreated time.Time               `json:"date_created"`
 }
 
 type PaymentItem struct {
-	ID        int64  `json:"id"` /* unique */
-	PaymentID int64  `json:"payment_id"`
-	Name      string `json:"name"`
-	Price     int64  `json:"price"`
+	ID        int64                   `json:"id"` /* unique */
+	PaymentID int64                   `json:"payment_id"`
+	Name      string                  `json:"name"`
+	Price     commonmodel.Concurrency `json:"price"`
 }
 
 type PaymentVNPAY struct {
