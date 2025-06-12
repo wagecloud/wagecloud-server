@@ -2,10 +2,18 @@ package instancesvc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/robfig/cron/v3"
 	"github.com/wagecloud/wagecloud-server/internal/client/libvirt"
+	"github.com/wagecloud/wagecloud-server/internal/client/nats"
+	"github.com/wagecloud/wagecloud-server/internal/client/redis"
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 	accountmodel "github.com/wagecloud/wagecloud-server/internal/modules/account/model"
 	instancemodel "github.com/wagecloud/wagecloud-server/internal/modules/instance/model"
 	instancestorage "github.com/wagecloud/wagecloud-server/internal/modules/instance/storage"
@@ -19,9 +27,12 @@ import (
 
 type ServiceImpl struct {
 	storage    *instancestorage.Storage
+	redis      redis.Client
+	nats       nats.Client
 	libvirt    libvirt.Client
 	osSvc      ossvc.Service
 	paymentSvc paymentsvc.Service
+	cron       *cron.Cron
 }
 
 type Service interface {
@@ -29,7 +40,7 @@ type Service interface {
 	GetInstance(ctx context.Context, params GetInstanceParams) (instancemodel.Instance, error)
 	ListInstances(ctx context.Context, params ListInstancesParams) (pagination.PaginateResult[instancemodel.Instance], error)
 	CreateInstance(ctx context.Context, params CreateInstanceParams) (instancemodel.Instance, error)
-	PayCreateInstance(ctx context.Context, params PayCreateInstanceParams) (string, error)
+	PayCreateInstance(ctx context.Context, params PayCreateInstanceParams) (PayCreateInstanceResult, error)
 	UpdateInstance(ctx context.Context, params UpdateInstanceParams) (instancemodel.Instance, error)
 	DeleteInstance(ctx context.Context, params DeleteInstanceParams) error
 	StartInstance(ctx context.Context, params StartInstanceParams) error
@@ -44,12 +55,98 @@ type Service interface {
 	DeleteNetwork(ctx context.Context, params DeleteNetworkParams) error
 }
 
-func NewService(libvirt libvirt.Client, storage *instancestorage.Storage, osSvc ossvc.Service, paymentSvc paymentsvc.Service) Service {
-	return &ServiceImpl{
+func NewService(libvirt libvirt.Client, nats nats.Client, redis redis.Client, storage *instancestorage.Storage, osSvc ossvc.Service, paymentSvc paymentsvc.Service) Service {
+	s := &ServiceImpl{
+		nats:       nats,
+		redis:      redis,
 		osSvc:      osSvc,
 		libvirt:    libvirt,
 		storage:    storage,
 		paymentSvc: paymentSvc,
+		cron:       cron.New(cron.WithSeconds()),
+	}
+	s.init()
+
+	// TODO: shitty ass code, refactor later
+	s.cron.AddFunc("@every 30s", func() {
+		s.UpdateNetworkIPs(context.Background())
+	})
+	s.UpdateNetworkIPs(context.Background())
+
+	return s
+}
+
+func (s *ServiceImpl) init() {
+	// TODO: refactor shitass code
+	s.nats.Subscribe("payment.processed", func(data []byte) {
+		ctx := context.Background()
+		var paymentNAT paymentmodel.PaymentProcesseDataNATS
+		if err := json.Unmarshal(data, &paymentNAT); err != nil {
+			logger.Log.Error("failed to unmarshal payment processed data from NATS: " + err.Error())
+			return
+		}
+
+		logger.Log.Info(fmt.Sprintf("received payment processed event: %+v", paymentNAT))
+
+		redisKey := "pay_create_instance:" + strconv.FormatInt(paymentNAT.PaymentID, 10)
+
+		byteData, err := s.redis.Get(ctx, redisKey)
+		if err != nil {
+			logger.Log.Error("failed to get payment data from Redis: " + err.Error())
+		}
+
+		var params CreateInstanceParams
+		if err := json.Unmarshal(byteData, &params); err != nil {
+			logger.Log.Error("failed to unmarshal payment data: " + err.Error())
+			return
+		}
+
+		fmt.Println("Creating instance after payment processed with params: ", params)
+
+		instance, err := s.CreateInstance(ctx, params)
+		if err != nil {
+			logger.Log.Error("failed to create instance after payment: " + err.Error())
+			return
+		}
+
+		if err := s.redis.Delete(ctx, redisKey); err != nil {
+			logger.Log.Error("failed to delete payment data from Redis: " + err.Error())
+		} else {
+			logger.Log.Info("successfully deleted payment data from Redis after creating instance")
+		}
+
+		fmt.Printf("successfully created instance %s after payment processed: %+v \n", instance.ID, params)
+	})
+}
+
+func (s *ServiceImpl) UpdateNetworkIPs(ctx context.Context) {
+	domains, err := s.libvirt.ListDomains(ctx, libvirt.ListDomainsParams{
+		Flags: 16, // libvirt.CONNECT_LIST_DOMAINS_RUNNING,
+	})
+	if err != nil {
+		logger.Log.Error("failed to list domains: " + err.Error())
+		return
+	}
+
+	for _, domain := range domains {
+		ip, err := s.libvirt.GetPrivateIP(ctx, domain.ID)
+		if err != nil {
+			fmt.Println("failed to get private IP for domain", domain.ID, ":", err)
+			continue
+		}
+
+		fmt.Printf("Domain %s has private IP: %s\n", domain.ID, ip)
+
+		// Update the network IP in the database
+		if _, err := s.storage.UpdateNetwork(ctx, instancestorage.UpdateNetworkParams{
+			ID:        domain.ID,
+			PrivateIP: &ip,
+		}); err != nil {
+			fmt.Println("failed to update network IP for domain", domain.ID, ":", err)
+			continue
+		}
+
+		fmt.Printf("Successfully updated network IP for domain %s to %s\n", domain.ID, ip)
 	}
 }
 
@@ -166,24 +263,25 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 		return instancemodel.Instance{}, err
 	}
 
-	network, err := txStorage.CreateNetwork(ctx, instancemodel.Network{
-		ID:        uuid.New().String(),
-		PrivateIP: "",
-	})
-	if err != nil {
-		return instancemodel.Instance{}, err
-	}
+	instanceID := uuid.New().String()
 
 	instance, err := txStorage.CreateInstance(ctx, instancemodel.Instance{
-		ID:        uuid.New().String(),
+		ID:        instanceID,
 		AccountID: params.Account.AccountID,
-		NetworkID: network.ID,
 		OSID:      os.ID,
 		ArchID:    arch.ID,
 		Name:      params.Name,
 		CPU:       int32(params.Cpu),
 		RAM:       int32(params.Memory),
 		Storage:   int32(params.Storage),
+	})
+	if err != nil {
+		return instancemodel.Instance{}, err
+	}
+
+	_, err = txStorage.CreateNetwork(ctx, instancemodel.Network{
+		ID:        instanceID,
+		PrivateIP: "",
 	})
 	if err != nil {
 		return instancemodel.Instance{}, err
@@ -243,16 +341,22 @@ type PayCreateInstanceParams struct {
 	Method paymentmodel.PaymentMethod
 }
 
+type PayCreateInstanceResult struct {
+	Payment paymentmodel.Payment
+	Items   []paymentmodel.PaymentItem
+	URL     string
+}
+
 // PayAndCreateInstance creates a new instance and returns the payment URL for the user to pay.
 // Waits for the payment to be successful before creating the instance.
-func (s *ServiceImpl) PayCreateInstance(ctx context.Context, params PayCreateInstanceParams) (string, error) {
+func (s *ServiceImpl) PayCreateInstance(ctx context.Context, params PayCreateInstanceParams) (PayCreateInstanceResult, error) {
 	// TODO: remove hard-coded example price:
 	// Storage: 100.000 VND/GB
 	// Memory: 150.000 VND/GB
 	// CPU: 200.000 VND/CPU
 
 	totalPrice := commonmodel.NewConcurrency(float64(params.Storage)*100_000) +
-		commonmodel.NewConcurrency(float64(params.Memory)*150_000) +
+		commonmodel.NewConcurrency(float64(params.Memory/1024)*150_000) +
 		commonmodel.NewConcurrency(float64(params.Cpu)*200_000)
 
 	paymentResult, err := s.paymentSvc.CreatePayment(ctx, paymentsvc.CreatePaymentParams{
@@ -264,10 +368,23 @@ func (s *ServiceImpl) PayCreateInstance(ctx context.Context, params PayCreateIns
 		}},
 	})
 	if err != nil {
-		return "", err
+		return PayCreateInstanceResult{}, err
 	}
 
-	return paymentResult.URL, nil
+	byteData, err := json.Marshal(params.CreateInstanceParams)
+	if err != nil {
+		return PayCreateInstanceResult{}, fmt.Errorf("failed to marshal payment data: %w", err)
+	}
+
+	if err = s.redis.Set(ctx, "pay_create_instance:"+strconv.FormatInt(paymentResult.Payment.ID, 10), byteData, 5*time.Minute); err != nil {
+		return PayCreateInstanceResult{}, fmt.Errorf("failed to set payment data in Redis: %w", err)
+	}
+
+	return PayCreateInstanceResult{
+		Payment: paymentResult.Payment,
+		Items:   paymentResult.Items,
+		URL:     paymentResult.URL,
+	}, nil
 }
 
 type UpdateInstanceParams struct {
