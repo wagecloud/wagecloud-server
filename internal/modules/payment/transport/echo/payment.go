@@ -1,9 +1,11 @@
 package paymentecho
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/wagecloud/wagecloud-server/internal/logger"
 	paymentmodel "github.com/wagecloud/wagecloud-server/internal/modules/payment/model"
 	paymentservice "github.com/wagecloud/wagecloud-server/internal/modules/payment/service"
 	paymentstorage "github.com/wagecloud/wagecloud-server/internal/modules/payment/storage"
@@ -17,6 +19,20 @@ type EchoHandler struct {
 
 func NewEchoHandler(service paymentservice.Service) *EchoHandler {
 	return &EchoHandler{service: service}
+}
+
+func (h *EchoHandler) RegisterRoutes(g *echo.Group) {
+	fmt.Println("Registering payment routes")
+	payment := g.Group("/payment")
+	// handle vnpay ipn
+	payment.GET("/vnpay/", h.VnpayVerifyIPN)
+
+	payment.GET("/", h.ListPayments)
+	payment.GET("/:id", h.GetPayment)
+	payment.POST("/", h.CreatePayment)
+	payment.PATCH("/:id", h.UpdatePayment)
+	payment.DELETE("/:id", h.DeletePayment)
+
 }
 
 type GetPaymentRequest struct {
@@ -157,4 +173,26 @@ func (h *EchoHandler) DeletePayment(c echo.Context) error {
 	}
 
 	return response.FromMessage(c.Response().Writer, http.StatusOK, "Payment deleted successfully")
+}
+
+func (h *EchoHandler) VnpayVerifyIPN(c echo.Context) error {
+	var query map[string]any
+	fmt.Println("Received VNPAY IPN request")
+
+	if err := c.Bind(&query); err != nil {
+		logger.Log.Error("Failed to bind query parameters" + "error" + err.Error())
+		c.NoContent(http.StatusBadRequest)
+		return nil
+	}
+
+	fmt.Println("Received VNPAY IPN:", query)
+
+	// Verify the checksum hash
+	if _, err := h.service.VerifyPayment(c.Request().Context(), paymentmodel.PaymentMethodVNPAY, query); err != nil {
+		c.NoContent(http.StatusBadRequest)
+		fmt.Println("Payment verification failed:", err)
+		return nil
+	}
+
+	return c.NoContent(http.StatusOK)
 }

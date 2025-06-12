@@ -49,3 +49,7 @@ type PaymentVNPAY struct {
 	VnpCreateDate      string `json:"vnp_create_date"`
 	VnpIpAddr          string `json:"vnp_ip_addr"`
 }
+
+type PaymentProcesseDataNATS struct {
+	PaymentID int64 `json:"paymentID"`
+}

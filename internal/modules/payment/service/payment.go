@@ -2,9 +2,14 @@ package paymentsvc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 
+	"github.com/wagecloud/wagecloud-server/config"
+	"github.com/wagecloud/wagecloud-server/internal/client/nats"
+	"github.com/wagecloud/wagecloud-server/internal/client/vnpay"
 	accountmodel "github.com/wagecloud/wagecloud-server/internal/modules/account/model"
 	paymentmodel "github.com/wagecloud/wagecloud-server/internal/modules/payment/model"
 	paymentstorage "github.com/wagecloud/wagecloud-server/internal/modules/payment/storage"
@@ -23,20 +28,26 @@ type Service interface {
 	CreatePayment(ctx context.Context, params CreatePaymentParams) (CreatePaymentResult, error)
 	UpdatePayment(ctx context.Context, params UpdatePaymentParams) (paymentmodel.Payment, error)
 	DeletePayment(ctx context.Context, id int64) error
+	VerifyPayment(ctx context.Context, method paymentmodel.PaymentMethod, data map[string]any) (paymentmodel.Payment, error)
 }
 
 type ServiceImpl struct {
 	storage   *paymentstorage.Storage
 	platforms map[paymentmodel.PaymentMethod]PaymentPlatform
+	nats      nats.Client
 }
 
-func NewService(storage *paymentstorage.Storage) Service {
+func NewService(storage *paymentstorage.Storage, nats nats.Client) *ServiceImpl {
 	return &ServiceImpl{
 		storage: storage,
 		platforms: map[paymentmodel.PaymentMethod]PaymentPlatform{
-			paymentmodel.PaymentMethodVNPAY: &VnpayPlatform{},
+			paymentmodel.PaymentMethodVNPAY: NewVnpayPlatform(vnpay.NewClient(vnpay.ClientOptions{
+				TmnCode:    config.GetConfig().Vnpay.TmnCode,
+				HashSecret: config.GetConfig().Vnpay.HashSecret,
+			})),
 			// paymentmodel.PaymentMethodMOMO:  &MomoPlatform{},
 		},
+		nats: nats,
 	}
 }
 
@@ -154,4 +165,43 @@ func (s *ServiceImpl) UpdatePayment(ctx context.Context, params UpdatePaymentPar
 
 func (s *ServiceImpl) DeletePayment(ctx context.Context, id int64) error {
 	return s.storage.DeletePayment(ctx, id)
+}
+
+func (s *ServiceImpl) VerifyPayment(ctx context.Context, method paymentmodel.PaymentMethod, data map[string]any) (paymentmodel.Payment, error) {
+	platform, ok := s.platforms[method]
+	if !ok {
+		return paymentmodel.Payment{}, ErrInvalidPayment
+	}
+
+	paymentID, err := platform.VerifyPayment(ctx, data)
+	if err != nil {
+		return paymentmodel.Payment{}, err
+	}
+
+	paymentIDInt, err := strconv.ParseInt(paymentID, 10, 64)
+	if err != nil {
+		return paymentmodel.Payment{}, errors.New("invalid payment ID")
+	}
+
+	payment, err := s.storage.GetPayment(ctx, paymentIDInt)
+	if err != nil {
+		return paymentmodel.Payment{}, err
+	}
+
+	if payment.Status != paymentmodel.PaymentStatusPending {
+		return paymentmodel.Payment{}, errors.New("the payment is already processed or invalid")
+	}
+
+	byteData, err := json.Marshal(paymentmodel.PaymentProcesseDataNATS{
+		PaymentID: payment.ID,
+	})
+	if err != nil {
+		return paymentmodel.Payment{}, errors.New("failed to marshal payment data")
+	}
+
+	fmt.Println("Publishing payment processed event to NATS:", string(byteData))
+
+	s.nats.Publish("payment.processed", byteData)
+
+	return payment, nil
 }

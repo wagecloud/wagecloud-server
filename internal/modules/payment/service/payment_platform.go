@@ -22,4 +22,5 @@ type CreateOrderParams struct {
 // PaymentPlatform is an interface for payment platform
 type PaymentPlatform interface {
 	CreateOrder(ctx context.Context, params CreateOrderParams) (url string, err error)
+	VerifyPayment(ctx context.Context, data map[string]any) (string, error)
 }
