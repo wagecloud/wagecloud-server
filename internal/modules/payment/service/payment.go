@@ -1,4 +1,4 @@
-package paymentservice
+package paymentsvc
 
 import (
 	"context"
