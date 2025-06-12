@@ -13,7 +13,6 @@ const (
 type Instance struct {
 	ID        string `json:"id"`
 	AccountID int64  `json:"account_id"`
-	NetworkID string `json:"network_id"`
 	OSID      string `json:"os_id"`
 	ArchID    string `json:"arch_id"`
 	Name      string `json:"name"`
