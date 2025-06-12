@@ -13,7 +13,7 @@ type ClientImpl struct {
 
 type Client interface {
 	Publish(subject string, data []byte) error
-	Subscribe(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error)
+	Subscribe(subject string, handler func(data []byte)) (*nats.Subscription, error)
 	Close()
 }
 
@@ -49,8 +49,12 @@ func (n *ClientImpl) Publish(subject string, data []byte) error {
 }
 
 // Subscribe listens for messages on a subject and handles them with the given callback.
-func (n *ClientImpl) Subscribe(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
-	sub, err := n.conn.Subscribe(subject, handler)
+func (n *ClientImpl) Subscribe(subject string, handler func(data []byte)) (*nats.Subscription, error) {
+	sub, err := n.conn.Subscribe(subject, func(msg *nats.Msg) {
+		if handler != nil {
+			handler(msg.Data)
+		}
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to subscribe to subject %s: %w", subject, err)
 	}
