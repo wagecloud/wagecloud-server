@@ -2,25 +2,25 @@ package accountmodel
 
 import accountv1 "github.com/wagecloud/wagecloud-server/gen/pb/account/v1"
 
-func RoleModelToProto(role Role) accountv1.Role {
-	return accountv1.Role(accountv1.Role_value[string(role)])
+func AccountTypeModelToProto(accountType AccountType) accountv1.AccountType {
+	return accountv1.AccountType(accountv1.AccountType_value[string(accountType)])
 }
 
-func RoleProtoToModel(role accountv1.Role) Role {
-	return Role(accountv1.Role_name[int32(role)])
+func AccountTypeProtoToModel(accountType accountv1.AccountType) AccountType {
+	return AccountType(accountv1.AccountType_name[int32(accountType)])
 }
 
 func AuthenticatedAccountProtoToModel(proto *accountv1.AuthenticatedAccount) AuthenticatedAccount {
 	return AuthenticatedAccount{
 		AccountID: proto.AccountId,
-		Role:      RoleProtoToModel(proto.Role),
+		Type:      AccountTypeProtoToModel(proto.Type),
 	}
 }
 
 func AuthenticatedAccountModelToProto(model AuthenticatedAccount) *accountv1.AuthenticatedAccount {
 	return &accountv1.AuthenticatedAccount{
 		AccountId: model.AccountID,
-		Role:      RoleModelToProto(model.Role),
+		Type:      AccountTypeModelToProto(model.Type),
 	}
 }
 
@@ -28,7 +28,7 @@ func AccountUserProtoToModel(proto *accountv1.Account) AccountUser {
 	return AccountUser{
 		AccountBase: AccountBase{
 			ID:        proto.Id,
-			Role:      RoleProtoToModel(proto.Role),
+			Type:      AccountTypeProtoToModel(proto.Type),
 			Username:  proto.Username,
 			CreatedAt: proto.CreatedAt,
 			UpdatedAt: proto.UpdatedAt,
@@ -41,7 +41,7 @@ func AccountUserProtoToModel(proto *accountv1.Account) AccountUser {
 func AccountUserModelToProto(model AccountUser) *accountv1.Account {
 	return &accountv1.Account{
 		Id:        model.ID,
-		Role:      RoleModelToProto(model.Role),
+		Type:      AccountTypeModelToProto(model.Type),
 		Username:  model.Username,
 		Email:     model.Email,
 		Name:      model.Name,
