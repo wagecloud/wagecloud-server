@@ -9,6 +9,64 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/shared/transport/http/response"
 )
 
+type MapPortNginxRequest struct {
+	VMIP         string `json:"vm_ip" validate:"required,ip"`
+	ExternalPort int32  `json:"external_port" validate:"required,min=1,max=65535"`
+	InternalPort int32  `json:"internal_port" validate:"required,min=1,max=65535"`
+	Type         string `json:"type" validate:"required,oneof=stream http"`
+}
+
+func (h *EchoHandler) MapPortNginx(c echo.Context) error {
+	var req MapPortNginxRequest
+	if err := c.Bind(&req); err != nil {
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
+	}
+
+	err := h.service.MapPortNginx(c.Request().Context(), instancesvc.MapPortNginxParams{
+		VMIP:         req.VMIP,
+		ExternalPort: req.ExternalPort,
+		InternalPort: req.InternalPort,
+		Type:         req.Type,
+	})
+
+	if err != nil {
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
+	}
+
+	return response.FromMessage(c.Response().Writer, http.StatusOK, "Port mapped successfully")
+}
+
+type UnmapPortNginxRequest struct {
+	ExternalPort int32  `json:"external_port" validate:"required,min=1,max=65535"`
+	Type         string `json:"type" validate:"required,oneof=stream http"`
+}
+
+func (h *EchoHandler) UnmapPortNginx(c echo.Context) error {
+	var req UnmapPortNginxRequest
+	if err := c.Bind(&req); err != nil {
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
+	}
+
+	err := h.service.UnmapPortNginx(c.Request().Context(), instancesvc.UnmapPortNginxParams{
+		ExternalPort: req.ExternalPort,
+		ProtocolType: req.Type,
+	})
+
+	if err != nil {
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
+	}
+
+	return response.FromMessage(c.Response().Writer, http.StatusOK, "Port unmapped successfully")
+}
+
 type GetNetworkRequest struct {
 	ID string `param:"id" validate:"required,min=1,max=255"`
 }
@@ -145,4 +203,3 @@ func (h *EchoHandler) DeleteNetwork(c echo.Context) error {
 
 	return response.FromMessage(c.Response().Writer, http.StatusOK, "Network deleted successfully")
 }
-

@@ -51,12 +51,14 @@ func (s *ServiceImpl) MapPortNginx(ctx context.Context, params MapPortNginxParam
 }
 
 type UnmapPortNginxParams struct {
-	VMIP         string
 	ExternalPort int32
 	ProtocolType string // "stream" or "http"
 }
 
-func (s *ServiceImpl) UnmapPortNginx(ctx context.Context, vmIP string, externalPort int32, protocolType string) error {
+func (s *ServiceImpl) UnmapPortNginx(ctx context.Context, params UnmapPortNginxParams) error {
+  externalPort := params.ExternalPort
+  protocolType := params.ProtocolType
+
 	var pathName string
 
 	if protocolType == "stream" {

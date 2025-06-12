@@ -324,6 +324,8 @@ func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service, paymentSvc
 		network.GET("/", instanceHandler.ListNetworks)
 		network.GET("/:id", instanceHandler.GetNetwork)
 		network.POST("/", instanceHandler.CreateNetwork)
+		network.POST("/map", instanceHandler.MapPortNginx)
+		network.POST("/unmap", instanceHandler.UnmapPortNginx)
 		network.PATCH("/:id", instanceHandler.UpdateNetwork)
 		network.DELETE("/:id", instanceHandler.DeleteNetwork)
 	}

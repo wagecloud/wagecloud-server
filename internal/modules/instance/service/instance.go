@@ -53,6 +53,8 @@ type Service interface {
 	CreateNetwork(ctx context.Context, params CreateNetworkParams) (instancemodel.Network, error)
 	UpdateNetwork(ctx context.Context, params UpdateNetworkParams) (instancemodel.Network, error)
 	DeleteNetwork(ctx context.Context, params DeleteNetworkParams) error
+	MapPortNginx(ctx context.Context, params MapPortNginxParams) error
+	UnmapPortNginx(ctx context.Context, params UnmapPortNginxParams) error
 }
 
 func NewService(libvirt libvirt.Client, nats nats.Client, redis redis.Client, storage *instancestorage.Storage, osSvc ossvc.Service, paymentSvc paymentsvc.Service) Service {
