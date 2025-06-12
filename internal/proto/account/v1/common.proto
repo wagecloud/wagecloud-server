@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package account.v1;
 
-// Account role enum
-enum Role {
-  ROLE_UNSPECIFIED = 0;
-  ROLE_USER = 1;
-  ROLE_ADMIN = 2;
+// Account type enum
+enum AccountType {
+  ACCOUNT_TYPE_UNSPECIFIED = 0;
+  ACCOUNT_TYPE_USER = 1;
+  ACCOUNT_TYPE_ADMIN = 2;
 }
 
 message AuthenticatedAccount {
   int64 account_id = 1;
-  Role role = 2;
+  AccountType type = 2;
 }
