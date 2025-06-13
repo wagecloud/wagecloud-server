@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package account.v1;
+
+import "account/v1/common.proto";
+
+// Account user message
+message Account {
+  int64 id = 1;
+  string username = 2;
+  string name = 3;
+  string email = 4;
+  AccountType type = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}
+
+// Get account request
+message GetUserRequest {
+  optional int64 id = 1;
+  optional string username = 2;
+  optional string email = 3;
+}
+
+// Account response message
+message GetUserResponse {
+  Account account = 1;
+}
+
+// Login request
+message LoginRequest {
+  optional int64 id = 1;
+  optional string username = 2;
+  optional string email = 3;
+  string password = 4;
+}
+
+// Login response
+message LoginResponse {
+  string token = 1;
+  Account account = 2;
+}
+
+// Register request
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+  string name = 4;
+}
+
+// Register response
+message RegisterResponse {
+  string token = 1;
+  Account account = 2;
+}
+
+// Account service definition
+service AccountService {
+  // Get account by ID, username, or email
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+
+  // Login user
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+
+  // Register new user
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+}

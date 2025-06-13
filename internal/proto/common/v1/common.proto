@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package common.v1;
+
+// Pagination parameters
+message PaginationParams {
+  int32 page = 1;
+  int32 limit = 2;
+}
+
+// Paginate result
+message PaginateResult {
+  int32 page = 1;
+  int32 limit = 2;
+  int64 total = 3;
+  optional int32 next_page = 4;
+  optional string next_cursor = 5;
+}
+
+// Error response
+message ErrorResponse {
+  string message = 1;
+  int32 code = 2;
+}

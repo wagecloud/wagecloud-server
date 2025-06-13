@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package os.v1;
+
+import "os/v1/os.proto";
+import "os/v1/arch.proto";
+
+// OS service definition
+service OSService {
+  // Get OS by ID
+  rpc GetOS(GetOSRequest) returns (GetOSResponse) {}
+
+  // List OSs
+  rpc ListOSs(ListOSsRequest) returns (ListOSsResponse) {}
+
+  // Create OS
+  rpc CreateOS(CreateOSRequest) returns (CreateOSResponse) {}
+
+  // Update OS
+  rpc UpdateOS(UpdateOSRequest) returns (UpdateOSResponse) {}
+
+  // Delete OS
+  rpc DeleteOS(DeleteOSRequest) returns (DeleteOSResponse) {}
+
+  // Get Arch by ID
+  rpc GetArch(GetArchRequest) returns (GetArchResponse) {}
+
+  // List Archs
+  rpc ListArchs(ListArchsRequest) returns (ListArchsResponse) {}
+
+  // Create Arch
+  rpc CreateArch(CreateArchRequest) returns (CreateArchResponse) {}
+
+  // Update Arch
+  rpc UpdateArch(UpdateArchRequest) returns (UpdateArchResponse) {}
+
+  // Delete Arch
+  rpc DeleteArch(DeleteArchRequest) returns (DeleteArchResponse) {}
+}

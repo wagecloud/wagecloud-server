@@ -13,7 +13,7 @@ import (
 
 const countOSs = `-- name: CountOSs :one
 SELECT COUNT(id)
-FROM os
+FROM "os"."base"
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
   (name ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
@@ -42,7 +42,7 @@ func (q *Queries) CountOSs(ctx context.Context, arg CountOSsParams) (int64, erro
 }
 
 const createOS = `-- name: CreateOS :one
-INSERT INTO os (id, name)
+INSERT INTO "os"."base" (id, name)
 VALUES ($1, $2)
 RETURNING id, name, created_at
 `
@@ -52,15 +52,15 @@ type CreateOSParams struct {
 	Name string
 }
 
-func (q *Queries) CreateOS(ctx context.Context, arg CreateOSParams) (O, error) {
+func (q *Queries) CreateOS(ctx context.Context, arg CreateOSParams) (OsBase, error) {
 	row := q.db.QueryRow(ctx, createOS, arg.ID, arg.Name)
-	var i O
+	var i OsBase
 	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
 	return i, err
 }
 
 const deleteOS = `-- name: DeleteOS :exec
-DELETE FROM os
+DELETE FROM "os"."base"
 WHERE id = $1
 `
 
@@ -71,20 +71,20 @@ func (q *Queries) DeleteOS(ctx context.Context, id string) error {
 
 const getOS = `-- name: GetOS :one
 SELECT os.id, os.name, os.created_at
-FROM os
+FROM "os"."base" os
 WHERE id = $1
 `
 
-func (q *Queries) GetOS(ctx context.Context, id string) (O, error) {
+func (q *Queries) GetOS(ctx context.Context, id string) (OsBase, error) {
 	row := q.db.QueryRow(ctx, getOS, id)
-	var i O
+	var i OsBase
 	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
 	return i, err
 }
 
 const listOSs = `-- name: ListOSs :many
 SELECT os.id, os.name, os.created_at
-FROM os
+FROM "os"."base" os
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
   (name ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
@@ -105,7 +105,7 @@ type ListOSsParams struct {
 	Limit         int32
 }
 
-func (q *Queries) ListOSs(ctx context.Context, arg ListOSsParams) ([]O, error) {
+func (q *Queries) ListOSs(ctx context.Context, arg ListOSsParams) ([]OsBase, error) {
 	rows, err := q.db.Query(ctx, listOSs,
 		arg.ID,
 		arg.Name,
@@ -118,9 +118,9 @@ func (q *Queries) ListOSs(ctx context.Context, arg ListOSsParams) ([]O, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []O
+	var items []OsBase
 	for rows.Next() {
-		var i O
+		var i OsBase
 		if err := rows.Scan(&i.ID, &i.Name, &i.CreatedAt); err != nil {
 			return nil, err
 		}
@@ -133,7 +133,7 @@ func (q *Queries) ListOSs(ctx context.Context, arg ListOSsParams) ([]O, error) {
 }
 
 const updateOS = `-- name: UpdateOS :one
-UPDATE os
+UPDATE "os"."base"
 SET
     id = COALESCE($2, id),
     name = COALESCE($3, name)
@@ -147,9 +147,9 @@ type UpdateOSParams struct {
 	Name  pgtype.Text
 }
 
-func (q *Queries) UpdateOS(ctx context.Context, arg UpdateOSParams) (O, error) {
+func (q *Queries) UpdateOS(ctx context.Context, arg UpdateOSParams) (OsBase, error) {
 	row := q.db.QueryRow(ctx, updateOS, arg.ID, arg.NewID, arg.Name)
-	var i O
+	var i OsBase
 	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
 	return i, err
 }

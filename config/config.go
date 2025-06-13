@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -22,6 +23,8 @@ type Config struct {
 	Sentry        Sentry        `yaml:"sentry"`
 	SensitiveKeys SensitiveKeys `yaml:"sensitiveKeys"`
 	Vnpay         Vnpay         `yaml:"vnpay"`
+	Nats          Nats          `yaml:"nats"`
+	Redis         Redis         `yaml:"redis"`
 }
 
 type App struct {
@@ -29,6 +32,7 @@ type App struct {
 	BaseImageDir        string `yaml:"baseImageDir"`
 	VMImageDir          string `yaml:"vmImageDir"`
 	CloudinitDir        string `yaml:"cloudinitDir"`
+	FrontendUrl         string `yaml:"frontendUrl"`
 }
 
 type HttpServer struct {
@@ -79,6 +83,17 @@ type SensitiveKeys struct {
 type Vnpay struct {
 	TmnCode    string `yaml:"tmnCode"`
 	HashSecret string `yaml:"hashSecret"`
+}
+
+type Nats struct {
+	Url     string        `yaml:"url"`
+	Timeout time.Duration `yaml:"timeout"`
+}
+
+type Redis struct {
+	Addr     []string `yaml:"addr"`
+	Password string   `yaml:"password"`
+	DB       int64    `yaml:"db"`
 }
 
 func GetConfig() *Config {

@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package instance.v1;
+
+import "common/v1/common.proto";
+
+// Network message
+message Network {
+  string id = 1;
+  string private_ip = 2;
+  int64 created_at = 3;
+}
+
+// Get network request
+message GetNetworkRequest {
+  string id = 1;
+}
+
+message GetNetworkResponse {
+  Network network = 1;
+}
+
+// List networks request
+message ListNetworksRequest {
+  common.v1.PaginationParams pagination = 1;
+  optional string id = 2;
+  optional string private_ip = 3;
+  optional int64 created_at_from = 4;
+  optional int64 created_at_to = 5;
+}
+
+// List networks response
+message ListNetworksResponse {
+  repeated Network networks = 1;
+  common.v1.PaginateResult pagination = 2;
+}
+
+// Create network request
+message CreateNetworkRequest {
+  string id = 1;
+  string private_ip = 2;
+}
+
+// Create network response
+message CreateNetworkResponse {
+  Network network = 1;
+}
+
+// Update network request
+message UpdateNetworkRequest {
+  string id = 1;
+  optional string new_id = 2;
+  optional string private_ip = 3;
+}
+
+// Update network response
+message UpdateNetworkResponse {
+  Network network = 1;
+}
+
+// Delete network request
+message DeleteNetworkRequest {
+  string id = 1;
+}
+
+// Delete network response
+message DeleteNetworkResponse {}

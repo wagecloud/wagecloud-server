@@ -1,35 +1,49 @@
--- CreateEnum
-CREATE TYPE "PaymentType" AS ENUM ('VNPay');
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "account";
+
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "instance";
+
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "os";
+
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "payment";
 
 -- CreateEnum
-CREATE TYPE "role" AS ENUM ('ADMIN', 'USER');
+CREATE TYPE "account"."type" AS ENUM ('ACCOUNT_TYPE_ADMIN', 'ACCOUNT_TYPE_USER');
+
+-- CreateEnum
+CREATE TYPE "payment"."method" AS ENUM ('PAYMENT_METHOD_UNKNOWN', 'PAYMENT_METHOD_VNPAY', 'PAYMENT_METHOD_MOMO');
+
+-- CreateEnum
+CREATE TYPE "payment"."status" AS ENUM ('PAYMENT_STATUS_UNKNOWN', 'PAYMENT_STATUS_PENDING', 'PAYMENT_STATUS_SUCCESS', 'PAYMENT_STATUS_CANCELED', 'PAYMENT_STATUS_FAILED');
 
 -- CreateTable
-CREATE TABLE "account_base" (
+CREATE TABLE "account"."base" (
     "id" BIGSERIAL NOT NULL,
-    "role" "role" NOT NULL,
+    "type" "account"."type" NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "username" TEXT NOT NULL,
     "password" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "account_base_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "base_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "account_user" (
+CREATE TABLE "account"."user" (
     "id" BIGINT NOT NULL,
     "email" TEXT NOT NULL,
 
-    CONSTRAINT "account_user_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "vm" (
+CREATE TABLE "instance"."base" (
     "id" TEXT NOT NULL,
     "account_id" BIGINT NOT NULL,
-    "network_id" TEXT NOT NULL,
     "os_id" TEXT NOT NULL,
     "arch_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -39,11 +53,11 @@ CREATE TABLE "vm" (
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "vm_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "base_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "network" (
+CREATE TABLE "instance"."network" (
     "id" TEXT NOT NULL,
     "private_ip" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -52,16 +66,16 @@ CREATE TABLE "network" (
 );
 
 -- CreateTable
-CREATE TABLE "os" (
+CREATE TABLE "os"."base" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "os_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "base_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "arch" (
+CREATE TABLE "os"."arch" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -69,30 +83,85 @@ CREATE TABLE "arch" (
     CONSTRAINT "arch_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "account_base_username_key" ON "account_base"("username");
+-- CreateTable
+CREATE TABLE "os"."image" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "os_id" TEXT NOT NULL,
+    "arch_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "image_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payment"."item" (
+    "id" BIGSERIAL NOT NULL,
+    "payment_id" BIGINT NOT NULL,
+    "name" TEXT NOT NULL,
+    "price" BIGINT NOT NULL,
+
+    CONSTRAINT "item_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payment"."base" (
+    "id" BIGSERIAL NOT NULL,
+    "account_id" BIGINT NOT NULL,
+    "method" "payment"."method" NOT NULL,
+    "status" "payment"."status" NOT NULL,
+    "total" BIGINT NOT NULL,
+    "date_created" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "base_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payment"."vnpay" (
+    "id" BIGINT NOT NULL,
+    "vnp_TxnRef" TEXT NOT NULL,
+    "vnp_OrderInfo" TEXT NOT NULL,
+    "vnp_TransactionNo" TEXT NOT NULL,
+    "vnp_TransactionDate" TEXT NOT NULL,
+    "vnp_CreateDate" TEXT NOT NULL,
+    "vnp_IpAddr" TEXT NOT NULL,
+
+    CONSTRAINT "vnpay_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
-CREATE UNIQUE INDEX "account_user_email_key" ON "account_user"("email");
+CREATE UNIQUE INDEX "base_username_key" ON "account"."base"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "vm_network_id_key" ON "vm"("network_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "network_private_ip_key" ON "network"("private_ip");
+CREATE UNIQUE INDEX "user_email_key" ON "account"."user"("email");
 
 -- AddForeignKey
-ALTER TABLE "account_user" ADD CONSTRAINT "account_user_id_fkey" FOREIGN KEY ("id") REFERENCES "account_base"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "account"."user" ADD CONSTRAINT "user_id_fkey" FOREIGN KEY ("id") REFERENCES "account"."base"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "vm" ADD CONSTRAINT "vm_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "account_user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "instance"."base" ADD CONSTRAINT "base_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "account"."user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "vm" ADD CONSTRAINT "vm_network_id_fkey" FOREIGN KEY ("network_id") REFERENCES "network"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "instance"."base" ADD CONSTRAINT "base_os_id_fkey" FOREIGN KEY ("os_id") REFERENCES "os"."base"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "vm" ADD CONSTRAINT "vm_os_id_fkey" FOREIGN KEY ("os_id") REFERENCES "os"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "instance"."base" ADD CONSTRAINT "base_arch_id_fkey" FOREIGN KEY ("arch_id") REFERENCES "os"."arch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "vm" ADD CONSTRAINT "vm_arch_id_fkey" FOREIGN KEY ("arch_id") REFERENCES "arch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "instance"."network" ADD CONSTRAINT "network_id_fkey" FOREIGN KEY ("id") REFERENCES "instance"."base"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "os"."image" ADD CONSTRAINT "image_os_id_fkey" FOREIGN KEY ("os_id") REFERENCES "os"."base"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "os"."image" ADD CONSTRAINT "image_arch_id_fkey" FOREIGN KEY ("arch_id") REFERENCES "os"."arch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment"."item" ADD CONSTRAINT "item_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "payment"."base"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment"."base" ADD CONSTRAINT "base_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "account"."base"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment"."vnpay" ADD CONSTRAINT "vnpay_id_fkey" FOREIGN KEY ("id") REFERENCES "payment"."base"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

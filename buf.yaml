@@ -3,8 +3,19 @@ version: v2
 # The buf.yaml file should be placed at the root directory of the workspace, which
 # should generally be the root of your source control repository.
 modules:
-  - path: proto
-    name: buf.build/khoakomlem/wagecloud
+  # Each module entry defines a path, which must be relative to the directory where the
+  # buf.yaml is located. You can also specify directories to exclude from a module.
+  - path: internal/proto
 lint:
   use:
     - STANDARD
+  except:
+    # - PACKAGE_VERSION_SUFFIX
+    # - PACKAGE_DIRECTORY_MATCH
+  disallow_comment_ignores: false
+  # enum_zero_value_suffix: _UNSPECIFIED
+  # service_suffix: Service
+  disable_builtin: false
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/bufbuild/protovalidate:v0.11.1

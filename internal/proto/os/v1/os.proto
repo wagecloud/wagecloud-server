@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package os.v1;
+
+import "common/v1/common.proto";
+
+message OS {
+  string id = 1;
+  string name = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+}
+
+// OS message
+message GetOSResponse {
+  OS os = 1;
+}
+
+// Get OS request
+message GetOSRequest {
+  string id = 1;
+}
+
+// List OSs request
+message ListOSsRequest {
+  common.v1.PaginationParams pagination = 1;
+  optional string name = 2;
+  optional int64 created_at_from = 3;
+  optional int64 created_at_to = 4;
+}
+
+// List OSs response
+message ListOSsResponse {
+  repeated OS oss = 1;
+  common.v1.PaginateResult pagination = 2;
+}
+
+// Create OS request
+message CreateOSRequest {
+  string id = 1;
+  string name = 2;
+}
+
+// Create OS response
+message CreateOSResponse {
+  OS os = 1;
+}
+
+// Update OS request
+message UpdateOSRequest {
+  string id = 1;
+  optional string new_id = 2;
+  optional string name = 3;
+}
+
+// Update OS response
+message UpdateOSResponse {
+  OS os = 1;
+}
+
+// Delete OS request
+message DeleteOSRequest {
+  string id = 1;
+}
+
+// Delete OS response
+message DeleteOSResponse {}

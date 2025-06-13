@@ -13,10 +13,10 @@ import (
 
 const countAccounts = `-- name: CountAccounts :one
 SELECT COUNT(id)
-FROM account_base
+FROM "account"."base"
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
-  (role = $2 OR $2 IS NULL) AND
+  (type = $2 OR $2 IS NULL) AND
   (name ILIKE '%' || $3 || '%' OR $3 IS NULL) AND
   (username ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
   (created_at >= $5 OR $5 IS NULL) AND
@@ -26,7 +26,7 @@ WHERE (
 
 type CountAccountsParams struct {
 	ID            pgtype.Text
-	Role          NullRole
+	Type          NullAccountType
 	Name          pgtype.Text
 	Username      pgtype.Text
 	CreatedAtFrom pgtype.Timestamptz
@@ -36,7 +36,7 @@ type CountAccountsParams struct {
 func (q *Queries) CountAccounts(ctx context.Context, arg CountAccountsParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countAccounts,
 		arg.ID,
-		arg.Role,
+		arg.Type,
 		arg.Name,
 		arg.Username,
 		arg.CreatedAtFrom,
@@ -48,13 +48,13 @@ func (q *Queries) CountAccounts(ctx context.Context, arg CountAccountsParams) (i
 }
 
 const createAccount = `-- name: CreateAccount :one
-INSERT INTO account_base (role, name, username, password)
+INSERT INTO "account"."base" (type, name, username, password)
 VALUES ($1, $2, $3, $4)
-RETURNING id, role, name, username, password, created_at, updated_at
+RETURNING id, type, name, username, password, created_at, updated_at
 `
 
 type CreateAccountParams struct {
-	Role     Role
+	Type     AccountType
 	Name     string
 	Username string
 	Password string
@@ -62,7 +62,7 @@ type CreateAccountParams struct {
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (AccountBase, error) {
 	row := q.db.QueryRow(ctx, createAccount,
-		arg.Role,
+		arg.Type,
 		arg.Name,
 		arg.Username,
 		arg.Password,
@@ -70,7 +70,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 	var i AccountBase
 	err := row.Scan(
 		&i.ID,
-		&i.Role,
+		&i.Type,
 		&i.Name,
 		&i.Username,
 		&i.Password,
@@ -81,7 +81,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO account_user (id, email)
+INSERT INTO "account"."user" (id, email)
 VALUES ($1, $2)
 RETURNING id, email
 `
@@ -99,7 +99,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (Account
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
-DELETE FROM account_base
+DELETE FROM "account"."base"
 WHERE id = $1
 `
 
@@ -109,9 +109,9 @@ func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT b.id, b.role, b.name, b.username, b.password, b.created_at, b.updated_at, u.id, u.email
-FROM account_base b
-LEFT JOIN account_user u ON b.id = u.id
+SELECT b.id, b.type, b.name, b.username, b.password, b.created_at, b.updated_at, u.id, u.email
+FROM "account"."base" b
+LEFT JOIN "account"."user" u ON b.id = u.id
 WHERE (
   (b.id = $1 OR $1 IS NULL) AND
   (b.username = $2 OR $2 IS NULL) AND
@@ -127,7 +127,7 @@ type GetAccountParams struct {
 
 type GetAccountRow struct {
 	ID        int64
-	Role      Role
+	Type      AccountType
 	Name      string
 	Username  string
 	Password  string
@@ -142,7 +142,7 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 	var i GetAccountRow
 	err := row.Scan(
 		&i.ID,
-		&i.Role,
+		&i.Type,
 		&i.Name,
 		&i.Username,
 		&i.Password,
@@ -155,11 +155,11 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 }
 
 const getUser = `-- name: GetUser :one
-SELECT u.id, u.email, b.id, b.role, b.name, b.username, b.password, b.created_at, b.updated_at
-FROM account_user u
-INNER JOIN account_base b ON b.id = u.id
+SELECT u.id, u.email, b.id, b.type, b.name, b.username, b.password, b.created_at, b.updated_at
+FROM "account"."user" u
+INNER JOIN "account"."base" b ON b.id = u.id
 WHERE (
-  (b.role = 'USER') AND
+  (b.type = 'ACCOUNT_TYPE_USER') AND
   (b.id = $1 OR $1 IS NULL) AND
   (b.username = $2 OR $2 IS NULL) AND
   (u.email = $3 OR $3 IS NULL)
@@ -176,7 +176,7 @@ type GetUserRow struct {
 	ID        int64
 	Email     string
 	ID_2      int64
-	Role      Role
+	Type      AccountType
 	Name      string
 	Username  string
 	Password  string
@@ -191,7 +191,7 @@ func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, e
 		&i.ID,
 		&i.Email,
 		&i.ID_2,
-		&i.Role,
+		&i.Type,
 		&i.Name,
 		&i.Username,
 		&i.Password,
@@ -202,11 +202,11 @@ func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, e
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, role, name, username, password, created_at, updated_at
-FROM account_base
+SELECT id, type, name, username, password, created_at, updated_at
+FROM "account"."base"
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
-  (role = $2 OR $2 IS NULL) AND
+  (type = $2 OR $2 IS NULL) AND
   (name ILIKE '%' || $3 || '%' OR $3 IS NULL) AND
   (username ILIKE '%' || $4 || '%' OR $4 IS NULL) AND
   (created_at >= $5 OR $5 IS NULL) AND
@@ -219,7 +219,7 @@ OFFSET $7
 
 type ListAccountsParams struct {
 	ID            pgtype.Text
-	Role          NullRole
+	Type          NullAccountType
 	Name          pgtype.Text
 	Username      pgtype.Text
 	CreatedAtFrom pgtype.Timestamptz
@@ -231,7 +231,7 @@ type ListAccountsParams struct {
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]AccountBase, error) {
 	rows, err := q.db.Query(ctx, listAccounts,
 		arg.ID,
-		arg.Role,
+		arg.Type,
 		arg.Name,
 		arg.Username,
 		arg.CreatedAtFrom,
@@ -248,7 +248,7 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 		var i AccountBase
 		if err := rows.Scan(
 			&i.ID,
-			&i.Role,
+			&i.Type,
 			&i.Name,
 			&i.Username,
 			&i.Password,
@@ -266,13 +266,13 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 }
 
 const updateAccount = `-- name: UpdateAccount :one
-UPDATE account_base
+UPDATE "account"."base"
 SET
     name = COALESCE($2, name),
     username = COALESCE($3, username),
     password = COALESCE($4, password)
 WHERE id = $1
-RETURNING id, role, name, username, password, created_at, updated_at
+RETURNING id, type, name, username, password, created_at, updated_at
 `
 
 type UpdateAccountParams struct {
@@ -292,7 +292,7 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 	var i AccountBase
 	err := row.Scan(
 		&i.ID,
-		&i.Role,
+		&i.Type,
 		&i.Name,
 		&i.Username,
 		&i.Password,

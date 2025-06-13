@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package os.v1;
+
+import "common/v1/common.proto";
+
+message Arch {
+  string id = 1;
+  string name = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+}
+
+// Get Arch request
+message GetArchRequest {
+  string id = 1;
+}
+
+// Arch message
+message GetArchResponse {
+  Arch arch = 1;
+}
+
+// List Archs request
+message ListArchsRequest {
+  common.v1.PaginationParams pagination = 1;
+  optional string id = 2;
+  optional string name = 3;
+  optional int64 created_at_from = 4;
+  optional int64 created_at_to = 5;
+}
+
+// List Archs response
+message ListArchsResponse {
+  repeated Arch archs = 1;
+  common.v1.PaginateResult pagination = 2;
+}
+
+// Create Arch request
+message CreateArchRequest {
+  string id = 1;
+  string name = 2;
+}
+
+// Create Arch response
+message CreateArchResponse {
+  Arch arch = 1;
+}
+
+// Update Arch request
+message UpdateArchRequest {
+  string id = 1;
+  optional string new_id = 2;
+  optional string name = 3;
+}
+
+// Update Arch response
+message UpdateArchResponse {
+  Arch arch = 1;
+}
+
+// Delete Arch request
+message DeleteArchRequest {
+  string id = 1;
+}
+
+// Delete Arch response
+message DeleteArchResponse {}

@@ -11,92 +11,139 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type PaymentType string
+type AccountType string
 
 const (
-	PaymentTypeVNPay PaymentType = "VNPay"
+	AccountTypeACCOUNTTYPEADMIN AccountType = "ACCOUNT_TYPE_ADMIN"
+	AccountTypeACCOUNTTYPEUSER  AccountType = "ACCOUNT_TYPE_USER"
 )
 
-func (e *PaymentType) Scan(src interface{}) error {
+func (e *AccountType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = PaymentType(s)
+		*e = AccountType(s)
 	case string:
-		*e = PaymentType(s)
+		*e = AccountType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for PaymentType: %T", src)
+		return fmt.Errorf("unsupported scan type for AccountType: %T", src)
 	}
 	return nil
 }
 
-type NullPaymentType struct {
-	PaymentType PaymentType
-	Valid       bool // Valid is true if PaymentType is not NULL
+type NullAccountType struct {
+	AccountType AccountType
+	Valid       bool // Valid is true if AccountType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullPaymentType) Scan(value interface{}) error {
+func (ns *NullAccountType) Scan(value interface{}) error {
 	if value == nil {
-		ns.PaymentType, ns.Valid = "", false
+		ns.AccountType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.PaymentType.Scan(value)
+	return ns.AccountType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullPaymentType) Value() (driver.Value, error) {
+func (ns NullAccountType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.PaymentType), nil
+	return string(ns.AccountType), nil
 }
 
-type Role string
+type PaymentMethod string
 
 const (
-	RoleADMIN Role = "ADMIN"
-	RoleUSER  Role = "USER"
+	PaymentMethodPAYMENTMETHODUNKNOWN PaymentMethod = "PAYMENT_METHOD_UNKNOWN"
+	PaymentMethodPAYMENTMETHODVNPAY   PaymentMethod = "PAYMENT_METHOD_VNPAY"
+	PaymentMethodPAYMENTMETHODMOMO    PaymentMethod = "PAYMENT_METHOD_MOMO"
 )
 
-func (e *Role) Scan(src interface{}) error {
+func (e *PaymentMethod) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = Role(s)
+		*e = PaymentMethod(s)
 	case string:
-		*e = Role(s)
+		*e = PaymentMethod(s)
 	default:
-		return fmt.Errorf("unsupported scan type for Role: %T", src)
+		return fmt.Errorf("unsupported scan type for PaymentMethod: %T", src)
 	}
 	return nil
 }
 
-type NullRole struct {
-	Role  Role
-	Valid bool // Valid is true if Role is not NULL
+type NullPaymentMethod struct {
+	PaymentMethod PaymentMethod
+	Valid         bool // Valid is true if PaymentMethod is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullRole) Scan(value interface{}) error {
+func (ns *NullPaymentMethod) Scan(value interface{}) error {
 	if value == nil {
-		ns.Role, ns.Valid = "", false
+		ns.PaymentMethod, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.Role.Scan(value)
+	return ns.PaymentMethod.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullRole) Value() (driver.Value, error) {
+func (ns NullPaymentMethod) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.Role), nil
+	return string(ns.PaymentMethod), nil
+}
+
+type PaymentStatus string
+
+const (
+	PaymentStatusPAYMENTSTATUSUNKNOWN  PaymentStatus = "PAYMENT_STATUS_UNKNOWN"
+	PaymentStatusPAYMENTSTATUSPENDING  PaymentStatus = "PAYMENT_STATUS_PENDING"
+	PaymentStatusPAYMENTSTATUSSUCCESS  PaymentStatus = "PAYMENT_STATUS_SUCCESS"
+	PaymentStatusPAYMENTSTATUSCANCELED PaymentStatus = "PAYMENT_STATUS_CANCELED"
+	PaymentStatusPAYMENTSTATUSFAILED   PaymentStatus = "PAYMENT_STATUS_FAILED"
+)
+
+func (e *PaymentStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentStatus(s)
+	case string:
+		*e = PaymentStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentStatus struct {
+	PaymentStatus PaymentStatus
+	Valid         bool // Valid is true if PaymentStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentStatus), nil
 }
 
 type AccountBase struct {
 	ID        int64
-	Role      Role
+	Type      AccountType
 	Name      string
 	Username  string
 	Password  string
@@ -109,28 +156,9 @@ type AccountUser struct {
 	Email string
 }
 
-type Arch struct {
-	ID        string
-	Name      string
-	CreatedAt pgtype.Timestamptz
-}
-
-type Network struct {
-	ID        string
-	PrivateIp string
-	CreatedAt pgtype.Timestamptz
-}
-
-type O struct {
-	ID        string
-	Name      string
-	CreatedAt pgtype.Timestamptz
-}
-
-type Vm struct {
+type InstanceBase struct {
 	ID        string
 	AccountID int64
-	NetworkID string
 	OsID      string
 	ArchID    string
 	Name      string
@@ -139,4 +167,56 @@ type Vm struct {
 	Storage   int32
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
+}
+
+type InstanceNetwork struct {
+	ID        string
+	PrivateIp string
+	CreatedAt pgtype.Timestamptz
+}
+
+type OsArch struct {
+	ID        string
+	Name      string
+	CreatedAt pgtype.Timestamptz
+}
+
+type OsBase struct {
+	ID        string
+	Name      string
+	CreatedAt pgtype.Timestamptz
+}
+
+type OsImage struct {
+	ID        string
+	Name      string
+	OsID      string
+	ArchID    string
+	CreatedAt pgtype.Timestamptz
+}
+
+type PaymentBase struct {
+	ID          int64
+	AccountID   int64
+	Method      PaymentMethod
+	Status      PaymentStatus
+	Total       int64
+	DateCreated pgtype.Timestamptz
+}
+
+type PaymentItem struct {
+	ID        int64
+	PaymentID int64
+	Name      string
+	Price     int64
+}
+
+type PaymentVnpay struct {
+	ID                 int64
+	VnpTxnRef          string
+	VnpOrderInfo       string
+	VnpTransactionNo   string
+	VnpTransactionDate string
+	VnpCreateDate      string
+	VnpIpAddr          string
 }

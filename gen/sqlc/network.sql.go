@@ -13,7 +13,7 @@ import (
 
 const countNetworks = `-- name: CountNetworks :one
 SELECT COUNT(id)
-FROM network
+FROM "instance"."network"
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
   (private_ip ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
@@ -42,7 +42,7 @@ func (q *Queries) CountNetworks(ctx context.Context, arg CountNetworksParams) (i
 }
 
 const createNetwork = `-- name: CreateNetwork :one
-INSERT INTO network (id, private_ip)
+INSERT INTO "instance"."network" (id, private_ip)
 VALUES ($1, $2)
 RETURNING id, private_ip, created_at
 `
@@ -52,15 +52,15 @@ type CreateNetworkParams struct {
 	PrivateIp string
 }
 
-func (q *Queries) CreateNetwork(ctx context.Context, arg CreateNetworkParams) (Network, error) {
+func (q *Queries) CreateNetwork(ctx context.Context, arg CreateNetworkParams) (InstanceNetwork, error) {
 	row := q.db.QueryRow(ctx, createNetwork, arg.ID, arg.PrivateIp)
-	var i Network
+	var i InstanceNetwork
 	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
 	return i, err
 }
 
 const deleteNetwork = `-- name: DeleteNetwork :exec
-DELETE FROM network
+DELETE FROM "instance"."network"
 WHERE id = $1
 `
 
@@ -71,20 +71,20 @@ func (q *Queries) DeleteNetwork(ctx context.Context, id string) error {
 
 const getNetwork = `-- name: GetNetwork :one
 SELECT network.id, network.private_ip, network.created_at
-FROM network
+FROM "instance"."network" network
 WHERE id = $1
 `
 
-func (q *Queries) GetNetwork(ctx context.Context, id string) (Network, error) {
+func (q *Queries) GetNetwork(ctx context.Context, id string) (InstanceNetwork, error) {
 	row := q.db.QueryRow(ctx, getNetwork, id)
-	var i Network
+	var i InstanceNetwork
 	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
 	return i, err
 }
 
 const listNetworks = `-- name: ListNetworks :many
 SELECT network.id, network.private_ip, network.created_at
-FROM network
+FROM "instance"."network" network
 WHERE (
   (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
   (private_ip ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
@@ -105,7 +105,7 @@ type ListNetworksParams struct {
 	Limit         int32
 }
 
-func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]Network, error) {
+func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]InstanceNetwork, error) {
 	rows, err := q.db.Query(ctx, listNetworks,
 		arg.ID,
 		arg.PrivateIp,
@@ -118,9 +118,9 @@ func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]N
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Network
+	var items []InstanceNetwork
 	for rows.Next() {
-		var i Network
+		var i InstanceNetwork
 		if err := rows.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt); err != nil {
 			return nil, err
 		}
@@ -133,23 +133,21 @@ func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]N
 }
 
 const updateNetwork = `-- name: UpdateNetwork :one
-UPDATE network
-SET 
-    id = COALESCE($2, id),
-    private_ip = COALESCE($3, private_ip)
+UPDATE "instance"."network"
+SET
+    private_ip = COALESCE($2, private_ip)
 WHERE id = $1
 RETURNING id, private_ip, created_at
 `
 
 type UpdateNetworkParams struct {
 	ID        string
-	NewID     pgtype.Text
 	PrivateIp pgtype.Text
 }
 
-func (q *Queries) UpdateNetwork(ctx context.Context, arg UpdateNetworkParams) (Network, error) {
-	row := q.db.QueryRow(ctx, updateNetwork, arg.ID, arg.NewID, arg.PrivateIp)
-	var i Network
+func (q *Queries) UpdateNetwork(ctx context.Context, arg UpdateNetworkParams) (InstanceNetwork, error) {
+	row := q.db.QueryRow(ctx, updateNetwork, arg.ID, arg.PrivateIp)
+	var i InstanceNetwork
 	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
 	return i, err
 }
