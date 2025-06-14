@@ -1,6 +1,8 @@
 # Wagecloud Server
 
 [![wakatime](https://wakatime.com/badge/github/wagecloud/wagecloud-server.svg)](https://wakatime.com/badge/github/wagecloud/wagecloud-server)
+[![Lines of Code](http://khoakomlem-internal.ddns.net:9000/api/project_badges/measure?project=wagecloud&metric=ncloc&token=sqb_ee81909935d0d11819698407614f45f60a1345f3)](http://khoakomlem-internal.ddns.net:9000/dashboard?id=wagecloud)
+[![Quality Gate Status](http://khoakomlem-internal.ddns.net:9000/api/project_badges/measure?project=wagecloud&metric=alert_status&token=sqb_ee81909935d0d11819698407614f45f60a1345f3)](http://khoakomlem-internal.ddns.net:9000/dashboard?id=wagecloud)
 
 A Go-based server application for managing virtual machines.
 [Figma](https://www.figma.com/design/qvTI6W2NxgFB9JEMOTv724/WEB-WAGE?node-id=0-1&p=f)
