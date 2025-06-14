@@ -17,7 +17,6 @@ plugins:
   - local: protoc-gen-connect-go
     out: gen/pb
     opt: paths=source_relative
-
 # build:
 #   includes:
 #     - internal/modules/account/proto/**
