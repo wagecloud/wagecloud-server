@@ -1,8 +1,8 @@
 # Wagecloud Server
 
 [![wakatime](https://wakatime.com/badge/github/wagecloud/wagecloud-server.svg)](https://wakatime.com/badge/github/wagecloud/wagecloud-server)
-[![Lines of Code](http://khoakomlem-internal.ddns.net:9000/api/project_badges/measure?project=wagecloud&metric=ncloc&token=sqb_ee81909935d0d11819698407614f45f60a1345f3)](http://khoakomlem-internal.ddns.net:9000/dashboard?id=wagecloud)
-[![Quality Gate Status](http://khoakomlem-internal.ddns.net:9000/api/project_badges/measure?project=wagecloud&metric=alert_status&token=sqb_ee81909935d0d11819698407614f45f60a1345f3)](http://khoakomlem-internal.ddns.net:9000/dashboard?id=wagecloud)
+[![Lines of Code](http://khoakomlem-internal.ddns.net:9000/api/project_badges/measure?project=wagecloud_wagecloud-server_f5966681-fd0e-4ccc-8136-47fc5dc4d892&metric=ncloc&token=sqb_6883ff21a3b534a5b3a481cc52544a04cca6c6b0)](http://khoakomlem-internal.ddns.net:9000/dashboard?id=wagecloud_wagecloud-server_f5966681-fd0e-4ccc-8136-47fc5dc4d892)
+[![Quality Gate Status](http://khoakomlem-internal.ddns.net:9000/api/project_badges/measure?project=wagecloud_wagecloud-server_f5966681-fd0e-4ccc-8136-47fc5dc4d892&metric=alert_status&token=sqb_6883ff21a3b534a5b3a481cc52544a04cca6c6b0)](http://khoakomlem-internal.ddns.net:9000/dashboard?id=wagecloud_wagecloud-server_f5966681-fd0e-4ccc-8136-47fc5dc4d892)
 
 A Go-based server application for managing virtual machines.
 [Figma](https://www.figma.com/design/qvTI6W2NxgFB9JEMOTv724/WEB-WAGE?node-id=0-1&p=f)
