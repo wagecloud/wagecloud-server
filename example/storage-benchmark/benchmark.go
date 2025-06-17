@@ -45,18 +45,19 @@ func init() {
 
 	db := pgxpool.NewDBRouter(read, write)
 	_ = db
-	storage = instancestorage.NewStorage(db)
+	storage = instancestorage.NewStorage(write)
 }
 
 func main() {
+	fmt.Println("Starting benchmark")
 	storage.ListInstances(context.Background(), instancestorage.ListInstancesParams{
 		PaginationParams: pagination.PaginationParams{
 			Page:  1,
 			Limit: 10,
 		},
 	})
-	totalRequests := 100000
-	concurrency := 10000
+	totalRequests := 1000
+	concurrency := 10
 	ctx := context.Background()
 	store := storage
 	var wg sync.WaitGroup
