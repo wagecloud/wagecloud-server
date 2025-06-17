@@ -49,7 +49,9 @@ Table Domain {
 Table InstanceLog {
   id BigInt [pk, increment]
   instance_id String [not null]
-  message String [not null]
+  type LogType [not null]
+  title String [not null]
+  description String
   created_at DateTime [default: `now()`, not null]
 }
 
@@ -99,6 +101,13 @@ Table PaymentVnpay {
 Enum AccountType {
   ACCOUNT_TYPE_ADMIN
   ACCOUNT_TYPE_USER
+}
+
+Enum LogType {
+  LOG_TYPE_UNKNOWN
+  LOG_TYPE_INFO
+  LOG_TYPE_WARNING
+  LOG_TYPE_ERROR
 }
 
 Enum PaymentMethod {

@@ -13,8 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/wagecloud/wagecloud-server/config"
-	"github.com/wagecloud/wagecloud-server/gen/pb/account/v1/accountv1connect"
-	"github.com/wagecloud/wagecloud-server/gen/pb/instance/v1/instancev1connect"
 	"github.com/wagecloud/wagecloud-server/gen/pb/os/v1/osv1connect"
 	"github.com/wagecloud/wagecloud-server/internal/client/libvirt"
 	"github.com/wagecloud/wagecloud-server/internal/client/nats"
@@ -23,7 +21,6 @@ import (
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	accountsvc "github.com/wagecloud/wagecloud-server/internal/modules/account/service"
 	accountstorage "github.com/wagecloud/wagecloud-server/internal/modules/account/storage"
-	accountconnect "github.com/wagecloud/wagecloud-server/internal/modules/account/transport/connect"
 	accountecho "github.com/wagecloud/wagecloud-server/internal/modules/account/transport/echo"
 	instancesvc "github.com/wagecloud/wagecloud-server/internal/modules/instance/service"
 	instancestorage "github.com/wagecloud/wagecloud-server/internal/modules/instance/storage"
@@ -253,24 +250,24 @@ func setupServiceAccount(svcCtx serviceContext) service[accountsvc.Service] {
 
 	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "account"
 
-	if isRPC {
-		connectClient := accountv1connect.NewAccountServiceClient(
-			svcCtx.httpClient,
-			"localhost:50051",
-			connect.WithGRPC(),
-		)
-		accountSvc = accountsvc.NewServiceRpc(connectClient)
-	} else {
-		accountSvc = accountsvc.NewService(accountstorage.NewStorage(svcCtx.db))
-		accountHandler := accountecho.NewEchoHandler(accountSvc)
-		path, handler := accountconnect.NewAccountServiceHandler(accountSvc)
-		svcCtx.mux.Handle(path, handler)
+	// if isRPC {
+	// 	connectClient := accountv1connect.NewAccountServiceClient(
+	// 		svcCtx.httpClient,
+	// 		"localhost:50051",
+	// 		connect.WithGRPC(),
+	// 	)
+	// 	accountSvc = accountsvc.NewServiceRpc(connectClient)
+	// } else {
+	accountSvc = accountsvc.NewService(accountstorage.NewStorage(svcCtx.db))
+	accountHandler := accountecho.NewEchoHandler(accountSvc)
+	// path, handler := accountconnect.NewAccountServiceHandler(accountSvc)
+	// svcCtx.mux.Handle(path, handler)
 
-		account := svcCtx.e.Group("/account")
-		account.GET("/", accountHandler.GetUser)
-		account.POST("/login/", accountHandler.LoginUser)
-		account.POST("/register/", accountHandler.RegisterUser)
-	}
+	account := svcCtx.e.Group("/account")
+	account.GET("/", accountHandler.GetUser)
+	account.POST("/login/", accountHandler.LoginUser)
+	account.POST("/register/", accountHandler.RegisterUser)
+	// }
 
 	return service[accountsvc.Service]{
 		svc:   accountSvc,
@@ -320,43 +317,43 @@ func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service, paymentSvc
 
 	isRPC := svcCtx.targetService != "" && svcCtx.targetService != "instance"
 
-	if isRPC {
-		connectClient := instancev1connect.NewInstanceServiceClient(
-			svcCtx.httpClient,
-			"localhost:50051",
-			connect.WithGRPC(),
-		)
-		instanceSvc = instancesvc.NewServiceRpc(connectClient)
-	} else {
-		libvirt := libvirt.NewClient()
-		instanceSvc = instancesvc.NewService(
-			libvirt,
-			svcCtx.nats,
-			svcCtx.redis,
-			instancestorage.NewStorage(svcCtx.db),
-			osSvc,
-			paymentSvc,
-		)
-		instanceHandler := instanceecho.NewEchoHandler(instanceSvc)
+	// if isRPC {
+	// 	connectClient := instancev1connect.NewInstanceServiceClient(
+	// 		svcCtx.httpClient,
+	// 		"localhost:50051",
+	// 		connect.WithGRPC(),
+	// 	)
+	// 	instanceSvc = instancesvc.NewServiceRpc(connectClient)
+	// } else {
+	libvirt := libvirt.NewClient()
+	instanceSvc = instancesvc.NewService(
+		libvirt,
+		svcCtx.nats,
+		svcCtx.redis,
+		instancestorage.NewStorage(svcCtx.db),
+		osSvc,
+		paymentSvc,
+	)
+	instanceHandler := instanceecho.NewEchoHandler(instanceSvc)
 
-		instance := svcCtx.e.Group("/instance")
-		instance.GET("/", instanceHandler.ListInstances)
-		instance.GET("/:id", instanceHandler.GetInstance)
-		instance.POST("/", instanceHandler.CreateInstance)
-		instance.POST("/start/:id/", instanceHandler.StartInstance)
-		instance.POST("/stop/:id/", instanceHandler.StopInstance)
-		instance.PATCH("/:id", instanceHandler.UpdateInstance)
-		instance.DELETE("/:id", instanceHandler.DeleteInstance)
+	instance := svcCtx.e.Group("/instance")
+	instance.GET("/", instanceHandler.ListInstances)
+	instance.GET("/:id", instanceHandler.GetInstance)
+	instance.POST("/", instanceHandler.CreateInstance)
+	instance.POST("/start/:id/", instanceHandler.StartInstance)
+	instance.POST("/stop/:id/", instanceHandler.StopInstance)
+	instance.PATCH("/:id", instanceHandler.UpdateInstance)
+	instance.DELETE("/:id", instanceHandler.DeleteInstance)
 
-		network := instance.Group("/network")
-		network.GET("/", instanceHandler.ListNetworks)
-		network.GET("/:id", instanceHandler.GetNetwork)
-		network.POST("/", instanceHandler.CreateNetwork)
-		network.POST("/map/", instanceHandler.MapPortNginx)
-		network.POST("/unmap/", instanceHandler.UnmapPortNginx)
-		network.PATCH("/:id", instanceHandler.UpdateNetwork)
-		network.DELETE("/:id", instanceHandler.DeleteNetwork)
-	}
+	network := instance.Group("/network")
+	network.GET("/", instanceHandler.ListNetworks)
+	network.GET("/:id", instanceHandler.GetNetwork)
+	// network.POST("/", instanceHandler.CreateNetwork)
+	network.POST("/map/", instanceHandler.MapPortNginx)
+	network.POST("/unmap/", instanceHandler.UnmapPortNginx)
+	// network.PATCH("/:id", instanceHandler.UpdateNetwork)
+	// network.DELETE("/:id", instanceHandler.DeleteNetwork)
+	// }
 
 	return service[instancesvc.Service]{
 		svc:   instanceSvc,
