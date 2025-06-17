@@ -80,10 +80,11 @@ func (s *ServiceImpl) ListOSs(ctx context.Context, params ListOSsParams) (res pa
 	}
 
 	return pagination.PaginateResult[osmodel.OS]{
-		Total: total,
-		Page:  params.Page,
-		Limit: params.Limit,
-		Data:  oss,
+		Total:    total,
+		Page:     params.Page,
+		Limit:    params.Limit,
+		Data:     oss,
+		NextPage: params.NextPage(total),
 	}, nil
 }
 
