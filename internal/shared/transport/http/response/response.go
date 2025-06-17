@@ -119,8 +119,14 @@ type Paginate[T any] interface {
 
 // FromPaginate writes a paginated response with proper structure
 func FromPaginate[T any](w http.ResponseWriter, paginate Paginate[T]) error {
+	data := paginate.GetData()
+	if data == nil {
+		// Make sure the paginate object is not nil
+		data = make([]T, 0)
+	}
+
 	response := PaginationResponse[T]{
-		Data: paginate.GetData(),
+		Data: data,
 		PageMeta: PageMeta{
 			Limit:      paginate.GetLimit(),
 			Page:       paginate.GetPage(),
