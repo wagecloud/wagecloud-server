@@ -5,4 +5,5 @@ network:
       match:
         driver: virtio_net
       dhcp4: true
+      dhcp-identifier: mac
       set-name: eth0

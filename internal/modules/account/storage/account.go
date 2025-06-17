@@ -62,20 +62,24 @@ func (ts *TxStorage) Rollback(ctx context.Context) error {
 }
 
 type GetAccountParams struct {
+	Type     accountmodel.AccountType
 	ID       *int64
 	Username *string
 	Email    *string
+	Phone    *string
 }
 
 func (s *Storage) GetAccount(ctx context.Context, params GetAccountParams) (accountmodel.AccountBase, error) {
-	if params.ID == nil && params.Username == nil {
+	if params.ID == nil && params.Username == nil && params.Email == nil && params.Phone == nil {
 		return accountmodel.AccountBase{}, fmt.Errorf("at least one of ID, Username must be provided")
 	}
 
 	row, err := s.sqlc.GetAccount(ctx, sqlc.GetAccountParams{
+		Type:     sqlc.AccountType(params.Type),
 		ID:       *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.ID),
 		Username: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		Email:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Email),
+		Phone:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Phone),
 	})
 	if err != nil {
 		return accountmodel.AccountBase{}, err
@@ -84,11 +88,9 @@ func (s *Storage) GetAccount(ctx context.Context, params GetAccountParams) (acco
 	return accountmodel.AccountBase{
 		ID:        row.ID,
 		Type:      accountmodel.AccountType(row.Type),
-		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
-		CreatedAt: row.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+		CreatedAt: row.CreatedAt.Time,
 	}, nil
 }
 
@@ -107,7 +109,6 @@ func (s *Storage) CountAccounts(ctx context.Context, params ListAccountsParams) 
 		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
 		Type:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountType{}, params.Type),
 		Username:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
-		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
 		CreatedAtTo:   *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
 	})
@@ -119,7 +120,6 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 		Offset:        params.Offset(),
 		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
 		Type:          *pgxptr.PtrBrandedToPgType(&sqlc.NullAccountType{}, params.Type),
-		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		Username:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
 		CreatedAtTo:   *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
@@ -133,11 +133,9 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 		accounts = append(accounts, accountmodel.AccountBase{
 			ID:        row.ID,
 			Type:      accountmodel.AccountType(row.Type),
-			Name:      row.Name,
 			Username:  row.Username,
 			Password:  row.Password,
-			CreatedAt: row.CreatedAt.Time.UnixMilli(),
-			UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+			CreatedAt: row.CreatedAt.Time,
 		})
 	}
 
@@ -147,7 +145,6 @@ func (s *Storage) ListAccounts(ctx context.Context, params ListAccountsParams) (
 func (s *Storage) CreateAccount(ctx context.Context, account accountmodel.AccountBase) (accountmodel.AccountBase, error) {
 	row, err := s.sqlc.CreateAccount(ctx, sqlc.CreateAccountParams{
 		Type:     sqlc.AccountType(account.Type),
-		Name:     account.Name,
 		Username: account.Username,
 		Password: account.Password,
 	})
@@ -158,11 +155,9 @@ func (s *Storage) CreateAccount(ctx context.Context, account accountmodel.Accoun
 	return accountmodel.AccountBase{
 		ID:        row.ID,
 		Type:      accountmodel.AccountType(row.Type),
-		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
-		CreatedAt: row.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+		CreatedAt: row.CreatedAt.Time,
 	}, nil
 }
 
@@ -176,7 +171,6 @@ type UpdateAccountParams struct {
 func (s *Storage) UpdateAccount(ctx context.Context, params UpdateAccountParams) (accountmodel.AccountBase, error) {
 	row, err := s.sqlc.UpdateAccount(ctx, sqlc.UpdateAccountParams{
 		ID:       params.ID,
-		Name:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		Username: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		Password: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Password),
 	})
@@ -187,11 +181,9 @@ func (s *Storage) UpdateAccount(ctx context.Context, params UpdateAccountParams)
 	return accountmodel.AccountBase{
 		ID:        row.ID,
 		Type:      accountmodel.AccountType(row.Type),
-		Name:      row.Name,
 		Username:  row.Username,
 		Password:  row.Password,
-		CreatedAt: row.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+		CreatedAt: row.CreatedAt.Time,
 	}, nil
 }
 
@@ -203,10 +195,11 @@ type GetUserParams struct {
 	ID       *int64
 	Username *string
 	Email    *string
+	Phone    *string
 }
 
 func (s *Storage) GetUser(ctx context.Context, params GetUserParams) (accountmodel.AccountUser, error) {
-	if params.ID == nil && params.Username == nil && params.Email == nil {
+	if params.ID == nil && params.Username == nil && params.Email == nil && params.Phone == nil {
 		return accountmodel.AccountUser{}, fmt.Errorf("at least one of ID, Username, Email must be provided")
 	}
 
@@ -214,39 +207,38 @@ func (s *Storage) GetUser(ctx context.Context, params GetUserParams) (accountmod
 		ID:       *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.ID),
 		Username: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Username),
 		Email:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Email),
+		Phone:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Phone),
 	})
 	if err != nil {
 		return accountmodel.AccountUser{}, err
 	}
 
 	return accountmodel.AccountUser{
-		AccountBase: accountmodel.AccountBase{
-			ID:        row.ID,
-			Type:      accountmodel.AccountType(row.Type),
-			Name:      row.Name,
-			Username:  row.Username,
-			Password:  row.Password,
-			CreatedAt: row.CreatedAt.Time.UnixMilli(),
-			UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
-		},
-		Email: row.Email,
+		ID:        row.ID,
+		FirstName: row.FirstName,
+		LastName:  row.LastName,
+		Email:     pgxptr.PgtypeToPtr[string](row.Email),
+		Phone:     pgxptr.PgtypeToPtr[string](row.Phone),
+		Company:   pgxptr.PgtypeToPtr[string](row.Company),
+		Address:   pgxptr.PgtypeToPtr[string](row.Address),
 	}, nil
 }
 
 func (s *Storage) CreateUser(ctx context.Context, user accountmodel.AccountUser) (accountmodel.AccountUser, error) {
 	row, err := s.sqlc.CreateUser(ctx, sqlc.CreateUserParams{
-		ID:    user.ID,
-		Email: user.Email,
+		ID: user.ID,
 	})
 	if err != nil {
 		return accountmodel.AccountUser{}, err
 	}
 
 	return accountmodel.AccountUser{
-		AccountBase: accountmodel.AccountBase{
-			ID:   row.ID,
-			Type: accountmodel.AccountTypeUser,
-		},
-		Email: row.Email,
+		ID:        row.ID,
+		FirstName: row.FirstName,
+		LastName:  row.LastName,
+		Email:     pgxptr.PgtypeToPtr[string](row.Email),
+		Phone:     pgxptr.PgtypeToPtr[string](row.Phone),
+		Company:   pgxptr.PgtypeToPtr[string](row.Company),
+		Address:   pgxptr.PgtypeToPtr[string](row.Address),
 	}, nil
 }

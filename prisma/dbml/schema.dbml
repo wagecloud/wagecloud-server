@@ -5,16 +5,19 @@
 Table AccountBase {
   id BigInt [pk, increment]
   type AccountType [not null]
-  name String [not null]
   username String [unique, not null]
   password String [not null]
   created_at DateTime [default: `now()`, not null]
-  updated_at DateTime [default: `now()`, not null]
 }
 
 Table AccountUser {
   id BigInt [pk]
-  email String [unique, not null]
+  first_name String [not null]
+  last_name String [not null]
+  email String [unique]
+  phone String [unique]
+  company String
+  address String
 }
 
 Table Instance {
@@ -22,18 +25,37 @@ Table Instance {
   account_id BigInt [not null]
   os_id String [not null]
   arch_id String [not null]
+  region_id String [not null]
   name String [not null]
   cpu Int [not null]
   ram Int [not null]
   storage Int [not null]
   created_at DateTime [default: `now()`, not null]
-  updated_at DateTime [default: `now()`, not null]
 }
 
 Table Network {
-  id String [pk]
+  id BigInt [pk, increment]
+  instance_id String [unique, not null]
   private_ip String [not null]
+  public_ip String
+}
+
+Table Domain {
+  id BigInt [pk, increment]
+  network_id BigInt [not null]
+  name String [unique, not null]
+}
+
+Table InstanceLog {
+  id BigInt [pk, increment]
+  instance_id String [not null]
+  message String [not null]
   created_at DateTime [default: `now()`, not null]
+}
+
+Table Region {
+  id String [pk]
+  name String [not null]
 }
 
 Table OS {
@@ -45,14 +67,6 @@ Table OS {
 Table Arch {
   id String [pk]
   name String [not null]
-  created_at DateTime [default: `now()`, not null]
-}
-
-Table OSImage {
-  id String [pk]
-  name String [not null]
-  os_id String [not null]
-  arch_id String [not null]
   created_at DateTime [default: `now()`, not null]
 }
 
@@ -109,11 +123,13 @@ Ref: Instance.os_id > OS.id
 
 Ref: Instance.arch_id > Arch.id
 
-Ref: Network.id - Instance.id [delete: Cascade]
+Ref: Instance.region_id > Region.id
 
-Ref: OSImage.os_id > OS.id
+Ref: Network.instance_id - Instance.id [delete: Cascade]
 
-Ref: OSImage.arch_id > Arch.id
+Ref: Domain.network_id > Network.id [delete: Cascade]
+
+Ref: InstanceLog.instance_id > Instance.id [delete: Cascade]
 
 Ref: PaymentItem.payment_id > Payment.id [delete: Cascade]
 

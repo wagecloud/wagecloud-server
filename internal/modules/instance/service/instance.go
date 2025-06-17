@@ -55,6 +55,27 @@ type Service interface {
 	DeleteNetwork(ctx context.Context, params DeleteNetworkParams) error
 	MapPortNginx(ctx context.Context, params MapPortNginxParams) error
 	UnmapPortNginx(ctx context.Context, params UnmapPortNginxParams) error
+
+	// Domain
+	GetDomain(ctx context.Context, id int64) (instancemodel.Domain, error)
+	ListDomains(ctx context.Context, params ListDomainsParams) (pagination.PaginateResult[instancemodel.Domain], error)
+	CreateDomain(ctx context.Context, params CreateDomainParams) (instancemodel.Domain, error)
+	UpdateDomain(ctx context.Context, params UpdateDomainParams) (instancemodel.Domain, error)
+	DeleteDomain(ctx context.Context, id int64) error
+
+	// Instance Log
+	GetInstanceLog(ctx context.Context, id int64) (instancemodel.InstanceLog, error)
+	ListInstanceLogs(ctx context.Context, params ListInstanceLogsParams) (pagination.PaginateResult[instancemodel.InstanceLog], error)
+	CreateInstanceLog(ctx context.Context, params CreateInstanceLogParams) (instancemodel.InstanceLog, error)
+	UpdateInstanceLog(ctx context.Context, params UpdateInstanceLogParams) (instancemodel.InstanceLog, error)
+	DeleteInstanceLog(ctx context.Context, id int64) error
+
+	// Region
+	GetRegion(ctx context.Context, id string) (instancemodel.Region, error)
+	ListRegions(ctx context.Context, params ListRegionsParams) (pagination.PaginateResult[instancemodel.Region], error)
+	CreateRegion(ctx context.Context, params CreateRegionParams) (instancemodel.Region, error)
+	UpdateRegion(ctx context.Context, params UpdateRegionParams) (instancemodel.Region, error)
+	DeleteRegion(ctx context.Context, id string) error
 }
 
 func NewService(libvirt libvirt.Client, nats nats.Client, redis redis.Client, storage *instancestorage.Storage, osSvc ossvc.Service, paymentSvc paymentsvc.Service) Service {
@@ -73,7 +94,9 @@ func NewService(libvirt libvirt.Client, nats nats.Client, redis redis.Client, st
 	s.cron.AddFunc("@every 30s", func() {
 		s.UpdateNetworkIPs(context.Background())
 	})
-	s.UpdateNetworkIPs(context.Background())
+	s.cron.Start()
+
+	// s.UpdateNetworkIPs(context.Background())
 
 	return s
 }
@@ -141,8 +164,8 @@ func (s *ServiceImpl) UpdateNetworkIPs(ctx context.Context) {
 
 		// Update the network IP in the database
 		if _, err := s.storage.UpdateNetwork(ctx, instancestorage.UpdateNetworkParams{
-			ID:        domain.ID,
-			PrivateIP: &ip,
+			InstanceID: &domain.ID,
+			PrivateIP:  &ip,
 		}); err != nil {
 			fmt.Println("failed to update network IP for domain", domain.ID, ":", err)
 			continue
@@ -282,8 +305,8 @@ func (s *ServiceImpl) CreateInstance(ctx context.Context, params CreateInstanceP
 	}
 
 	_, err = txStorage.CreateNetwork(ctx, instancemodel.Network{
-		ID:        instanceID,
-		PrivateIP: "",
+		InstanceID: instance.ID,
+		PrivateIP:  "",
 	})
 	if err != nil {
 		return instancemodel.Instance{}, err
@@ -408,11 +431,6 @@ func (s *ServiceImpl) UpdateInstance(ctx context.Context, params UpdateInstanceP
 		CPU:     params.Cpu,
 		RAM:     params.Ram,
 		Storage: params.Storage,
-	}
-
-	// Users can only see their own instances
-	if params.Account.Type == accountmodel.AccountTypeUser {
-		storageParams.AccountID = &params.Account.AccountID
 	}
 
 	updatedInstance, err := s.storage.UpdateInstance(ctx, storageParams)

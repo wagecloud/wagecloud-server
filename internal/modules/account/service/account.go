@@ -48,6 +48,7 @@ type GetUserParams struct {
 	ID       *int64
 	Username *string
 	Email    *string
+	Phone    *string
 }
 
 func (s *ServiceImpl) GetUser(ctx context.Context, params GetUserParams) (accountmodel.AccountUser, error) {
@@ -55,6 +56,7 @@ func (s *ServiceImpl) GetUser(ctx context.Context, params GetUserParams) (accoun
 		ID:       params.ID,
 		Username: params.Username,
 		Email:    params.Email,
+		Phone:    params.Phone,
 	})
 	if err != nil {
 		return accountmodel.AccountUser{}, err
@@ -74,25 +76,28 @@ type LoginUserParams struct {
 	ID       *int64
 	Username *string
 	Email    *string
+	Phone    *string
 	Password string
 }
 
 type LoginUserResult struct {
 	Token   string
-	Account accountmodel.AccountUser
+	Account accountmodel.AccountBase
 }
 
 func (s *ServiceImpl) LoginUser(ctx context.Context, params LoginUserParams) (LoginUserResult, error) {
-	user, err := s.storage.GetUser(ctx, accountstorage.GetUserParams{
+	account, err := s.storage.GetAccount(ctx, accountstorage.GetAccountParams{
+		Type:     accountmodel.AccountTypeUser,
 		ID:       params.ID,
 		Username: params.Username,
 		Email:    params.Email,
+		Phone:    params.Phone,
 	})
 	if err != nil {
 		return LoginUserResult{}, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(params.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(params.Password))
 	if err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return LoginUserResult{}, fmt.Errorf("wrong password")
@@ -100,22 +105,24 @@ func (s *ServiceImpl) LoginUser(ctx context.Context, params LoginUserParams) (Lo
 		return LoginUserResult{}, fmt.Errorf("failed to compare password: %w", err)
 	}
 
-	token, err := GenerateAccessToken(user)
+	token, err := GenerateAccessToken(account.ID)
 	if err != nil {
 		return LoginUserResult{}, err
 	}
 
 	return LoginUserResult{
 		Token:   token,
-		Account: user,
+		Account: account,
 	}, nil
 }
 
 type RegisterUserParams struct {
-	Name     string
-	Email    string
-	Username string
-	Password string
+	FirstName string
+	LastName  string
+	Username  string
+	Password  string
+	Email     *string
+	Phone     *string
 }
 
 type RegisterUserResult struct {
@@ -137,7 +144,6 @@ func (s *ServiceImpl) RegisterUser(ctx context.Context, params RegisterUserParam
 
 	createdAccount, err := txStorage.CreateAccount(ctx, accountmodel.AccountBase{
 		Type:     accountmodel.AccountTypeUser,
-		Name:     params.Name,
 		Username: params.Username,
 		Password: string(hashedPassword),
 	})
@@ -146,14 +152,16 @@ func (s *ServiceImpl) RegisterUser(ctx context.Context, params RegisterUserParam
 	}
 
 	createdUser, err := txStorage.CreateUser(ctx, accountmodel.AccountUser{
-		AccountBase: createdAccount,
-		Email:       params.Email,
+		FirstName: params.FirstName,
+		LastName:  params.LastName,
+		Email:     params.Email,
+		Phone:     params.Phone,
 	})
 	if err != nil {
 		return res, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	token, err := GenerateAccessToken(createdAccount)
+	token, err := GenerateAccessToken(createdAccount.ID)
 	if err != nil {
 		return res, fmt.Errorf("failed to generate access token: %w", err)
 	}
@@ -165,22 +173,24 @@ func (s *ServiceImpl) RegisterUser(ctx context.Context, params RegisterUserParam
 	return RegisterUserResult{
 		Token: token,
 		Account: accountmodel.AccountUser{
-			AccountBase: createdAccount,
-			Email:       createdUser.Email,
+			FirstName: createdUser.FirstName,
+			LastName:  createdUser.LastName,
+			Email:     createdUser.Email,
+			Phone:     createdUser.Phone,
 		},
 	}, nil
 }
 
-func GenerateAccessToken(account accountmodel.Account) (string, error) {
+func GenerateAccessToken(accountID int64) (string, error) {
 	tokenDuration := time.Duration(config.GetConfig().App.AccessTokenDuration * int64(time.Second))
 
 	claims := accountmodel.Claims{
-		AccountID: account.Base().ID,
+		AccountID: accountID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "wagecloud",
-			Subject:   strconv.Itoa(int(account.Base().ID)),
+			Subject:   strconv.Itoa(int(accountID)),
 			Audience:  []string{"wagecloud"},
 		},
 	}

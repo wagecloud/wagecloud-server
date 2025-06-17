@@ -1,6 +1,8 @@
 package osecho
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -63,6 +65,9 @@ func (h *EchoHandler) ListArchs(c echo.Context) error {
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
 	}
+
+	js, _ := json.Marshal(archs)
+	fmt.Println("ListArchs response:", string(js))
 
 	return response.FromPaginate(c.Response().Writer, archs)
 }

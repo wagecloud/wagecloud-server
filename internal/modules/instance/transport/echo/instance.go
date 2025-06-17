@@ -102,21 +102,21 @@ func (h *EchoHandler) ListInstances(c echo.Context) error {
 }
 
 type CreateInstanceRequest struct {
-	Userdata struct {
-		Name              string   `json:"name" validate:"required,min=1,max=255"`
-		SSHAuthorizedKeys []string `json:"ssh-authorized-keys" validate:"omitempty,dive,min=20,max=5000"`
-		Password          string   `json:"password" validate:"required,min=8,max=72"`
-	} `json:"userdata" validate:"required"`
-	Metadata struct {
-		LocalHostname string `json:"local-hostname" validate:"required,hostname"`
-	} `json:"metadata" validate:"required"`
-	Spec struct {
-		OsID    string `json:"os_id" validate:"required,min=1,max=255"`
-		ArchID  string `json:"arch_id" validate:"required,min=1,max=255"`
-		Memory  int32  `json:"memory" validate:"required,min=512,max=262144"`
-		Cpu     int32  `json:"cpu" validate:"required,min=1,max=64"`
-		Storage int32  `json:"storage" validate:"required,min=10,max=2048"`
-	} `json:"spec" validate:"required"`
+	Basic struct {
+		Name     string `json:"name"`
+		Hostname string `json:"hostname"`
+		OsID     string `json:"os_id"`
+		ArchID   string `json:"arch_id"`
+	} `json:"basic"`
+	Resources struct {
+		Memory  int32 `json:"memory"`
+		Cpu     int32 `json:"cpu"`
+		Storage int32 `json:"storage"`
+	} `json:"resources"`
+	Security struct {
+		Password          string   `json:"password"`
+		SSHAuthorizedKeys []string `json:"ssh-authorized-keys"`
+	} `json:"security"`
 }
 
 func (h *EchoHandler) CreateInstance(c echo.Context) error {
@@ -137,15 +137,15 @@ func (h *EchoHandler) CreateInstance(c echo.Context) error {
 	paymentResult, err := h.service.PayCreateInstance(c.Request().Context(), instancesvc.PayCreateInstanceParams{
 		CreateInstanceParams: instancesvc.CreateInstanceParams{
 			Account:           claims.ToAuthenticatedAccount(),
-			Name:              req.Userdata.Name,
-			SSHAuthorizedKeys: req.Userdata.SSHAuthorizedKeys,
-			Password:          req.Userdata.Password,
-			LocalHostname:     req.Metadata.LocalHostname,
-			OsID:              req.Spec.OsID,
-			ArchID:            req.Spec.ArchID,
-			Memory:            req.Spec.Memory,
-			Cpu:               req.Spec.Cpu,
-			Storage:           req.Spec.Storage,
+			Name:              req.Basic.Name,
+			SSHAuthorizedKeys: req.Security.SSHAuthorizedKeys,
+			Password:          req.Security.Password,
+			LocalHostname:     req.Basic.Hostname,
+			OsID:              req.Basic.OsID,
+			ArchID:            req.Basic.ArchID,
+			Memory:            req.Resources.Memory,
+			Cpu:               req.Resources.Cpu,
+			Storage:           req.Resources.Storage,
 		},
 		Method: paymentmodel.PaymentMethodVNPAY,
 	})

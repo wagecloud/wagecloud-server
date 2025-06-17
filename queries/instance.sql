@@ -12,6 +12,7 @@ WHERE (
   (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL) AND
   (os_id = sqlc.narg('os_id') OR sqlc.narg('os_id') IS NULL) AND
   (arch_id = sqlc.narg('arch_id') OR sqlc.narg('arch_id') IS NULL) AND
+  (region_id = sqlc.narg('region_id') OR sqlc.narg('region_id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
   (cpu >= sqlc.narg('cpu_from') OR sqlc.narg('cpu_from') IS NULL) AND
   (cpu <= sqlc.narg('cpu_to') OR sqlc.narg('cpu_to') IS NULL) AND
@@ -30,6 +31,7 @@ WHERE (
   (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL) AND
   (os_id = sqlc.narg('os_id') OR sqlc.narg('os_id') IS NULL) AND
   (arch_id = sqlc.narg('arch_id') OR sqlc.narg('arch_id') IS NULL) AND
+  (region_id = sqlc.narg('region_id') OR sqlc.narg('region_id') IS NULL) AND
   (name ILIKE '%' || sqlc.narg('name') || '%' OR sqlc.narg('name') IS NULL) AND
   (cpu >= sqlc.narg('cpu_from') OR sqlc.narg('cpu_from') IS NULL) AND
   (cpu <= sqlc.narg('cpu_to') OR sqlc.narg('cpu_to') IS NULL) AND
@@ -45,8 +47,8 @@ LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CreateInstance :one
-INSERT INTO "instance"."base" (id, account_id, os_id, arch_id, name, cpu, ram, storage)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO "instance"."base" (id, account_id, os_id, arch_id, region_id, name, cpu, ram, storage)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: UpdateInstance :one
@@ -54,6 +56,7 @@ UPDATE "instance"."base"
 SET
   os_id = COALESCE(sqlc.narg('os_id'), os_id),
   arch_id = COALESCE(sqlc.narg('arch_id'), arch_id),
+  region_id = COALESCE(sqlc.narg('region_id'), region_id),
   name = COALESCE(sqlc.narg('name'), name),
   cpu = COALESCE(sqlc.narg('cpu'), cpu),
   ram = COALESCE(sqlc.narg('ram'), ram),

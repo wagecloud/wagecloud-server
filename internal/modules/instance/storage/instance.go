@@ -62,12 +62,12 @@ func (s *Storage) GetInstance(ctx context.Context, id string) (instancemodel.Ins
 		AccountID: row.AccountID,
 		OSID:      row.OsID,
 		ArchID:    row.ArchID,
+		RegionID:  row.RegionID,
 		Name:      row.Name,
 		CPU:       row.Cpu,
 		RAM:       row.Ram,
 		Storage:   row.Storage,
-		CreatedAt: row.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+		CreatedAt: row.CreatedAt.Time,
 	}, nil
 }
 
@@ -77,6 +77,7 @@ type ListInstancesParams struct {
 	Name          *string
 	OsID          *string
 	ArchID        *string
+	RegionID      *string
 	CpuFrom       *int64
 	CpuTo         *int64
 	RamFrom       *int64
@@ -93,6 +94,7 @@ func (s *Storage) CountInstances(ctx context.Context, params ListInstancesParams
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
 		OsID:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.OsID),
 		ArchID:        *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ArchID),
+		RegionID:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.RegionID),
 		CpuFrom:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CpuFrom),
 		CpuTo:         *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CpuTo),
 		RamFrom:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RamFrom),
@@ -110,6 +112,15 @@ func (s *Storage) ListInstances(ctx context.Context, params ListInstancesParams)
 		Offset:        int32(params.Offset()),
 		AccountID:     *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
 		Name:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Name),
+		OsID:          *pgxptr.PtrToPgtype(&pgtype.Text{}, params.OsID),
+		ArchID:        *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ArchID),
+		RegionID:      *pgxptr.PtrToPgtype(&pgtype.Text{}, params.RegionID),
+		CpuFrom:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CpuFrom),
+		CpuTo:         *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.CpuTo),
+		RamFrom:       *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RamFrom),
+		RamTo:         *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.RamTo),
+		StorageFrom:   *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.StorageFrom),
+		StorageTo:     *pgxptr.PtrToPgtype(&pgtype.Int4{}, params.StorageTo),
 		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
 		CreatedAtTo:   *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
 	})
@@ -124,12 +135,12 @@ func (s *Storage) ListInstances(ctx context.Context, params ListInstancesParams)
 			AccountID: row.AccountID,
 			OSID:      row.OsID,
 			ArchID:    row.ArchID,
+			RegionID:  row.RegionID,
 			Name:      row.Name,
 			CPU:       row.Cpu,
 			RAM:       row.Ram,
 			Storage:   row.Storage,
-			CreatedAt: row.CreatedAt.Time.UnixMilli(),
-			UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+			CreatedAt: row.CreatedAt.Time,
 		})
 	}
 
@@ -142,6 +153,7 @@ func (s *Storage) CreateInstance(ctx context.Context, instance instancemodel.Ins
 		AccountID: instance.AccountID,
 		OsID:      instance.OSID,
 		ArchID:    instance.ArchID,
+		RegionID:  instance.RegionID,
 		Name:      instance.Name,
 		Cpu:       instance.CPU,
 		Ram:       instance.RAM,
@@ -156,22 +168,21 @@ func (s *Storage) CreateInstance(ctx context.Context, instance instancemodel.Ins
 		AccountID: row.AccountID,
 		OSID:      row.OsID,
 		ArchID:    row.ArchID,
+		RegionID:  row.RegionID,
 		Name:      row.Name,
 		CPU:       row.Cpu,
 		RAM:       row.Ram,
 		Storage:   row.Storage,
-		CreatedAt: row.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+		CreatedAt: row.CreatedAt.Time,
 	}, nil
 }
 
 type UpdateInstanceParams struct {
-	ID        string
-	AccountID *int64
-	Name      *string
-	CPU       *int64
-	RAM       *int64
-	Storage   *int64
+	ID      string
+	Name    *string
+	CPU     *int64
+	RAM     *int64
+	Storage *int64
 }
 
 func (s *Storage) UpdateInstance(ctx context.Context, params UpdateInstanceParams) (instancemodel.Instance, error) {
@@ -191,18 +202,13 @@ func (s *Storage) UpdateInstance(ctx context.Context, params UpdateInstanceParam
 		AccountID: row.AccountID,
 		OSID:      row.OsID,
 		ArchID:    row.ArchID,
+		RegionID:  row.RegionID,
 		Name:      row.Name,
 		CPU:       row.Cpu,
 		RAM:       row.Ram,
 		Storage:   row.Storage,
-		CreatedAt: row.CreatedAt.Time.UnixMilli(),
-		UpdatedAt: row.UpdatedAt.Time.UnixMilli(),
+		CreatedAt: row.CreatedAt.Time,
 	}, nil
-}
-
-type DeleteInstanceParams struct {
-	ID        string
-	AccountID *int64
 }
 
 func (s *Storage) DeleteInstance(ctx context.Context, id string) error {

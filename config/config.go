@@ -14,11 +14,13 @@ var config *Config
 var m sync.Mutex
 
 type Config struct {
-	Env           string        `yaml:"env"`
-	App           App           `yaml:"app"`
-	HttpServer    HttpServer    `yaml:"httpServer"`
-	Log           Log           `yaml:"log"`
-	Postgres      Postgres      `yaml:"postgres"`
+	Env        string     `yaml:"env"`
+	App        App        `yaml:"app"`
+	HttpServer HttpServer `yaml:"httpServer"`
+	Log        Log        `yaml:"log"`
+	Postgres   Postgres   `yaml:"postgres"`
+	// TODO: shitty ass code
+	PostgresWrite PostgresWrite `yaml:"postgresWrite"`
 	S3            S3            `yaml:"s3"`
 	Sentry        Sentry        `yaml:"sentry"`
 	SensitiveKeys SensitiveKeys `yaml:"sensitiveKeys"`
@@ -60,6 +62,8 @@ type Postgres struct {
 	MaxConnections  int32  `yaml:"maxConnections"`
 	MaxConnIdleTime int32  `yaml:"maxConnIdleTime"`
 }
+
+type PostgresWrite = Postgres
 
 type S3 struct {
 	Region          string `yaml:"region"`

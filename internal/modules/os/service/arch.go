@@ -44,10 +44,11 @@ func (s *ServiceImpl) ListArchs(ctx context.Context, params ListArchsParams) (re
 	}
 
 	return pagination.PaginateResult[osmodel.Arch]{
-		Total: total,
-		Limit: params.Limit,
-		Page:  params.Offset(),
-		Data:  archs,
+		Total:    total,
+		Limit:    params.Limit,
+		Page:     params.Page,
+		Data:     archs,
+		NextPage: params.NextPage(total),
 	}, nil
 }
 

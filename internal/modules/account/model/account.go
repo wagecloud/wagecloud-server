@@ -1,6 +1,10 @@
 package accountmodel
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type AccountType string
 
@@ -9,27 +13,22 @@ const (
 	AccountTypeUser  AccountType = "ACCOUNT_TYPE_USER"
 )
 
-type Account interface {
-	Base() AccountBase
-}
-
 type AccountBase struct {
 	ID        int64       `json:"id"` /* unique */
 	Type      AccountType `json:"type"`
-	Name      string      `json:"name"`
 	Username  string      `json:"username"` /* unique */
 	Password  string      `json:"-"`
-	CreatedAt int64       `json:"created_at"`
-	UpdatedAt int64       `json:"updated_at"`
-}
-
-func (a AccountBase) Base() AccountBase {
-	return a
+	CreatedAt time.Time   `json:"created_at"`
 }
 
 type AccountUser struct {
-	AccountBase
-	Email string `json:"email"` /* unique */
+	ID        int64   `json:"id"` /* unique */
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+	Email     *string `json:"email"` /* unique */
+	Phone     *string `json:"phone"` /* unique */
+	Company   *string `json:"company"`
+	Address   *string `json:"address"`
 }
 
 type AuthenticatedAccount struct {
