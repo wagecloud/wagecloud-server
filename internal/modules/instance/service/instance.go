@@ -201,6 +201,7 @@ type ListInstancesParams struct {
 	Account       accountmodel.AuthenticatedAccount
 	OsID          *string
 	ArchID        *string
+	RegionID      *string
 	Name          *string
 	CpuFrom       *int64
 	CpuTo         *int64
@@ -217,6 +218,7 @@ func (s *ServiceImpl) ListInstances(ctx context.Context, params ListInstancesPar
 		PaginationParams: params.PaginationParams,
 		OsID:             params.OsID,
 		ArchID:           params.ArchID,
+		RegionID:         params.RegionID,
 		Name:             params.Name,
 		CpuFrom:          params.CpuFrom,
 		CpuTo:            params.CpuTo,

@@ -50,6 +50,7 @@ type ListInstancesRequest struct {
 	NetworkID     *string `query:"network_id"`
 	OsID          *string `query:"os_id"`
 	ArchID        *string `query:"arch_id"`
+	RegionID      *string `query:"region_id"`
 	Name          *string `query:"name"`
 	CpuFrom       *int64  `query:"cpu_from"`
 	CpuTo         *int64  `query:"cpu_to"`
@@ -84,6 +85,7 @@ func (h *EchoHandler) ListInstances(c echo.Context) error {
 		Account:       claims.ToAuthenticatedAccount(),
 		OsID:          req.OsID,
 		ArchID:        req.ArchID,
+		RegionID:      req.RegionID,
 		Name:          req.Name,
 		CpuFrom:       req.CpuFrom,
 		CpuTo:         req.CpuTo,
