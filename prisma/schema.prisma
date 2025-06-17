@@ -18,13 +18,11 @@ datasource db {
 // Account
 
 model AccountBase {
-  id         BigInt   @id @default(autoincrement())
+  id         BigInt      @id @default(autoincrement())
   type       AccountType
-  name       String   @db.VarChar(255)
-  username   String   @unique
-  password   String   @db.VarChar(255)
-  created_at DateTime @default(now()) @db.Timestamptz(3)
-  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+  username   String      @unique
+  password   String      @db.VarChar(255)
+  created_at DateTime    @default(now()) @db.Timestamptz(3)
 
   User     AccountUser?
   Payments Payment[]
@@ -34,8 +32,13 @@ model AccountBase {
 }
 
 model AccountUser {
-  id    BigInt @id
-  email String @unique
+  id         BigInt  @id
+  first_name String  @db.VarChar(255)
+  last_name  String  @db.VarChar(255)
+  email      String? @unique
+  phone      String? @unique
+  company    String? @db.VarChar(255)
+  address    String? @db.VarChar(255)
 
   Instances Instance[]
 
@@ -60,32 +63,82 @@ model Instance {
   account_id BigInt
   os_id      String
   arch_id    String
+  region_id  String
 
-  name       String
-  cpu        Int
-  ram        Int // In MB
-  storage    Int // In GB
+  name    String
+  cpu     Int
+  ram     Int // In MB
+  storage Int // In GB
+
   created_at DateTime @default(now()) @db.Timestamptz(3)
-  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
-  User    AccountUser @relation(fields: [account_id], references: [id])
-  OS      OS          @relation(fields: [os_id], references: [id])
-  Arch    Arch        @relation(fields: [arch_id], references: [id])
+  User   AccountUser @relation(fields: [account_id], references: [id])
+  OS     OS          @relation(fields: [os_id], references: [id])
+  Arch   Arch        @relation(fields: [arch_id], references: [id])
+  Region Region      @relation(fields: [region_id], references: [id])
 
-  Network Network?
+  Network     Network?
+  InstanceLog InstanceLog[]
 
   @@map("base")
   @@schema("instance")
 }
 
 model Network {
-  id         String   @id
-  private_ip String
-  created_at DateTime @default(now()) @db.Timestamptz(3)
+  id          BigInt  @id @default(autoincrement())
+  instance_id String  @unique
+  private_ip  String
+  public_ip   String?
 
-  Instance  Instance @relation(fields: [id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Instance Instance @relation(fields: [instance_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Domain   Domain[]
 
   @@map("network")
+  @@schema("instance")
+}
+
+model Domain {
+  id         BigInt @id @default(autoincrement())
+  network_id BigInt
+  name       String @unique
+
+  Network Network @relation(fields: [network_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@map("domain")
+  @@schema("instance")
+}
+
+enum LogType {
+  LOG_TYPE_UNKNOWN
+  LOG_TYPE_INFO
+  LOG_TYPE_WARNING
+  LOG_TYPE_ERROR
+
+  @@map("log_type")
+  @@schema("instance")
+}
+
+model InstanceLog {
+  id          BigInt   @id @default(autoincrement())
+  instance_id String
+  type        LogType
+  title       String
+  description String?
+  created_at  DateTime @default(now()) @db.Timestamptz(3)
+
+  Instance Instance @relation(fields: [instance_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@map("log")
+  @@schema("instance")
+}
+
+model Region {
+  id   String @id
+  name String
+
+  Instances Instance[]
+
+  @@map("region")
   @@schema("instance")
 }
 
@@ -98,7 +151,6 @@ model OS {
   created_at DateTime @default(now()) @db.Timestamptz(3)
 
   Instances Instance[]
-  OSImages  OSImage[]
 
   @@map("base")
   @@schema("os")
@@ -110,23 +162,8 @@ model Arch {
   created_at DateTime @default(now()) @db.Timestamptz(3)
 
   Instances Instance[]
-  OSImages  OSImage[]
 
   @@map("arch")
-  @@schema("os")
-}
-
-model OSImage {
-  id         String   @id
-  name       String
-  os_id      String
-  arch_id    String
-  created_at DateTime @default(now()) @db.Timestamptz(3)
-
-  OS   OS   @relation(fields: [os_id], references: [id])
-  Arch Arch @relation(fields: [arch_id], references: [id])
-
-  @@map("image")
   @@schema("os")
 }
 
