@@ -94,7 +94,35 @@ func setupSentry() {
 func setupModules() {
 	logger.Log.Info("Setting up modules...")
 
-	pgpoolread, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
+	// pgpoolread, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
+	// 	Url:             config.GetConfig().Postgres.Url,
+	// 	Host:            config.GetConfig().Postgres.Host,
+	// 	Port:            config.GetConfig().Postgres.Port,
+	// 	Username:        config.GetConfig().Postgres.Username,
+	// 	Password:        config.GetConfig().Postgres.Password,
+	// 	Database:        config.GetConfig().Postgres.Database,
+	// 	MaxConnections:  config.GetConfig().Postgres.MaxConnections,
+	// 	MaxConnIdleTime: config.GetConfig().Postgres.MaxConnIdleTime,
+	// })
+	// if err != nil {
+	// 	log.Fatalf("Failed to get pgx pool: %v", err)
+	// }
+
+	// pgpoolwrite, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
+	// 	Url:             config.GetConfig().PostgresWrite.Url,
+	// 	Host:            config.GetConfig().PostgresWrite.Host,
+	// 	Port:            config.GetConfig().PostgresWrite.Port,
+	// 	Username:        config.GetConfig().PostgresWrite.Username,
+	// 	Password:        config.GetConfig().PostgresWrite.Password,
+	// 	Database:        config.GetConfig().PostgresWrite.Database,
+	// 	MaxConnections:  config.GetConfig().PostgresWrite.MaxConnections,
+	// 	MaxConnIdleTime: config.GetConfig().PostgresWrite.MaxConnIdleTime,
+	// })
+	// if err != nil {
+	// 	log.Fatalf("Failed to get pgx pool for write: %v", err)
+	// }
+
+	pgpool, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
 		Url:             config.GetConfig().Postgres.Url,
 		Host:            config.GetConfig().Postgres.Host,
 		Port:            config.GetConfig().Postgres.Port,
@@ -103,20 +131,6 @@ func setupModules() {
 		Database:        config.GetConfig().Postgres.Database,
 		MaxConnections:  config.GetConfig().Postgres.MaxConnections,
 		MaxConnIdleTime: config.GetConfig().Postgres.MaxConnIdleTime,
-	})
-	if err != nil {
-		log.Fatalf("Failed to get pgx pool: %v", err)
-	}
-
-	pgpoolwrite, err := pgxpool.NewPgxpool(pgxpool.PgxpoolOptions{
-		Url:             config.GetConfig().PostgresWrite.Url,
-		Host:            config.GetConfig().PostgresWrite.Host,
-		Port:            config.GetConfig().PostgresWrite.Port,
-		Username:        config.GetConfig().PostgresWrite.Username,
-		Password:        config.GetConfig().PostgresWrite.Password,
-		Database:        config.GetConfig().PostgresWrite.Database,
-		MaxConnections:  config.GetConfig().PostgresWrite.MaxConnections,
-		MaxConnIdleTime: config.GetConfig().PostgresWrite.MaxConnIdleTime,
 	})
 	if err != nil {
 		log.Fatalf("Failed to get pgx pool for write: %v", err)
@@ -156,7 +170,7 @@ func setupModules() {
 	}
 
 	svcCtx := serviceContext{
-		db:            pgxpool.NewDBRouter(pgpoolread, pgpoolwrite),
+		db:            pgpool,
 		e:             v1,
 		targetService: ptr.DerefDefault(targetService, ""),
 		httpClient:    &http.Client{},
