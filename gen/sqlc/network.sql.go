@@ -15,47 +15,46 @@ const countNetworks = `-- name: CountNetworks :one
 SELECT COUNT(id)
 FROM "instance"."network"
 WHERE (
-  (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
+  (instance_id = $1 OR $1 IS NULL) AND
   (private_ip ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
-  (created_at >= $3 OR $3 IS NULL) AND
-  (created_at <= $4 OR $4 IS NULL)
+  (public_ip ILIKE '%' || $3 || '%' OR $3 IS NULL)
 )
 `
 
 type CountNetworksParams struct {
-	ID            pgtype.Text
-	PrivateIp     pgtype.Text
-	CreatedAtFrom pgtype.Timestamptz
-	CreatedAtTo   pgtype.Timestamptz
+	InstanceID pgtype.Text
+	PrivateIp  pgtype.Text
+	PublicIp   pgtype.Text
 }
 
 func (q *Queries) CountNetworks(ctx context.Context, arg CountNetworksParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countNetworks,
-		arg.ID,
-		arg.PrivateIp,
-		arg.CreatedAtFrom,
-		arg.CreatedAtTo,
-	)
+	row := q.db.QueryRow(ctx, countNetworks, arg.InstanceID, arg.PrivateIp, arg.PublicIp)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const createNetwork = `-- name: CreateNetwork :one
-INSERT INTO "instance"."network" (id, private_ip)
-VALUES ($1, $2)
-RETURNING id, private_ip, created_at
+INSERT INTO "instance"."network" (instance_id, private_ip, public_ip)
+VALUES ($1, $2, $3)
+RETURNING id, instance_id, private_ip, public_ip
 `
 
 type CreateNetworkParams struct {
-	ID        string
-	PrivateIp string
+	InstanceID string
+	PrivateIp  string
+	PublicIp   pgtype.Text
 }
 
 func (q *Queries) CreateNetwork(ctx context.Context, arg CreateNetworkParams) (InstanceNetwork, error) {
-	row := q.db.QueryRow(ctx, createNetwork, arg.ID, arg.PrivateIp)
+	row := q.db.QueryRow(ctx, createNetwork, arg.InstanceID, arg.PrivateIp, arg.PublicIp)
 	var i InstanceNetwork
-	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.InstanceID,
+		&i.PrivateIp,
+		&i.PublicIp,
+	)
 	return i, err
 }
 
@@ -64,53 +63,55 @@ DELETE FROM "instance"."network"
 WHERE id = $1
 `
 
-func (q *Queries) DeleteNetwork(ctx context.Context, id string) error {
+func (q *Queries) DeleteNetwork(ctx context.Context, id int64) error {
 	_, err := q.db.Exec(ctx, deleteNetwork, id)
 	return err
 }
 
 const getNetwork = `-- name: GetNetwork :one
-SELECT network.id, network.private_ip, network.created_at
+SELECT network.id, network.instance_id, network.private_ip, network.public_ip
 FROM "instance"."network" network
 WHERE id = $1
 `
 
-func (q *Queries) GetNetwork(ctx context.Context, id string) (InstanceNetwork, error) {
+func (q *Queries) GetNetwork(ctx context.Context, id int64) (InstanceNetwork, error) {
 	row := q.db.QueryRow(ctx, getNetwork, id)
 	var i InstanceNetwork
-	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.InstanceID,
+		&i.PrivateIp,
+		&i.PublicIp,
+	)
 	return i, err
 }
 
 const listNetworks = `-- name: ListNetworks :many
-SELECT network.id, network.private_ip, network.created_at
+SELECT network.id, network.instance_id, network.private_ip, network.public_ip
 FROM "instance"."network" network
 WHERE (
-  (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
+  (instance_id = $1 OR $1 IS NULL) AND
   (private_ip ILIKE '%' || $2 || '%' OR $2 IS NULL) AND
-  (created_at >= $3 OR $3 IS NULL) AND
-  (created_at <= $4 OR $4 IS NULL)
+  (public_ip ILIKE '%' || $3 || '%' OR $3 IS NULL)
 )
-ORDER BY created_at DESC
-LIMIT $6
-OFFSET $5
+ORDER BY id DESC
+LIMIT $5
+OFFSET $4
 `
 
 type ListNetworksParams struct {
-	ID            pgtype.Text
-	PrivateIp     pgtype.Text
-	CreatedAtFrom pgtype.Timestamptz
-	CreatedAtTo   pgtype.Timestamptz
-	Offset        int32
-	Limit         int32
+	InstanceID pgtype.Text
+	PrivateIp  pgtype.Text
+	PublicIp   pgtype.Text
+	Offset     int32
+	Limit      int32
 }
 
 func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]InstanceNetwork, error) {
 	rows, err := q.db.Query(ctx, listNetworks,
-		arg.ID,
+		arg.InstanceID,
 		arg.PrivateIp,
-		arg.CreatedAtFrom,
-		arg.CreatedAtTo,
+		arg.PublicIp,
 		arg.Offset,
 		arg.Limit,
 	)
@@ -121,7 +122,12 @@ func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]I
 	var items []InstanceNetwork
 	for rows.Next() {
 		var i InstanceNetwork
-		if err := rows.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.InstanceID,
+			&i.PrivateIp,
+			&i.PublicIp,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -135,19 +141,40 @@ func (q *Queries) ListNetworks(ctx context.Context, arg ListNetworksParams) ([]I
 const updateNetwork = `-- name: UpdateNetwork :one
 UPDATE "instance"."network"
 SET
-    private_ip = COALESCE($2, private_ip)
-WHERE id = $1
-RETURNING id, private_ip, created_at
+    private_ip = COALESCE($1, private_ip),
+    public_ip = CASE
+        WHEN $2::boolean THEN NULL
+        ELSE COALESCE($3, public_ip)
+    END
+WHERE (
+  (id = $4 OR $4 IS NULL) AND
+  (instance_id = $5 OR $5 IS NULL)
+)
+RETURNING id, instance_id, private_ip, public_ip
 `
 
 type UpdateNetworkParams struct {
-	ID        string
-	PrivateIp pgtype.Text
+	PrivateIp    pgtype.Text
+	NullPublicIp bool
+	PublicIp     pgtype.Text
+	ID           pgtype.Int8
+	InstanceID   pgtype.Text
 }
 
 func (q *Queries) UpdateNetwork(ctx context.Context, arg UpdateNetworkParams) (InstanceNetwork, error) {
-	row := q.db.QueryRow(ctx, updateNetwork, arg.ID, arg.PrivateIp)
+	row := q.db.QueryRow(ctx, updateNetwork,
+		arg.PrivateIp,
+		arg.NullPublicIp,
+		arg.PublicIp,
+		arg.ID,
+		arg.InstanceID,
+	)
 	var i InstanceNetwork
-	err := row.Scan(&i.ID, &i.PrivateIp, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.InstanceID,
+		&i.PrivateIp,
+		&i.PublicIp,
+	)
 	return i, err
 }

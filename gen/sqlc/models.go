@@ -53,6 +53,50 @@ func (ns NullAccountType) Value() (driver.Value, error) {
 	return string(ns.AccountType), nil
 }
 
+type InstanceLogType string
+
+const (
+	InstanceLogTypeLOGTYPEUNKNOWN InstanceLogType = "LOG_TYPE_UNKNOWN"
+	InstanceLogTypeLOGTYPEINFO    InstanceLogType = "LOG_TYPE_INFO"
+	InstanceLogTypeLOGTYPEWARNING InstanceLogType = "LOG_TYPE_WARNING"
+	InstanceLogTypeLOGTYPEERROR   InstanceLogType = "LOG_TYPE_ERROR"
+)
+
+func (e *InstanceLogType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = InstanceLogType(s)
+	case string:
+		*e = InstanceLogType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for InstanceLogType: %T", src)
+	}
+	return nil
+}
+
+type NullInstanceLogType struct {
+	InstanceLogType InstanceLogType
+	Valid           bool // Valid is true if InstanceLogType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullInstanceLogType) Scan(value interface{}) error {
+	if value == nil {
+		ns.InstanceLogType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.InstanceLogType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullInstanceLogType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.InstanceLogType), nil
+}
+
 type PaymentMethod string
 
 const (
@@ -144,16 +188,19 @@ func (ns NullPaymentStatus) Value() (driver.Value, error) {
 type AccountBase struct {
 	ID        int64
 	Type      AccountType
-	Name      string
 	Username  string
 	Password  string
 	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
 }
 
 type AccountUser struct {
-	ID    int64
-	Email string
+	ID        int64
+	FirstName string
+	LastName  string
+	Email     pgtype.Text
+	Phone     pgtype.Text
+	Company   pgtype.Text
+	Address   pgtype.Text
 }
 
 type InstanceBase struct {
@@ -161,18 +208,39 @@ type InstanceBase struct {
 	AccountID int64
 	OsID      string
 	ArchID    string
+	RegionID  string
 	Name      string
 	Cpu       int32
 	Ram       int32
 	Storage   int32
 	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+}
+
+type InstanceDomain struct {
+	ID        int64
+	NetworkID int64
+	Name      string
+}
+
+type InstanceLog struct {
+	ID          int64
+	InstanceID  string
+	Type        InstanceLogType
+	Title       string
+	Description pgtype.Text
+	CreatedAt   pgtype.Timestamptz
 }
 
 type InstanceNetwork struct {
-	ID        string
-	PrivateIp string
-	CreatedAt pgtype.Timestamptz
+	ID         int64
+	InstanceID string
+	PrivateIp  string
+	PublicIp   pgtype.Text
+}
+
+type InstanceRegion struct {
+	ID   string
+	Name string
 }
 
 type OsArch struct {
@@ -184,14 +252,6 @@ type OsArch struct {
 type OsBase struct {
 	ID        string
 	Name      string
-	CreatedAt pgtype.Timestamptz
-}
-
-type OsImage struct {
-	ID        string
-	Name      string
-	OsID      string
-	ArchID    string
 	CreatedAt pgtype.Timestamptz
 }
 
