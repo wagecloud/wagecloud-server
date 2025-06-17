@@ -20,6 +20,7 @@ type GetUserRequest struct {
 	ID       *int64  `query:"id" validate:"omitempty"`
 	Username *string `query:"username" validate:"omitempty,min=1,max=255"`
 	Email    *string `query:"email" validate:"omitempty,email"`
+	Phone    *string `query:"phone" validate:"omitempty,phone"`
 }
 
 func (h *EchoHandler) GetUser(c echo.Context) error {
@@ -46,6 +47,7 @@ func (h *EchoHandler) GetUser(c echo.Context) error {
 		ID:       req.ID,
 		Username: req.Username,
 		Email:    req.Email,
+		Phone:    req.Phone,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
@@ -58,6 +60,7 @@ type LoginUserRequest struct {
 	ID       *int64  `json:"id" validate:"omitempty"`
 	Username *string `json:"username" validate:"omitempty"`
 	Email    *string `json:"email" validate:"omitempty"`
+	Phone    *string `json:"phone" validate:"omitempty"`
 	Password string  `json:"password" validate:"required"`
 }
 
@@ -75,6 +78,7 @@ func (h *EchoHandler) LoginUser(c echo.Context) error {
 		ID:       req.ID,
 		Username: req.Username,
 		Email:    req.Email,
+		Phone:    req.Phone,
 		Password: req.Password,
 	})
 	if err != nil {
@@ -85,10 +89,12 @@ func (h *EchoHandler) LoginUser(c echo.Context) error {
 }
 
 type RegisterUserRequest struct {
-	Username string `json:"username" validate:"required,min=1,max=255"`
-	Email    string `json:"email" validate:"required,email"`
-	Name     string `json:"name" validate:"required,min=1,max=255"`
-	Password string `json:"password" validate:"required,min=8,max=72"`
+	FirstName string  `json:"first_name" validate:"required,min=1,max=255"`
+	LastName  string  `json:"last_name" validate:"required,min=1,max=255"`
+	Username  string  `json:"username" validate:"required,min=1,max=255"`
+	Password  string  `json:"password" validate:"required,min=8,max=72"`
+	Email     *string `json:"email" validate:"required,email"`
+	Phone     *string `json:"phone" validate:"omitempty,phone"`
 }
 
 func (h *EchoHandler) RegisterUser(c echo.Context) error {
@@ -102,10 +108,12 @@ func (h *EchoHandler) RegisterUser(c echo.Context) error {
 	}
 
 	result, err := h.service.RegisterUser(c.Request().Context(), accountsvc.RegisterUserParams{
-		Name:     req.Name,
-		Email:    req.Email,
-		Username: req.Username,
-		Password: req.Password,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Username:  req.Username,
+		Password:  req.Password,
+		Email:     req.Email,
+		Phone:     req.Phone,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
