@@ -2,53 +2,51 @@ package instancestorage
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/wagecloud/wagecloud-server/gen/sqlc"
 	instancemodel "github.com/wagecloud/wagecloud-server/internal/modules/instance/model"
 	"github.com/wagecloud/wagecloud-server/internal/shared/pagination"
 	pgxptr "github.com/wagecloud/wagecloud-server/internal/utils/pgx/ptr"
-	"github.com/wagecloud/wagecloud-server/internal/utils/ptr"
 )
 
-func (r *Storage) GetNetwork(ctx context.Context, id string) (instancemodel.Network, error) {
+func (r *Storage) GetNetwork(ctx context.Context, id int64) (instancemodel.Network, error) {
 	network, err := r.sqlc.GetNetwork(ctx, id)
 	if err != nil {
 		return instancemodel.Network{}, err
 	}
 
 	return instancemodel.Network{
-		ID:        network.ID,
-		PrivateIP: network.PrivateIp,
-		CreatedAt: network.CreatedAt.Time.UnixMilli(),
+		ID:         network.ID,
+		PrivateIP:  network.PrivateIp,
+		InstanceID: network.InstanceID,
+		PublicIP:   pgxptr.PgtypeToPtr[string](network.PublicIp),
 	}, nil
 }
 
 type ListNetworksParams struct {
 	pagination.PaginationParams
-	ID            *string
-	PrivateIP     *string
-	CreatedAtFrom *int64
-	CreatedAtTo   *int64
+	InstanceID *string
+	PrivateIP  *string
+	PublicIP   *string
 }
 
 func (r *Storage) CountNetworks(ctx context.Context, params ListNetworksParams) (int64, error) {
 	return r.sqlc.CountNetworks(ctx, sqlc.CountNetworksParams{
-		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
-		PrivateIp:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
-		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
-		CreatedAtTo:   *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
+		InstanceID: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.InstanceID),
+		PrivateIp:  *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
+		PublicIp:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PublicIP),
 	})
 }
 
 func (r *Storage) ListNetworks(ctx context.Context, params ListNetworksParams) ([]instancemodel.Network, error) {
 	networks, err := r.sqlc.ListNetworks(ctx, sqlc.ListNetworksParams{
-		Offset:        params.Offset(),
-		Limit:         params.Limit,
-		ID:            *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
-		PrivateIp:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
-		CreatedAtFrom: *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtFrom)),
-		CreatedAtTo:   *pgxptr.PtrToPgtype(&pgtype.Timestamptz{}, ptr.PtrMilisToTime(params.CreatedAtTo)),
+		Offset:     params.Offset(),
+		Limit:      params.Limit,
+		InstanceID: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.InstanceID),
+		PrivateIp:  *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
+		PublicIp:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PublicIP),
 	})
 	if err != nil {
 		return nil, err
@@ -57,9 +55,10 @@ func (r *Storage) ListNetworks(ctx context.Context, params ListNetworksParams) (
 	var result []instancemodel.Network
 	for _, network := range networks {
 		result = append(result, instancemodel.Network{
-			ID:        network.ID,
-			PrivateIP: network.PrivateIp,
-			CreatedAt: network.CreatedAt.Time.UnixMilli(),
+			ID:         network.ID,
+			PrivateIP:  network.PrivateIp,
+			InstanceID: network.InstanceID,
+			PublicIP:   pgxptr.PgtypeToPtr[string](network.PublicIp),
 		})
 	}
 
@@ -68,39 +67,54 @@ func (r *Storage) ListNetworks(ctx context.Context, params ListNetworksParams) (
 
 func (r *Storage) CreateNetwork(ctx context.Context, network instancemodel.Network) (instancemodel.Network, error) {
 	row, err := r.sqlc.CreateNetwork(ctx, sqlc.CreateNetworkParams{
-		ID:        network.ID,
-		PrivateIp: network.PrivateIP,
+		InstanceID: network.InstanceID,
+		PrivateIp:  network.PrivateIP,
+		PublicIp:   *pgxptr.PtrToPgtype(&pgtype.Text{}, network.PublicIP),
 	})
 	if err != nil {
 		return instancemodel.Network{}, err
 	}
 
 	return instancemodel.Network{
-		ID:        row.ID,
-		PrivateIP: row.PrivateIp,
+		ID:         row.ID,
+		InstanceID: row.InstanceID,
+		PrivateIP:  row.PrivateIp,
+		PublicIP:   pgxptr.PgtypeToPtr[string](row.PublicIp),
 	}, nil
 }
 
 type UpdateNetworkParams struct {
-	ID        string
-	PrivateIP *string
+	ID           *int64
+	InstanceID   *string
+	PrivateIP    *string
+	PublicIP     *string
+	NullPublicIP bool
 }
 
 func (r *Storage) UpdateNetwork(ctx context.Context, params UpdateNetworkParams) (instancemodel.Network, error) {
+	if params.ID == nil && params.InstanceID == nil {
+		return instancemodel.Network{}, errors.New("either ID or InstanceID must be provided")
+	}
+
 	row, err := r.sqlc.UpdateNetwork(ctx, sqlc.UpdateNetworkParams{
-		ID:        params.ID,
-		PrivateIp: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
+		ID:           *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.ID),
+		InstanceID:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.InstanceID),
+		PrivateIp:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
+		PublicIp:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PublicIP),
+		NullPublicIp: params.NullPublicIP,
 	})
 	if err != nil {
 		return instancemodel.Network{}, err
 	}
 
 	return instancemodel.Network{
-		ID:        row.ID,
-		PrivateIP: row.PrivateIp,
+		ID:         row.ID,
+		InstanceID: row.InstanceID,
+		PrivateIP:  row.PrivateIp,
+		PublicIP:   pgxptr.PgtypeToPtr[string](row.PublicIp),
 	}, nil
 }
 
-func (r *Storage) DeleteNetwork(ctx context.Context, id string) error {
+func (r *Storage) DeleteNetwork(ctx context.Context, id int64) error {
 	return r.sqlc.DeleteNetwork(ctx, id)
 }

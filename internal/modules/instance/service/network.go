@@ -84,7 +84,7 @@ func (s *ServiceImpl) UnmapPortNginx(ctx context.Context, params UnmapPortNginxP
 }
 
 type GetNetworkParams struct {
-	ID string
+	ID int64
 }
 
 func (s *ServiceImpl) GetNetwork(ctx context.Context, params GetNetworkParams) (instancemodel.Network, error) {
@@ -93,22 +93,18 @@ func (s *ServiceImpl) GetNetwork(ctx context.Context, params GetNetworkParams) (
 
 type ListNetworksParams struct {
 	pagination.PaginationParams
-	ID            *string
-	PrivateIP     *string
-	CreatedAtFrom *int64
-	CreatedAtTo   *int64
+	ID        *string
+	PrivateIP *string
+	PublicIP  *string
 }
 
 func (s *ServiceImpl) ListNetworks(ctx context.Context, params ListNetworksParams) (res pagination.PaginateResult[instancemodel.Network], err error) {
 	repoParams := instancestorage.ListNetworksParams{
 		PaginationParams: params.PaginationParams,
-		ID:               params.ID,
+		InstanceID:       params.ID,
 		PrivateIP:        params.PrivateIP,
-		CreatedAtFrom:    params.CreatedAtFrom,
-		CreatedAtTo:      params.CreatedAtTo,
+		PublicIP:         params.PublicIP,
 	}
-
-	fmt.Println(repoParams)
 
 	total, err := s.storage.CountNetworks(ctx, repoParams)
 	if err != nil {
@@ -130,31 +126,39 @@ func (s *ServiceImpl) ListNetworks(ctx context.Context, params ListNetworksParam
 }
 
 type CreateNetworkParams struct {
-	ID        string
-	PrivateIP string
+	InstanceID string
+	PrivateIP  string
+	PublicIP   *string
 }
 
 func (s *ServiceImpl) CreateNetwork(ctx context.Context, params CreateNetworkParams) (instancemodel.Network, error) {
 	return s.storage.CreateNetwork(ctx, instancemodel.Network{
-		ID:        params.ID,
-		PrivateIP: params.PrivateIP,
+		InstanceID: params.InstanceID,
+		PrivateIP:  params.PrivateIP,
+		PublicIP:   params.PublicIP,
 	})
 }
 
 type UpdateNetworkParams struct {
-	ID        string
-	PrivateIP *string
+	ID           *int64
+	InstanceID   *string
+	PrivateIP    *string
+	PublicIP     *string
+	NullPublicIP bool
 }
 
 func (s *ServiceImpl) UpdateNetwork(ctx context.Context, params UpdateNetworkParams) (instancemodel.Network, error) {
 	return s.storage.UpdateNetwork(ctx, instancestorage.UpdateNetworkParams{
-		ID:        params.ID,
-		PrivateIP: params.PrivateIP,
+		ID:           params.ID,
+		InstanceID:   params.InstanceID,
+		PrivateIP:    params.PrivateIP,
+		PublicIP:     params.PublicIP,
+		NullPublicIP: params.NullPublicIP,
 	})
 }
 
 type DeleteNetworkParams struct {
-	ID string
+	ID int64
 }
 
 func (s *ServiceImpl) DeleteNetwork(ctx context.Context, params DeleteNetworkParams) error {
