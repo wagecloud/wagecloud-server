@@ -2,6 +2,7 @@ package echovalidator
 
 import (
 	"net/http"
+	"regexp"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -12,8 +13,11 @@ type CustomValidator struct {
 }
 
 func NewCustomValidator() *CustomValidator {
+	v := validator.New()
+	v.RegisterValidation("phone", validatePhone)
+
 	return &CustomValidator{
-		validator: validator.New(),
+		validator: v,
 	}
 }
 
@@ -23,4 +27,11 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return nil
+}
+
+func validatePhone(fl validator.FieldLevel) bool {
+	phone := fl.Field().String()
+	// Simple phone regex - adjust pattern as needed
+	phoneRegex := regexp.MustCompile(`^\+?[1-9]\d{1,14}$`)
+	return phoneRegex.MatchString(phone)
 }
