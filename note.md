@@ -30,3 +30,28 @@ sudo qemu-img create -b /var/lib/libvirt/images/alexng/base/focal-server-cloudim
 
 * Calling to other services must use saga pattern to ensure that the system is resilient to failures and can recover gracefully.
 Eg: service A calls service B, if service B fails, service A should run the compensating transaction to revert the changes made by service A.
+
+The difference between = NULL and IS NULL is fundamental in SQL:
+= NULL vs IS NULL
+= NULL
+
+Always evaluates to UNKNOWN (which is treated as FALSE in WHERE clauses)
+This is because NULL represents "unknown value" in SQL
+Comparing anything to an unknown value results in unknown
+
+IS NULL
+
+Proper way to check for NULL values
+Returns TRUE if the value is NULL, FALSE if it's not NULL
+=> This query works fine!
+-- name: GetAccount :one
+SELECT b.*, u.*
+FROM "account"."base" b
+LEFT JOIN "account"."user" u ON b.id = u.id
+WHERE (
+  (b.type = sqlc.arg('type')) AND
+  (b.id = sqlc.narg('id') OR
+  b.username = sqlc.narg('username') OR
+  u.email = sqlc.narg('email') OR
+  u.phone = sqlc.narg('phone'))
+);
