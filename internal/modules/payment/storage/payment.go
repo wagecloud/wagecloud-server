@@ -2,7 +2,6 @@ package paymentstorage
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -56,9 +55,6 @@ func (ts *TxStorage) Rollback(ctx context.Context) error {
 func (s *Storage) GetPayment(ctx context.Context, id int64) (paymentmodel.Payment, error) {
 	payment, err := s.sqlc.GetPayment(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return paymentmodel.Payment{}, nil
-		}
 		return paymentmodel.Payment{}, err
 	}
 
@@ -74,7 +70,6 @@ func (s *Storage) GetPayment(ctx context.Context, id int64) (paymentmodel.Paymen
 
 type ListPaymentsParams struct {
 	pagination.PaginationParams
-	ID              *string
 	AccountID       *int64
 	Method          *paymentmodel.PaymentMethod
 	Status          *paymentmodel.PaymentStatus
@@ -84,7 +79,6 @@ type ListPaymentsParams struct {
 
 func (s *Storage) CountPayments(ctx context.Context, params ListPaymentsParams) (int64, error) {
 	return s.sqlc.CountPayments(ctx, sqlc.CountPaymentsParams{
-		ID:              *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
 		AccountID:       *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
 		Method:          *pgxptr.PtrBrandedToPgType(&sqlc.NullPaymentMethod{}, params.Method),
 		Status:          *pgxptr.PtrBrandedToPgType(&sqlc.NullPaymentStatus{}, params.Status),
@@ -95,7 +89,6 @@ func (s *Storage) CountPayments(ctx context.Context, params ListPaymentsParams) 
 
 func (s *Storage) ListPayments(ctx context.Context, params ListPaymentsParams) ([]paymentmodel.Payment, error) {
 	payments, err := s.sqlc.ListPayments(ctx, sqlc.ListPaymentsParams{
-		ID:              *pgxptr.PtrToPgtype(&pgtype.Text{}, params.ID),
 		AccountID:       *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.AccountID),
 		Method:          *pgxptr.PtrBrandedToPgType(&sqlc.NullPaymentMethod{}, params.Method),
 		Status:          *pgxptr.PtrBrandedToPgType(&sqlc.NullPaymentStatus{}, params.Status),

@@ -83,7 +83,6 @@ func (h *EchoHandler) ListPayments(c echo.Context) error {
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
-		ID:              req.ID,
 		AccountID:       req.AccountID,
 		Method:          req.Method,
 		Status:          req.Status,

@@ -39,7 +39,6 @@ func (t *ImplementedPaymentServiceHandler) GetPayment(ctx context.Context, req *
 func (t *ImplementedPaymentServiceHandler) ListPayments(ctx context.Context, req *connect.Request[paymentv1.ListPaymentsRequest]) (*connect.Response[paymentv1.ListPaymentsResponse], error) {
 	result, err := t.service.ListPayments(ctx, paymentstorage.ListPaymentsParams{
 		PaginationParams: commonmodel.PaginationParamsProtoToModel(req.Msg.Pagination),
-		ID:               req.Msg.Id,
 		AccountID:        req.Msg.AccountId,
 		Method:           ptr.Convert(req.Msg.Method, paymentmodel.PaymentMethodProtoToModel),
 		Status:           ptr.Convert(req.Msg.Status, paymentmodel.PaymentStatusProtoToModel),
