@@ -124,10 +124,10 @@ FROM "account"."base" b
 LEFT JOIN "account"."user" u ON b.id = u.id
 WHERE (
   (b.type = $1) AND
-  (b.id = $2 OR $2 IS NULL) AND
-  (b.username = $3 OR $3 IS NULL) AND
-  (u.email = $4 OR $4 IS NULL) AND
-  (u.phone = $5 OR $5 IS NULL)
+  (b.id = $2 OR
+  b.username = $3 OR
+  u.email = $4 OR
+  u.phone = $5)
 )
 `
 

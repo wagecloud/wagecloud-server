@@ -235,6 +235,7 @@ type InstanceNetwork struct {
 	ID         int64
 	InstanceID string
 	PrivateIp  string
+	MacAddress string
 	PublicIp   pgtype.Text
 }
 

@@ -12,20 +12,18 @@ import (
 )
 
 const countPayments = `-- name: CountPayments :one
-SELECT COUNT(id)
-FROM "payment"."base"
+SELECT COUNT(p.id)
+FROM "payment"."base" p
 WHERE (
-  (id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
-  (account_id = $2 OR $2 IS NULL) AND
-  (method = $3 OR $3 IS NULL) AND
-  (status = $4 OR $4 IS NULL) AND
-  (date_created >= $5 OR $5 IS NULL) AND
-  (date_created <= $6 OR $6 IS NULL)
+  (p.account_id = $1 OR $1 IS NULL) AND
+  (p.method = $2 OR $2 IS NULL) AND
+  (p.status = $3 OR $3 IS NULL) AND
+  (p.date_created >= $4 OR $4 IS NULL) AND
+  (p.date_created <= $5 OR $5 IS NULL)
 )
 `
 
 type CountPaymentsParams struct {
-	ID              pgtype.Text
 	AccountID       pgtype.Int8
 	Method          NullPaymentMethod
 	Status          NullPaymentStatus
@@ -35,7 +33,6 @@ type CountPaymentsParams struct {
 
 func (q *Queries) CountPayments(ctx context.Context, arg CountPaymentsParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countPayments,
-		arg.ID,
 		arg.AccountID,
 		arg.Method,
 		arg.Status,
@@ -176,20 +173,18 @@ const listPayments = `-- name: ListPayments :many
 SELECT p.id, p.account_id, p.method, p.status, p.total, p.date_created
 FROM "payment"."base" p
 WHERE (
-  (p.id ILIKE '%' || $1 || '%' OR $1 IS NULL) AND
-  (p.account_id = $2 OR $2 IS NULL) AND
-  (p.method = $3 OR $3 IS NULL) AND
-  (p.status = $4 OR $4 IS NULL) AND
-  (p.date_created >= $5 OR $5 IS NULL) AND
-  (p.date_created <= $6 OR $6 IS NULL)
+  (p.account_id = $1 OR $1 IS NULL) AND
+  (p.method = $2 OR $2 IS NULL) AND
+  (p.status = $3 OR $3 IS NULL) AND
+  (p.date_created >= $4 OR $4 IS NULL) AND
+  (p.date_created <= $5 OR $5 IS NULL)
 )
 ORDER BY p.date_created DESC
-LIMIT $8
-OFFSET $7
+LIMIT $7
+OFFSET $6
 `
 
 type ListPaymentsParams struct {
-	ID              pgtype.Text
 	AccountID       pgtype.Int8
 	Method          NullPaymentMethod
 	Status          NullPaymentStatus
@@ -201,7 +196,6 @@ type ListPaymentsParams struct {
 
 func (q *Queries) ListPayments(ctx context.Context, arg ListPaymentsParams) ([]PaymentBase, error) {
 	rows, err := q.db.Query(ctx, listPayments,
-		arg.ID,
 		arg.AccountID,
 		arg.Method,
 		arg.Status,
