@@ -264,9 +264,13 @@ func setupServiceAccount(svcCtx serviceContext) service[accountsvc.Service] {
 	// svcCtx.mux.Handle(path, handler)
 
 	account := svcCtx.e.Group("/account")
-	account.GET("/", accountHandler.GetUser)
-	account.POST("/login/", accountHandler.LoginUser)
-	account.POST("/register/", accountHandler.RegisterUser)
+	account.PATCH("/", accountHandler.UpdateAccount)
+
+	user := account.Group("/user")
+	user.PATCH("/", accountHandler.UpdateUser)
+	user.GET("/", accountHandler.GetUser)
+	user.POST("/login/", accountHandler.LoginUser)
+	user.POST("/register/", accountHandler.RegisterUser)
 	// }
 
 	return service[accountsvc.Service]{
@@ -336,23 +340,42 @@ func setupServiceInstance(svcCtx serviceContext, osSvc ossvc.Service, paymentSvc
 	)
 	instanceHandler := instanceecho.NewEchoHandler(instanceSvc)
 
+	region := svcCtx.e.Group("/region")
+	region.GET("/", instanceHandler.ListRegions)
+	region.GET("/:id", instanceHandler.GetRegion)
+	region.POST("/", instanceHandler.CreateRegion)
+	region.PATCH("/:id", instanceHandler.UpdateRegion)
+	region.DELETE("/:id", instanceHandler.DeleteRegion)
+
 	instance := svcCtx.e.Group("/instance")
 	instance.GET("/", instanceHandler.ListInstances)
-	instance.GET("/:id", instanceHandler.GetInstance)
+	instance.GET("/:id/", instanceHandler.GetInstance)
+	instance.GET("/:id/monitor/", instanceHandler.GetInstanceMonitor)
 	instance.POST("/", instanceHandler.CreateInstance)
 	instance.POST("/start/:id/", instanceHandler.StartInstance)
 	instance.POST("/stop/:id/", instanceHandler.StopInstance)
 	instance.PATCH("/:id", instanceHandler.UpdateInstance)
 	instance.DELETE("/:id", instanceHandler.DeleteInstance)
 
-	network := instance.Group("/network")
-	network.GET("/", instanceHandler.ListNetworks)
-	network.GET("/:id", instanceHandler.GetNetwork)
-	// network.POST("/", instanceHandler.CreateNetwork)
+	log := instance.Group("/log")
+	log.GET("/:id", instanceHandler.GetInstanceLog)
+	log.GET("/", instanceHandler.ListInstanceLogs)
+	log.POST("/", instanceHandler.CreateInstanceLog)
+	log.PATCH("/:id", instanceHandler.UpdateInstanceLog)
+	log.DELETE("/:id", instanceHandler.DeleteInstanceLog)
+
+	network := svcCtx.e.Group("/network")
+	network.GET("/list/", instanceHandler.ListNetworks)
+	network.GET("/", instanceHandler.GetNetwork)
 	network.POST("/map/", instanceHandler.MapPortNginx)
 	network.POST("/unmap/", instanceHandler.UnmapPortNginx)
-	// network.PATCH("/:id", instanceHandler.UpdateNetwork)
-	// network.DELETE("/:id", instanceHandler.DeleteNetwork)
+
+	network.GET("/domain/", instanceHandler.ListDomains)
+	network.GET("/domain/:id", instanceHandler.GetDomain)
+	network.POST("/domain/", instanceHandler.CreateDomain)
+	network.PATCH("/domain/:id", instanceHandler.UpdateDomain)
+	network.DELETE("/domain/:id", instanceHandler.DeleteDomain)
+
 	// }
 
 	return service[instancesvc.Service]{
