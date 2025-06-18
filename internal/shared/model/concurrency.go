@@ -1,6 +1,9 @@
 package commonmodel
 
-import "strconv"
+import (
+	"encoding/json"
+	"strconv"
+)
 
 const FloatingPointPrecision = 1e9
 
@@ -18,6 +21,11 @@ func (c Concurrency) String() string {
 // Float64 returns the Concurrency value as a float64 but scaled by FloatingPointPrecision.
 func (c Concurrency) Float64() float64 {
 	return float64(c) / FloatingPointPrecision
+}
+
+// Implement the json.Marshaler interface for Concurrency
+func (c Concurrency) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.Float64())
 }
 
 // NewConcurrency creates a new Concurrency instance from a float64 value.
