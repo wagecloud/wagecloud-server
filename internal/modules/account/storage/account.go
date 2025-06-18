@@ -164,7 +164,6 @@ func (s *Storage) CreateAccount(ctx context.Context, account accountmodel.Accoun
 type UpdateAccountParams struct {
 	ID       int64
 	Username *string
-	Name     *string
 	Password *string
 }
 
@@ -226,7 +225,56 @@ func (s *Storage) GetUser(ctx context.Context, params GetUserParams) (accountmod
 
 func (s *Storage) CreateUser(ctx context.Context, user accountmodel.AccountUser) (accountmodel.AccountUser, error) {
 	row, err := s.sqlc.CreateUser(ctx, sqlc.CreateUserParams{
-		ID: user.ID,
+		ID:        user.ID,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     *pgxptr.PtrToPgtype(&pgtype.Text{}, user.Email),
+		Phone:     *pgxptr.PtrToPgtype(&pgtype.Text{}, user.Phone),
+		Company:   *pgxptr.PtrToPgtype(&pgtype.Text{}, user.Company),
+		Address:   *pgxptr.PtrToPgtype(&pgtype.Text{}, user.Address),
+	})
+	if err != nil {
+		return accountmodel.AccountUser{}, err
+	}
+
+	return accountmodel.AccountUser{
+		ID:        row.ID,
+		FirstName: row.FirstName,
+		LastName:  row.LastName,
+		Email:     pgxptr.PgtypeToPtr[string](row.Email),
+		Phone:     pgxptr.PgtypeToPtr[string](row.Phone),
+		Company:   pgxptr.PgtypeToPtr[string](row.Company),
+		Address:   pgxptr.PgtypeToPtr[string](row.Address),
+	}, nil
+}
+
+type UpdateUserParams struct {
+	ID          int64
+	FirstName   *string
+	LastName    *string
+	Email       *string
+	NullEmail   bool
+	Phone       *string
+	NullPhone   bool
+	Company     *string
+	NullCompany bool
+	Address     *string
+	NullAddress bool
+}
+
+func (s *Storage) UpdateUser(ctx context.Context, params UpdateUserParams) (accountmodel.AccountUser, error) {
+	row, err := s.sqlc.UpdateUser(ctx, sqlc.UpdateUserParams{
+		ID:          params.ID,
+		FirstName:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.FirstName),
+		LastName:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.LastName),
+		Email:       *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Email),
+		NullEmail:   params.NullEmail,
+		Phone:       *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Phone),
+		NullPhone:   params.NullPhone,
+		Company:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Company),
+		NullCompany: params.NullCompany,
+		Address:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.Address),
+		NullAddress: params.NullAddress,
 	})
 	if err != nil {
 		return accountmodel.AccountUser{}, err
