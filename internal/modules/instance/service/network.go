@@ -84,11 +84,15 @@ func (s *ServiceImpl) UnmapPortNginx(ctx context.Context, params UnmapPortNginxP
 }
 
 type GetNetworkParams struct {
-	ID int64
+	ID         *int64
+	InstanceID *string
 }
 
 func (s *ServiceImpl) GetNetwork(ctx context.Context, params GetNetworkParams) (instancemodel.Network, error) {
-	return s.storage.GetNetwork(ctx, params.ID)
+	return s.storage.GetNetwork(ctx, instancestorage.GetNetworkParams{
+		ID:         params.ID,
+		InstanceID: params.InstanceID,
+	})
 }
 
 type ListNetworksParams struct {

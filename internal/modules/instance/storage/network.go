@@ -11,16 +11,29 @@ import (
 	pgxptr "github.com/wagecloud/wagecloud-server/internal/utils/pgx/ptr"
 )
 
-func (r *Storage) GetNetwork(ctx context.Context, id int64) (instancemodel.Network, error) {
-	network, err := r.sqlc.GetNetwork(ctx, id)
+type GetNetworkParams struct {
+	ID         *int64
+	InstanceID *string
+}
+
+func (r *Storage) GetNetwork(ctx context.Context, params GetNetworkParams) (instancemodel.Network, error) {
+	if params.ID == nil && params.InstanceID == nil {
+		return instancemodel.Network{}, errors.New("either ID or InstanceID must be provided")
+	}
+
+	network, err := r.sqlc.GetNetwork(ctx, sqlc.GetNetworkParams{
+		ID:         *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.ID),
+		InstanceID: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.InstanceID),
+	})
 	if err != nil {
 		return instancemodel.Network{}, err
 	}
 
 	return instancemodel.Network{
 		ID:         network.ID,
-		PrivateIP:  network.PrivateIp,
 		InstanceID: network.InstanceID,
+		PrivateIP:  network.PrivateIp,
+		MacAddress: network.MacAddress,
 		PublicIP:   pgxptr.PgtypeToPtr[string](network.PublicIp),
 	}, nil
 }
@@ -29,6 +42,7 @@ type ListNetworksParams struct {
 	pagination.PaginationParams
 	InstanceID *string
 	PrivateIP  *string
+	MacAddress *string
 	PublicIP   *string
 }
 
@@ -36,6 +50,7 @@ func (r *Storage) CountNetworks(ctx context.Context, params ListNetworksParams) 
 	return r.sqlc.CountNetworks(ctx, sqlc.CountNetworksParams{
 		InstanceID: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.InstanceID),
 		PrivateIp:  *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
+		MacAddress: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.MacAddress),
 		PublicIp:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PublicIP),
 	})
 }
@@ -46,6 +61,7 @@ func (r *Storage) ListNetworks(ctx context.Context, params ListNetworksParams) (
 		Limit:      params.Limit,
 		InstanceID: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.InstanceID),
 		PrivateIp:  *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
+		MacAddress: *pgxptr.PtrToPgtype(&pgtype.Text{}, params.MacAddress),
 		PublicIp:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PublicIP),
 	})
 	if err != nil {
@@ -56,8 +72,9 @@ func (r *Storage) ListNetworks(ctx context.Context, params ListNetworksParams) (
 	for _, network := range networks {
 		result = append(result, instancemodel.Network{
 			ID:         network.ID,
-			PrivateIP:  network.PrivateIp,
 			InstanceID: network.InstanceID,
+			PrivateIP:  network.PrivateIp,
+			MacAddress: network.MacAddress,
 			PublicIP:   pgxptr.PgtypeToPtr[string](network.PublicIp),
 		})
 	}
@@ -69,6 +86,7 @@ func (r *Storage) CreateNetwork(ctx context.Context, network instancemodel.Netwo
 	row, err := r.sqlc.CreateNetwork(ctx, sqlc.CreateNetworkParams{
 		InstanceID: network.InstanceID,
 		PrivateIp:  network.PrivateIP,
+		MacAddress: network.MacAddress,
 		PublicIp:   *pgxptr.PtrToPgtype(&pgtype.Text{}, network.PublicIP),
 	})
 	if err != nil {
@@ -79,6 +97,7 @@ func (r *Storage) CreateNetwork(ctx context.Context, network instancemodel.Netwo
 		ID:         row.ID,
 		InstanceID: row.InstanceID,
 		PrivateIP:  row.PrivateIp,
+		MacAddress: row.MacAddress,
 		PublicIP:   pgxptr.PgtypeToPtr[string](row.PublicIp),
 	}, nil
 }
@@ -87,6 +106,7 @@ type UpdateNetworkParams struct {
 	ID           *int64
 	InstanceID   *string
 	PrivateIP    *string
+	MacAddress   *string
 	PublicIP     *string
 	NullPublicIP bool
 }
@@ -100,6 +120,7 @@ func (r *Storage) UpdateNetwork(ctx context.Context, params UpdateNetworkParams)
 		ID:           *pgxptr.PtrToPgtype(&pgtype.Int8{}, params.ID),
 		InstanceID:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.InstanceID),
 		PrivateIp:    *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PrivateIP),
+		MacAddress:   *pgxptr.PtrToPgtype(&pgtype.Text{}, params.MacAddress),
 		PublicIp:     *pgxptr.PtrToPgtype(&pgtype.Text{}, params.PublicIP),
 		NullPublicIp: params.NullPublicIP,
 	})
@@ -111,6 +132,7 @@ func (r *Storage) UpdateNetwork(ctx context.Context, params UpdateNetworkParams)
 		ID:         row.ID,
 		InstanceID: row.InstanceID,
 		PrivateIP:  row.PrivateIp,
+		MacAddress: row.MacAddress,
 		PublicIP:   pgxptr.PgtypeToPtr[string](row.PublicIp),
 	}, nil
 }
