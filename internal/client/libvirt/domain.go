@@ -26,6 +26,51 @@ type OS struct {
 	Arch string `json:"arch"`
 }
 
+type Status string
+
+const (
+	StatusUnknown Status = "STATUS_UNKNOWN"
+	StatusPending Status = "STATUS_PENDING"
+	StatusRunning Status = "STATUS_RUNNING"
+	StatusStopped Status = "STATUS_STOPPED"
+	StatusError   Status = "STATUS_ERROR"
+)
+
+func ToStatus(state libvirt.DomainState) Status {
+	status := StatusUnknown
+
+	switch state {
+	case libvirt.DOMAIN_RUNNING:
+		status = StatusRunning
+	case libvirt.DOMAIN_SHUTOFF:
+		status = StatusStopped
+	case libvirt.DOMAIN_SHUTDOWN:
+		status = StatusPending // VM is being shut down
+	case libvirt.DOMAIN_PAUSED, libvirt.DOMAIN_PMSUSPENDED:
+		status = StatusStopped // Treated as "stopped" since VM is not actively running
+	case libvirt.DOMAIN_BLOCKED:
+		status = StatusPending // VM is waiting on a resource
+	case libvirt.DOMAIN_CRASHED:
+		status = StatusError // VM crashed unexpectedly
+	case libvirt.DOMAIN_NOSTATE:
+		status = StatusUnknown
+	default:
+		status = StatusUnknown
+	}
+
+	return status
+}
+
+type DomainMonitor struct {
+	ID           string
+	Status       Status
+	CPUUsage     float64 // in percentage
+	RAMUsage     float64 // in MB
+	StorageUsage float64 // in MB
+	NetworkIn    float64 // in MB
+	NetworkOut   float64 // in MB
+}
+
 type Domain struct {
 	ID      string
 	Name    string
@@ -33,6 +78,7 @@ type Domain struct {
 	Cpu     Cpu
 	OS      OS
 	Storage uint
+	Network DomainNetwork
 }
 
 func (d Domain) CloudinitFileName() string {
@@ -59,6 +105,10 @@ func (d Domain) BaseImagePath() string {
 	return path.Join(config.GetConfig().App.BaseImageDir, d.BaseFileName())
 }
 
+type DomainNetwork struct {
+	MacAddress string
+}
+
 // func FromVMToDomain(vm model.VM) Domain {
 // 	return Domain{
 // 		ID:   vm.ID,
@@ -78,6 +128,15 @@ func (d Domain) BaseImagePath() string {
 // 		Storage: uint(vm.Storage),
 // 	}
 // }
+
+func GenerateMacAddress() string {
+	mac, err := generateRandomMAC()
+	if err != nil {
+		return ""
+	}
+
+	return mac
+}
 
 func FromLibvirtToDomain(domain libvirt.Domain) (Domain, error) {
 	domainID, _ := domain.GetUUIDString()
@@ -110,6 +169,9 @@ func FromLibvirtToDomain(domain libvirt.Domain) (Domain, error) {
 			Type: osType,
 			Arch: domainXML.OS.Type.Arch,
 		},
+		Network: DomainNetwork{
+			MacAddress: domainXML.Devices.Interfaces[0].MAC.Address,
+		},
 	}, nil
 }
 
@@ -121,9 +183,14 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 		return nil, fmt.Errorf("image or cloudinit file not found")
 	}
 
-	mac, err := generateRandomMAC()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate random MAC address: %v", err)
+	var err error
+	mac := domain.Network.MacAddress
+
+	if domain.Network.MacAddress == "" {
+		mac, err = generateRandomMAC()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate random MAC address: %v", err)
+		}
 	}
 
 	domainXML := &libvirtxml.Domain{
@@ -161,6 +228,12 @@ func getXMLConfig(domain Domain) (*libvirtxml.Domain, error) {
 		OnReboot:   "destroy",
 		OnCrash:    "destroy",
 		Devices: &libvirtxml.DomainDeviceList{
+			MemBalloon: &libvirtxml.DomainMemBalloon{
+				Model: "virtio",
+				Stats: &libvirtxml.DomainMemBalloonStats{
+					Period: 2, // poll every 2 seconds
+				},
+			},
 			Disks: []libvirtxml.DomainDisk{
 				{
 					Device: "disk",
