@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
+	"time"
 
 	"github.com/wagecloud/wagecloud-server/internal/logger"
 	"github.com/wagecloud/wagecloud-server/internal/utils/saga"
@@ -26,6 +28,7 @@ type Client interface {
 
 	// DOMAIN
 	GetDomain(ctx context.Context, domainID string) (Domain, error)
+	GetDomainMonitor(ctx context.Context, domainID string) (DomainMonitor, error)
 	ListDomains(ctx context.Context, params ListDomainsParams) ([]Domain, error)
 	CreateDomain(ctx context.Context, domain Domain) error
 	UpdateDomain(ctx context.Context, domainID string, params UpdateDomainParams) error
@@ -114,6 +117,134 @@ func (s *ClientImpl) GetDomain(ctx context.Context, domainID string) (Domain, er
 	}
 
 	return FromLibvirtToDomain(*domain)
+}
+
+func (s *ClientImpl) GetDomainMonitor(ctx context.Context, domainID string) (DomainMonitor, error) {
+	conn, err := s.getConnect()
+	if err != nil {
+		return DomainMonitor{}, err
+	}
+
+	libDomain, err := conn.LookupDomainByUUIDString(domainID)
+	if err != nil {
+		return DomainMonitor{}, fmt.Errorf("failed to lookup domain by ID %s: %v", domainID, err)
+	}
+	defer libDomain.Free()
+
+	// Get domain state
+	state, _, err := libDomain.GetState()
+	if err != nil {
+		return DomainMonitor{}, fmt.Errorf("failed to get domain state: %v", err)
+	}
+
+	status := ToStatus(state)
+
+	// Network stats
+	// TODO: double check the list all interface address if it return more than two ifaces?
+	// Get interface list once
+	interfaces, _ := libDomain.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_ARP)
+
+	// First measurement
+	var rx1, tx1 float64
+	var rx2, tx2 float64
+
+	var cpuUsagePercent float64
+
+	if status == StatusPending || status == StatusRunning {
+		for _, iface := range interfaces {
+			stats, err := libDomain.InterfaceStats(iface.Name)
+			if err == nil {
+				rx1 += float64(stats.RxBytes) / (1024 * 1024)
+				tx1 += float64(stats.TxBytes) / (1024 * 1024)
+			}
+		}
+
+		// CPU stats
+		// Sample 1
+		startTime := time.Now()
+		info, _ := libDomain.GetInfo()
+
+		startStats, _ := libDomain.GetCPUStats(-1, 1, 0)
+		startCpuTime := startStats[0].CpuTime
+
+		// Wait some interval
+		time.Sleep(1 * time.Second)
+
+		// Sample 2
+		endTime := time.Now()
+		endStats, _ := libDomain.GetCPUStats(-1, 1, 0)
+		endCpuTime := endStats[0].CpuTime
+
+		// CPU usage calculation
+		elapsed := endTime.Sub(startTime).Nanoseconds()
+		used := endCpuTime - startCpuTime
+
+		// Number of logical CPUs (can be retrieved from host or domain info)
+		numCPUs := info.NrVirtCpu
+		// or libDomain.GetInfo().NrVirtCpu
+
+		cpuUsagePercent = float64(used) / float64(elapsed*int64(numCPUs)) * 100
+
+		// Second measurement - use SAME interface list
+
+		for _, iface := range interfaces {
+			stats, err := libDomain.InterfaceStats(iface.Name)
+			if err == nil {
+				rx2 += float64(stats.RxBytes) / (1024 * 1024)
+				tx2 += float64(stats.TxBytes) / (1024 * 1024)
+			}
+		}
+	}
+
+	// Memory stats
+	memStats, err := libDomain.MemoryStats(13, 0)
+	if err != nil {
+		return DomainMonitor{}, fmt.Errorf("failed to get memory stats: %v", err)
+	}
+
+	// js, _ := json.Marshal(memStats)
+	// fmt.Println("Memory Stats:", string(js))
+
+	var availableMemory, unusedMemory uint64
+	for _, stat := range memStats {
+		if stat.Tag == int32(libvirt.DOMAIN_MEMORY_STAT_ACTUAL_BALLOON) {
+			availableMemory = stat.Val // Total usable memory in KB
+		}
+		if stat.Tag == int32(libvirt.DOMAIN_MEMORY_STAT_USABLE) {
+			unusedMemory = stat.Val // Actually used memory in KB
+		}
+	}
+
+	// Calculate current memory consumption
+	// var ramUsagePercent float64
+	var ramUsageMB float64
+
+	if availableMemory > 0 {
+		ramUsageMB = float64(availableMemory-unusedMemory) / 1024
+		// ramUsagePercent = (float64(availableMemory-unusedMemory) / float64(availableMemory)) * 100
+	}
+
+	// fmt.Printf("Memory Usage: %.2f MB (%.2f%%)\n", ramUsageMB, ramUsagePercent)
+
+	// Block (disk) stats
+	blockStats, err := libDomain.GetBlockInfo("vda", 0)
+	var storageUsed float64
+	if err == nil {
+		storageUsed = float64(blockStats.Allocation) / (1024 * 1024) // Convert to MB
+	}
+
+	// Calculate throughput (MB/s)
+	rxSpeed := math.Abs(rx2 - rx1) // MB/s over 1 second
+	txSpeed := math.Abs(tx2 - tx1) // MB/s over 1 second
+	return DomainMonitor{
+		ID:           domainID,
+		Status:       status,
+		CPUUsage:     cpuUsagePercent,
+		RAMUsage:     ramUsageMB,
+		StorageUsage: storageUsed,
+		NetworkIn:    rxSpeed,
+		NetworkOut:   txSpeed,
+	}, nil
 }
 
 type ListDomainsParams struct {
