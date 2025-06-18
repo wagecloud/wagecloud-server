@@ -35,8 +35,8 @@ type InstanceMonitor struct {
 	ID           string  `json:"id"`
 	Status       Status  `json:"status"`
 	CPUUsage     float64 `json:"cpu_usage"`     // in percentage
-	RAMUsage     float64 `json:"ram_usage"`     // in percentage
-	StorageUsage float64 `json:"storage_usage"` // in percentage
+	RAMUsage     float64 `json:"ram_usage"`     // in MB
+	StorageUsage float64 `json:"storage_usage"` // in MB
 	NetworkIn    float64 `json:"network_in"`    // in MB
 	NetworkOut   float64 `json:"network_out"`   // in MB
 }
@@ -45,6 +45,7 @@ type Network struct {
 	ID         int64   `json:"id"`
 	InstanceID string  `json:"instance_id"`
 	PrivateIP  string  `json:"private_ip"`
+	MacAddress string  `json:"mac_address,omitempty"`
 	PublicIP   *string `json:"public_ip"`
 }
 
