@@ -1,0 +1,1182 @@
+{
+  "info": {
+    "_postman_id": "6255b2d4-ba57-4dd2-867f-964e5a174710",
+    "name": "wagecloud",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "34158645",
+    "_collection_link": "https://lively-crater-239797.postman.co/workspace/safe-trade~2d8fbe46-3fde-4ebc-9732-3789a9f6341f/collection/34158645-6255b2d4-ba57-4dd2-867f-964e5a174710?action=share&source=collection_link&creator=34158645"
+  },
+  "item": [
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/account",
+              "host": ["{{API_URL}}"],
+              "path": ["account"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "username",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "email",
+                  "value": "khoakomlem@gmail.com",
+                  "disabled": true
+                },
+                {
+                  "key": "phone",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": null,\r\n    \"username\": \"khoakomlem\",\r\n    \"email\": null,\r\n    \"phone\": null,\r\n    \"password\": \"khoakomlem\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/account/login",
+              "host": ["{{API_URL}}"],
+              "path": ["account", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"first_name\": \"Khoa\",\r\n    \"last_name\": \"Bean\",\r\n    \"username\": \"khoakomlem\",\r\n    \"password\": \"khoakomlem\",\r\n    \"email\": \"khoakomlem@gmail.com\",\r\n    \"phone\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/account/register",
+              "host": ["{{API_URL}}"],
+              "path": ["account", "register"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Instance",
+      "item": [
+        {
+          "name": "Domain",
+          "item": [
+            {
+              "name": "Get Domain",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/domain/1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["domain", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Domains",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/domain",
+                  "host": ["{{API_URL}}"],
+                  "path": ["domain"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "network_id",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "name",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Domain",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"network_id\": 1,\r\n    \"name\": \"example.com\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/domain",
+                  "host": ["{{API_URL}}"],
+                  "path": ["domain"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Domain",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"name\": \"newexample.com\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/domain/1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["domain", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Domain",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/domain/1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["domain", "1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Instance Log",
+          "item": [
+            {
+              "name": "Get Instance Log",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/instance/log/1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["instance", "log", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Instance Logs",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/instance/log",
+                  "host": ["{{API_URL}}"],
+                  "path": ["instance", "log"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "instance_id",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "type",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "title",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "description",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "created_at_from",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "created_at_to",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Instance Log",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"instance_id\": \"instance123\",\r\n    \"type\": \"INFO\",\r\n    \"title\": \"Instance Created\",\r\n    \"description\": \"Instance was successfully created\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/instance/log",
+                  "host": ["{{API_URL}}"],
+                  "path": ["instance", "log"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Instance Log",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"type\": \"ERROR\",\r\n    \"title\": \"Instance Error\",\r\n    \"description\": \"Instance encountered an error\",\r\n    \"null_description\": false\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/instance/log/1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["instance", "log", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Instance Log",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/instance/log/1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["instance", "log", "1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Network",
+          "item": [
+            {
+              "name": "Get Network",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/network/1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["network", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Networks",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/network",
+                  "host": ["{{API_URL}}"],
+                  "path": ["network"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "id",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "private_ip",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "public_ip",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Map Port Nginx",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"vm_ip\": \"192.168.122.192\",\r\n    \"external_port\": 2345,\r\n    \"internal_port\": 22,\r\n    \"type\": \"stream\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/instance/network/map",
+                  "host": ["{{API_URL}}"],
+                  "path": ["instance", "network", "map"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unmap Port Nginx",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"external_port\": 2345,\r\n    \"type\": \"stream\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/instance/network/unmap",
+                  "host": ["{{API_URL}}"],
+                  "path": ["instance", "network", "unmap"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Region",
+          "item": [
+            {
+              "name": "Get Region",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/region/us-east-1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["region", "us-east-1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Regions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/region",
+                  "host": ["{{API_URL}}"],
+                  "path": ["region"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "id",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "name",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Region",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"id\": \"us-east-1\",\r\n    \"name\": \"US East (N. Virginia)\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/region",
+                  "host": ["{{API_URL}}"],
+                  "path": ["region"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Region",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"new_id\": \"us-east-2\",\r\n    \"name\": \"US East (Ohio)\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/region/us-east-1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["region", "us-east-1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Region",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/region/us-east-1",
+                  "host": ["{{API_URL}}"],
+                  "path": ["region", "us-east-1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get Instance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/instance/2e0a1405-3cce-4146-abd2-818b878d0d66",
+              "host": ["{{API_URL}}"],
+              "path": ["instance", "2e0a1405-3cce-4146-abd2-818b878d0d66"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Instances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/instance",
+              "host": ["{{API_URL}}"],
+              "path": ["instance"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "network_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "os_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "arch_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "region_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "cpu_from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "cpu_to",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "ram_from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "ram_to",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "storage_from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "storage_to",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "created_at_from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "created_at_to",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Instance",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"basic\": {\r\n        \"name\": \"khoakomlem\",\r\n        \"hostname\": \"khoakomlem\",\r\n        \"os_id\": \"ubuntu\",\r\n        \"arch_id\": \"x86_64\"\r\n    },\r\n    \"resources\": {\r\n        \"memory\": 2048,\r\n        \"cpu\": 1,\r\n        \"storage\": 10\r\n    },\r\n    \"security\": {\r\n        \"password\": \"visualc++\",\r\n        \"ssh-authorized-keys\": []\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/instance",
+              "host": ["{{API_URL}}"],
+              "path": ["instance"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Instance",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"network_id\": \"network1\",\r\n    \"os_id\": \"ubuntu\",\r\n    \"arch_id\": \"x86_64\",\r\n    \"name\": \"trietdeptrai\",\r\n    \"cpu\": 2,\r\n    \"ram\": 4096,\r\n    \"storage\": 20\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/instance/2e0a1405-3cce-4146-abd2-818b878d0d66",
+              "host": ["{{API_URL}}"],
+              "path": ["instance", "2e0a1405-3cce-4146-abd2-818b878d0d66"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Instance",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/instance/b87bca1f-68bc-438e-ab3f-55e50eac07c6",
+              "host": ["{{API_URL}}"],
+              "path": ["instance", "b87bca1f-68bc-438e-ab3f-55e50eac07c6"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Start Instance",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/instance/start/f85ba280-c3f5-474a-bc2d-c4d7e4767bad",
+              "host": ["{{API_URL}}"],
+              "path": [
+                "instance",
+                "start",
+                "f85ba280-c3f5-474a-bc2d-c4d7e4767bad"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stop Instance",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/instance/stop/334726e9-2387-406a-a7aa-518423f0818c",
+              "host": ["{{API_URL}}"],
+              "path": [
+                "instance",
+                "stop",
+                "334726e9-2387-406a-a7aa-518423f0818c"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OS",
+      "item": [
+        {
+          "name": "Arch",
+          "item": [
+            {
+              "name": "Get Arch",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/arch/amd64",
+                  "host": ["{{API_URL}}"],
+                  "path": ["arch", "amd64"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Archs",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/os/arch",
+                  "host": ["{{API_URL}}"],
+                  "path": ["os", "arch"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "id",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "name",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "created_at_from",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "created_at_to",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Arch",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"id\": \"x86_64\",\r\n    \"name\": \"x86_64\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/os/arch",
+                  "host": ["{{API_URL}}"],
+                  "path": ["os", "arch"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Arch",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"new_id\": \"amd64\",\r\n    \"name\": \"AMD64\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{API_URL}}/arch/x86_64",
+                  "host": ["{{API_URL}}"],
+                  "path": ["arch", "x86_64"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Arch",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{API_URL}}/arch/amd64",
+                  "host": ["{{API_URL}}"],
+                  "path": ["arch", "amd64"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get OS",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/os/ubuntu",
+              "host": ["{{API_URL}}"],
+              "path": ["os", "ubuntu"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List OSs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/os",
+              "host": ["{{API_URL}}"],
+              "path": ["os"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "created_at_from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "created_at_to",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create OS",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": \"ubuntu\",\r\n    \"name\": \"Ubuntu\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/os",
+              "host": ["{{API_URL}}"],
+              "path": ["os"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update OS",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"new_id\": \"ubuntu\",\r\n    \"name\": \"Ubuntu\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/os/ubuntu2",
+              "host": ["{{API_URL}}"],
+              "path": ["os", "ubuntu2"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete OS",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/os/ubuntu2",
+              "host": ["{{API_URL}}"],
+              "path": ["os", "ubuntu2"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "Get Payment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/payment/1",
+              "host": ["{{API_URL}}"],
+              "path": ["payment", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/payment",
+              "host": ["{{API_URL}}"],
+              "path": ["payment"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "account_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "method",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "date_created_from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "date_created_to",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"method\": \"VNPAY\",\r\n    \"status\": \"COMPLETED\",\r\n    \"total\": 1000000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/payment/1",
+              "host": ["{{API_URL}}"],
+              "path": ["payment", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{API_URL}}/payment/1",
+              "host": ["{{API_URL}}"],
+              "path": ["payment", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "VNPAY IPN",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/payment/vnpay/?vnp_Amount=25231300&vnp_BankCode=NCB&vnp_BankTranNo=VNP14980210&vnp_CardType=ATM&vnp_OrderInfo=Payment+for+order+3006&vnp_PayDate=20250526164303&vnp_ResponseCode=00&vnp_TmnCode=5LEX1T18&vnp_TransactionNo=14980210&vnp_TransactionStatus=00&vnp_TxnRef=2&vnp_SecureHash=363fb68d4b2bfa358d553fadf2aa78c86c67857dbbf4d36f6df68ee987c70f8456db8c812b9a21a3c7ddac45fa7d2532cf33cf5e8af81a73babf4ee1de03f4ae",
+              "host": ["{{API_URL}}"],
+              "path": ["payment", "vnpay", ""],
+              "query": [
+                {
+                  "key": "vnp_Amount",
+                  "value": "25231300"
+                },
+                {
+                  "key": "vnp_BankCode",
+                  "value": "NCB"
+                },
+                {
+                  "key": "vnp_BankTranNo",
+                  "value": "VNP14980210"
+                },
+                {
+                  "key": "vnp_CardType",
+                  "value": "ATM"
+                },
+                {
+                  "key": "vnp_OrderInfo",
+                  "value": "Payment+for+order+3006"
+                },
+                {
+                  "key": "vnp_PayDate",
+                  "value": "20250526164303"
+                },
+                {
+                  "key": "vnp_ResponseCode",
+                  "value": "00"
+                },
+                {
+                  "key": "vnp_TmnCode",
+                  "value": "5LEX1T18"
+                },
+                {
+                  "key": "vnp_TransactionNo",
+                  "value": "14980210"
+                },
+                {
+                  "key": "vnp_TransactionStatus",
+                  "value": "00"
+                },
+                {
+                  "key": "vnp_TxnRef",
+                  "value": "2"
+                },
+                {
+                  "key": "vnp_SecureHash",
+                  "value": "363fb68d4b2bfa358d553fadf2aa78c86c67857dbbf4d36f6df68ee987c70f8456db8c812b9a21a3c7ddac45fa7d2532cf33cf5e8af81a73babf4ee1de03f4ae"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "API_URL",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "TOKEN",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
