@@ -44,6 +44,24 @@ func (h *EchoHandler) GetInstance(c echo.Context) error {
 	return response.FromDTO(c.Response().Writer, http.StatusOK, instance)
 }
 
+func (h *EchoHandler) GetInstanceMonitor(c echo.Context) error {
+	var req GetInstanceRequest
+	if err := c.Bind(&req); err != nil {
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return response.FromError(c.Response().Writer, http.StatusBadRequest, err)
+	}
+
+	monitor, err := h.service.GetInstanceMonitor(c.Request().Context(), req.ID)
+	if err != nil {
+		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
+	}
+
+	return response.FromDTO(c.Response().Writer, http.StatusOK, monitor)
+}
+
 type ListInstancesRequest struct {
 	Page          int32   `query:"page" validate:"min=1"`
 	Limit         int32   `query:"limit" validate:"min=5,max=100"`
@@ -109,6 +127,7 @@ type CreateInstanceRequest struct {
 		Hostname string `json:"hostname"`
 		OsID     string `json:"os_id"`
 		ArchID   string `json:"arch_id"`
+		RegionID string `json:"region_id"`
 	} `json:"basic"`
 	Resources struct {
 		Memory  int32 `json:"memory"`
@@ -145,6 +164,7 @@ func (h *EchoHandler) CreateInstance(c echo.Context) error {
 			LocalHostname:     req.Basic.Hostname,
 			OsID:              req.Basic.OsID,
 			ArchID:            req.Basic.ArchID,
+			RegionID:          req.Basic.RegionID,
 			Memory:            req.Resources.Memory,
 			Cpu:               req.Resources.Cpu,
 			Storage:           req.Resources.Storage,
