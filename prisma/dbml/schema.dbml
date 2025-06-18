@@ -37,6 +37,7 @@ Table Network {
   id BigInt [pk, increment]
   instance_id String [unique, not null]
   private_ip String [not null]
+  mac_address String [not null]
   public_ip String
 }
 

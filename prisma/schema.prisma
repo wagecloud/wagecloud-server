@@ -88,6 +88,7 @@ model Network {
   id          BigInt  @id @default(autoincrement())
   instance_id String  @unique
   private_ip  String
+  mac_address String
   public_ip   String?
 
   Instance Instance @relation(fields: [instance_id], references: [id], onUpdate: Cascade, onDelete: Cascade)

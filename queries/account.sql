@@ -4,10 +4,10 @@ FROM "account"."base" b
 LEFT JOIN "account"."user" u ON b.id = u.id
 WHERE (
   (b.type = sqlc.arg('type')) AND
-  (b.id = sqlc.narg('id') OR sqlc.narg('id') IS NULL) AND
-  (b.username = sqlc.narg('username') OR sqlc.narg('username') IS NULL) AND
-  (u.email = sqlc.narg('email') OR sqlc.narg('email') IS NULL) AND
-  (u.phone = sqlc.narg('phone') OR sqlc.narg('phone') IS NULL)
+  (b.id = sqlc.narg('id') OR
+  b.username = sqlc.narg('username') OR
+  u.email = sqlc.narg('email') OR
+  u.phone = sqlc.narg('phone'))
 );
 
 -- name: CountAccounts :one

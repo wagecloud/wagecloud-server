@@ -67,6 +67,7 @@ CREATE TABLE "instance"."network" (
     "id" BIGSERIAL NOT NULL,
     "instance_id" TEXT NOT NULL,
     "private_ip" TEXT NOT NULL,
+    "mac_address" TEXT NOT NULL,
     "public_ip" TEXT,
 
     CONSTRAINT "network_pkey" PRIMARY KEY ("id")

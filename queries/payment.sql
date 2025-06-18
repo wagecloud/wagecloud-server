@@ -4,22 +4,20 @@ FROM "payment"."base" p
 WHERE p.id = $1;
 
 -- name: CountPayments :one
-SELECT COUNT(id)
-FROM "payment"."base"
+SELECT COUNT(p.id)
+FROM "payment"."base" p
 WHERE (
-  (id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
-  (account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL) AND
-  (method = sqlc.narg('method') OR sqlc.narg('method') IS NULL) AND
-  (status = sqlc.narg('status') OR sqlc.narg('status') IS NULL) AND
-  (date_created >= sqlc.narg('date_created_from') OR sqlc.narg('date_created_from') IS NULL) AND
-  (date_created <= sqlc.narg('date_created_to') OR sqlc.narg('date_created_to') IS NULL)
+  (p.account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL) AND
+  (p.method = sqlc.narg('method') OR sqlc.narg('method') IS NULL) AND
+  (p.status = sqlc.narg('status') OR sqlc.narg('status') IS NULL) AND
+  (p.date_created >= sqlc.narg('date_created_from') OR sqlc.narg('date_created_from') IS NULL) AND
+  (p.date_created <= sqlc.narg('date_created_to') OR sqlc.narg('date_created_to') IS NULL)
 );
 
 -- name: ListPayments :many
 SELECT p.*
 FROM "payment"."base" p
 WHERE (
-  (p.id ILIKE '%' || sqlc.narg('id') || '%' OR sqlc.narg('id') IS NULL) AND
   (p.account_id = sqlc.narg('account_id') OR sqlc.narg('account_id') IS NULL) AND
   (p.method = sqlc.narg('method') OR sqlc.narg('method') IS NULL) AND
   (p.status = sqlc.narg('status') OR sqlc.narg('status') IS NULL) AND
