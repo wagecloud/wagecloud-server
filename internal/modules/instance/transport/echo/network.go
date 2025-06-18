@@ -68,7 +68,8 @@ func (h *EchoHandler) UnmapPortNginx(c echo.Context) error {
 }
 
 type GetNetworkRequest struct {
-	ID int64 `param:"id" validate:"required,min=1,max=255"`
+	ID         *int64  `param:"id" validate:"omitempty,min=1"`
+	InstanceID *string `query:"instance_id" validate:"omitempty,min=1,max=255"`
 }
 
 func (h *EchoHandler) GetNetwork(c echo.Context) error {
@@ -82,7 +83,8 @@ func (h *EchoHandler) GetNetwork(c echo.Context) error {
 	}
 
 	network, err := h.service.GetNetwork(c.Request().Context(), instancesvc.GetNetworkParams{
-		ID: req.ID,
+		ID:         req.ID,
+		InstanceID: req.InstanceID,
 	})
 	if err != nil {
 		return response.FromError(c.Response().Writer, http.StatusInternalServerError, err)
